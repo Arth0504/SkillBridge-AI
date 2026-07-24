@@ -21,7 +21,7 @@ const runCandidateDashboardTests = async () => {
   console.log('=====================================================');
 
   try {
-    const mongoUri = process.env.TEST_MONGODB_URI || 'mongodb://127.0.0.1:27017/skillbridge_phase8_test';
+    const mongoUri = process.env.MONGODB_URI_TEST || 'mongodb://127.0.0.1:27017/skillbridge_test';
     console.log(`Connecting to MongoDB at: ${mongoUri}`);
     await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
     console.log('✅ Connected to MongoDB successfully.');

@@ -1,20 +1,35 @@
-# Step 1: Use official lightweight Node.js 20 Alpine base image
-FROM node:20-alpine AS base
+# ---------------------------------------------------
+# Stage 1: Build & Dependencies
+# ---------------------------------------------------
+FROM node:20-alpine AS builder
 
-# Step 2: Set working directory inside container
 WORKDIR /app
 
-# Step 3: Copy package definition files
+# Copy package manifests
 COPY package*.json ./
 
-# Step 4: Install production dependencies cleanly
+# Install production dependencies only
 RUN npm ci --only=production
 
-# Step 5: Copy application source code
+# ---------------------------------------------------
+# Stage 2: Production Runtime
+# ---------------------------------------------------
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=5000
+
+# Copy node_modules from builder
+COPY --from=builder /app/node_modules ./node_modules
 COPY . .
 
-# Step 6: Expose application port
+# Expose backend port
 EXPOSE 5000
 
-# Step 7: Define default start command
+# Non-root security user
+USER node
+
+# Start Node.js Express server
 CMD ["node", "server.js"]

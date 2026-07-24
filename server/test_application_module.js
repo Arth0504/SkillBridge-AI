@@ -16,7 +16,7 @@ const runTests = async () => {
 
   try {
     // 1. Connect to Local MongoDB for instant reliable testing
-    const mongoUri = process.env.TEST_MONGODB_URI || 'mongodb://127.0.0.1:27017/skillbridge_phase4_test';
+    const mongoUri = process.env.MONGODB_URI_TEST || 'mongodb://127.0.0.1:27017/skillbridge_test';
     console.log(`Connecting to MongoDB at: ${mongoUri}`);
     await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
     console.log('✅ Connected to MongoDB successfully.');

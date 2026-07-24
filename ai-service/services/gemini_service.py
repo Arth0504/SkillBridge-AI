@@ -21,7 +21,7 @@ class GeminiService:
                 import google.generativeai as genai
                 genai.configure(api_key=self.api_key)
                 self.model = genai.GenerativeModel("gemini-1.5-flash")
-                print("✅ Gemini API initialized successfully.")
+                print("Gemini API initialized successfully.")
             except Exception as e:
                 print(f"⚠️ Gemini API Init Warning: {e}")
 

@@ -5,6 +5,9 @@ import { logger } from './utils/logger.js';
 import app from './app.js';
 import { initSocketServer } from './sockets/notification.socket.js';
 
+import { initRedis } from './config/redis.js';
+import { setupGracefulShutdown } from './utils/gracefulShutdown.js';
+
 // Catch Uncaught Exceptions
 process.on('uncaughtException', (err) => {
   logger.error(`UNCAUGHT EXCEPTION! 💥 Shutting down... ${err.name}: ${err.message}`);
@@ -13,31 +16,25 @@ process.on('uncaughtException', (err) => {
 });
 
 const startServer = async () => {
-  // 1. Connect to MongoDB Atlas
+  // 1. Connect to MongoDB
   await connectDB();
 
-  // 2. Create HTTP Server & Initialize Socket.IO
-  const httpServer = http.createServer(app);
-  initSocketServer(httpServer);
+  // 2. Initialize optional Redis Cache (silent fallback if offline)
+  await initRedis();
 
-  // 3. Start Listening
+  // 3. Create HTTP Server & Initialize Socket.IO Gateway
+  const httpServer = http.createServer(app);
+  const io = initSocketServer(httpServer);
+
+  // 4. Start Listening
   const server = httpServer.listen(env.PORT, () => {
     logger.info(
       `🚀 SkillBridge AI Server & Socket.IO Gateway running in [${env.NODE_ENV}] mode on port ${env.PORT}`
     );
   });
 
-  // Graceful Shutdown Handler
-  const gracefulShutdown = (signal) => {
-    logger.info(`Received ${signal}. Shutting down gracefully...`);
-    server.close(() => {
-      logger.info('HTTP server closed cleanly.');
-      process.exit(0);
-    });
-  };
-
-  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  // Attach Graceful Shutdown Handlers (SIGINT, SIGTERM)
+  setupGracefulShutdown(server, io);
 
   // Catch Unhandled Promise Rejections
   process.on('unhandledRejection', (reason) => {

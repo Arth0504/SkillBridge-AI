@@ -1,0 +1,230 @@
+{
+  "info": {
+    "_postman_id": "b1a2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "SkillBridge AI Enterprise API Collection v1.0",
+    "description": "Complete Production Enterprise Postman Collection for SkillBridge AI Backend APIs including Auth, Candidate, Company, Jobs, Applications, Dashboard, Notifications, Interviews, Saved Jobs, AI Resume Analyzer, AI Mock Interview, AI Coding Assessment, and AI Video Interview.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Candidate Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Marcus Vance\",\n  \"email\": \"marcus@gmail.com\",\n  \"password\": \"Password123!\",\n  \"phone\": \"+1 555-0199\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/candidate/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "candidate", "register"]
+            }
+          }
+        },
+        {
+          "name": "Candidate Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"marcus@gmail.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/candidate/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "candidate", "login"]
+            }
+          }
+        },
+        {
+          "name": "Company Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"DataScale Systems\",\n  \"email\": \"hiring@datascale.io\",\n  \"password\": \"Password123!\",\n  \"website\": \"https://datascale.io\",\n  \"industry\": \"Cloud Computing\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/company/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "company", "register"]
+            }
+          }
+        },
+        {
+          "name": "Company Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hiring@datascale.io\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/company/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "company", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs System",
+      "item": [
+        {
+          "name": "Search Jobs Public",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/jobs?search=Backend&workMode=Remote",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "jobs"],
+              "query": [
+                { "key": "search", "value": "Backend" },
+                { "key": "workMode", "value": "Remote" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Job (Company)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{companyToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Node.js Developer\",\n  \"department\": \"Engineering\",\n  \"description\": \"Build high performance backend microservices.\",\n  \"requiredSkills\": [\"Node.js\", \"MongoDB\", \"Redis\"],\n  \"experienceLevel\": \"senior\",\n  \"employmentType\": \"Full Time\",\n  \"workMode\": \"Remote\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/company/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "company", "jobs"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Resume Analyzer",
+      "item": [
+        {
+          "name": "Analyze Resume (ATS & Job Match)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{candidateToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": \"{{jobId}}\",\n  \"rawResumeText\": \"DAVID STERLING\\nSenior Backend Engineer\\nExperience with Node.js, Express, MongoDB, Redis, Docker.\\nEngineered REST APIs handling 100K+ daily requests.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/candidate/resume/analyze",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "candidate", "resume", "analyze"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Mock Interview",
+      "item": [
+        {
+          "name": "Start AI Mock Interview Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{candidateToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"interviewType\": \"Technical\",\n  \"difficulty\": \"Medium\",\n  \"totalQuestions\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/candidate/ai-interview/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "candidate", "ai-interview", "start"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Coding Assessment",
+      "item": [
+        {
+          "name": "Start AI Coding Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{candidateToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"language\": \"Python\",\n  \"difficulty\": \"Medium\",\n  \"questionType\": \"Coding Challenge\",\n  \"totalQuestions\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/candidate/ai-coding/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "candidate", "ai-coding", "start"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Video Interview",
+      "item": [
+        {
+          "name": "Start AI Video Interview",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{candidateToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"jobId\": \"{{jobId}}\",\n  \"title\": \"Asynchronous Senior Lead Interview\",\n  \"interviewType\": \"Technical\",\n  \"totalQuestions\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/candidate/video-interview/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "candidate", "video-interview", "start"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "candidateToken", "value": "" },
+    { "key": "companyToken", "value": "" },
+    { "key": "jobId", "value": "" },
+    { "key": "companyId", "value": "" }
+  ]
+}

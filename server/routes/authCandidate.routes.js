@@ -14,16 +14,17 @@ import {
   validateCandidateLogin,
 } from '../validations/authCandidate.validation.js';
 import { protect, restrictTo } from '../middleware/auth.middleware.js';
+import { authLimiter } from '../middleware/security.middleware.js';
 import { ROLES } from '../config/constants.js';
 
 const router = express.Router();
 
-router.post('/register', validateCandidateRegister, registerCandidate);
-router.post('/login', validateCandidateLogin, loginCandidate);
+router.post('/register', authLimiter, validateCandidateRegister, registerCandidate);
+router.post('/login', authLimiter, validateCandidateLogin, loginCandidate);
 router.post('/verify-email', verifyEmailCandidate);
-router.post('/forgot-password', forgotPasswordCandidate);
-router.post('/reset-password/:token', resetPasswordCandidate);
-router.post('/refresh-token', refreshTokenCandidate);
+router.post('/forgot-password', authLimiter, forgotPasswordCandidate);
+router.post('/reset-password/:token', authLimiter, resetPasswordCandidate);
+router.post('/refresh-token', authLimiter, refreshTokenCandidate);
 
 // Protected routes
 router.use(protect);

@@ -88,6 +88,14 @@ const candidateSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
+    },
     refreshTokens: {
       type: [String],
       default: [],
@@ -110,6 +118,38 @@ candidateSchema.pre('save', async function (next) {
 // Compare password method
 candidateSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Account Lockout check method (5 failed attempts locks for 15 minutes)
+candidateSchema.methods.isLocked = function () {
+  return !!(this.lockUntil && this.lockUntil > Date.now());
+};
+
+// Increment failed login attempts
+candidateSchema.methods.incFailedLoginAttempts = async function () {
+  // If lock expired, reset counter
+  if (this.lockUntil && this.lockUntil < Date.now()) {
+    return await this.updateOne({
+      $set: { failedLoginAttempts: 1 },
+      $unset: { lockUntil: 1 },
+    });
+  }
+
+  const updates = { $inc: { failedLoginAttempts: 1 } };
+  // Lock account if failed attempts reach 5
+  if (this.failedLoginAttempts + 1 >= 5 && !this.isLocked()) {
+    updates.$set = { lockUntil: new Date(Date.now() + 15 * 60 * 1000) }; // 15 min lock
+  }
+
+  return await this.updateOne(updates);
+};
+
+// Reset failed login attempts on successful login
+candidateSchema.methods.resetFailedLoginAttempts = async function () {
+  return await this.updateOne({
+    $set: { failedLoginAttempts: 0 },
+    $unset: { lockUntil: 1 },
+  });
 };
 
 export const Candidate = mongoose.model('Candidate', candidateSchema);

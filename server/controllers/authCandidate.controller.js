@@ -9,6 +9,8 @@ import { hashToken, generateRandomToken } from '../utils/hashToken.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import { env } from '../config/env.js';
 import { ROLES } from '../config/constants.js';
+import { getIpAddress, setAuthCookies, clearAuthCookies } from '../utils/securityUtils.js';
+import { logSecurityEvent, createSessionService, rotateSessionService, revokeAllUserSessionsService } from '../services/securityAudit.service.js';
 
 /**
  * Register Candidate
@@ -84,32 +86,85 @@ export const registerCandidate = asyncHandler(async (req, res, next) => {
  */
 export const loginCandidate = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
+  const ipAddress = getIpAddress(req);
+  const userAgent = req.headers['user-agent'] || '';
 
-  const candidate = await Candidate.findOne({ email: email.toLowerCase() }).select('+password +refreshTokens');
-  if (!candidate || !(await candidate.comparePassword(password))) {
+  const candidate = await Candidate.findOne({ email: email.toLowerCase() }).select('+password +refreshTokens +failedLoginAttempts +lockUntil');
+
+  if (!candidate) {
+    await logSecurityEvent({
+      action: 'LOGIN_FAILED',
+      ipAddress,
+      userAgent,
+      status: 'FAILURE',
+      details: { email, reason: 'Candidate account not found' },
+    });
     return next(new AppError('Invalid email or password.', 401));
   }
+
+  // Account Lockout check (5 failed attempts locks for 15 minutes)
+  if (candidate.isLocked()) {
+    const remainingMinutes = Math.ceil((candidate.lockUntil - Date.now()) / (60 * 1000));
+    await logSecurityEvent({
+      userId: candidate._id,
+      userModel: 'Candidate',
+      action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+      ipAddress,
+      userAgent,
+      status: 'WARNING',
+      details: { reason: 'Attempted login to locked account' },
+    });
+    return next(new AppError(`Account is temporarily locked due to consecutive failed login attempts. Try again in ${remainingMinutes} minute(s).`, 423));
+  }
+
+  const isMatch = await candidate.comparePassword(password);
+  if (!isMatch) {
+    await candidate.incFailedLoginAttempts();
+    const updatedCandidate = await Candidate.findById(candidate._id);
+
+    if (updatedCandidate && updatedCandidate.isLocked()) {
+      await logSecurityEvent({
+        userId: candidate._id,
+        userModel: 'Candidate',
+        action: 'ACCOUNT_LOCKED',
+        ipAddress,
+        userAgent,
+        status: 'WARNING',
+        details: { reason: '5 consecutive failed password attempts' },
+      });
+      return next(new AppError('Account locked due to 5 consecutive failed login attempts. Please try again after 15 minutes.', 423));
+    }
+
+    await logSecurityEvent({
+      userId: candidate._id,
+      userModel: 'Candidate',
+      action: 'LOGIN_FAILED',
+      ipAddress,
+      userAgent,
+      status: 'FAILURE',
+      details: { failedAttempts: updatedCandidate ? updatedCandidate.failedLoginAttempts : 1 },
+    });
+
+    return next(new AppError('Invalid email or password.', 401));
+  }
+
+  // Reset failed login attempts on successful password match
+  await candidate.resetFailedLoginAttempts();
 
   const payload = { id: candidate._id, role: ROLES.CANDIDATE };
   const accessToken = generateToken(payload);
   const refreshToken = generateRefreshToken(payload);
 
-  // Store SHA-256 HASHED refresh token in DB
-  const hashedRefToken = hashToken(refreshToken);
-  candidate.refreshTokens = candidate.refreshTokens || [];
-  candidate.refreshTokens.push(hashedRefToken);
-  if (candidate.refreshTokens.length > 5) {
-    candidate.refreshTokens.shift();
-  }
-  await candidate.save({ validateBeforeSave: false });
-
-  // Set HTTP-Only Cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+  // Create Active Session & Audit Log
+  await createSessionService({
+    userId: candidate._id,
+    userModel: 'Candidate',
+    refreshToken,
+    req,
   });
+
+  // Set HTTP-Only Secure Cookies
+  setAuthCookies(res, accessToken, refreshToken);
 
   const candidateData = {
     id: candidate._id,
@@ -222,7 +277,7 @@ export const resetPasswordCandidate = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * Refresh Candidate Access Token
+ * Refresh Candidate Access Token (Refresh Token Rotation)
  * @route POST /api/v1/auth/candidate/refresh-token
  */
 export const refreshTokenCandidate = asyncHandler(async (req, res, next) => {
@@ -232,44 +287,13 @@ export const refreshTokenCandidate = asyncHandler(async (req, res, next) => {
     return next(new AppError('Refresh token is required.', 400));
   }
 
-  try {
-    const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET);
+  const rotated = await rotateSessionService(refreshToken, req);
+  setAuthCookies(res, rotated.accessToken, rotated.refreshToken);
 
-    if (decoded.role !== ROLES.CANDIDATE) {
-      return next(new AppError('Invalid token role.', 403));
-    }
-
-    const hashedRefToken = hashToken(refreshToken);
-    const candidate = await Candidate.findById(decoded.id).select('+refreshTokens');
-    if (!candidate || !candidate.refreshTokens.includes(hashedRefToken)) {
-      return next(new AppError('Invalid or revoked refresh token.', 401));
-    }
-
-    const payload = { id: candidate._id, role: ROLES.CANDIDATE };
-    const newAccessToken = generateToken(payload);
-    const newRefreshToken = generateRefreshToken(payload);
-
-    // Rotate refresh token (replace old hashed token with new hashed token)
-    const newHashedToken = hashToken(newRefreshToken);
-    candidate.refreshTokens = candidate.refreshTokens.filter((token) => token !== hashedRefToken);
-    candidate.refreshTokens.push(newHashedToken);
-    await candidate.save({ validateBeforeSave: false });
-
-    // Set HTTP-Only Cookie
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    return sendResponse(res, 200, true, 'Tokens refreshed successfully', {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    });
-  } catch (err) {
-    return next(new AppError('Expired or invalid refresh token.', 401));
-  }
+  return sendResponse(res, 200, true, 'Tokens refreshed successfully (rotated)', {
+    accessToken: rotated.accessToken,
+    refreshToken: rotated.refreshToken,
+  });
 });
 
 /**
@@ -277,18 +301,10 @@ export const refreshTokenCandidate = asyncHandler(async (req, res, next) => {
  * @route POST /api/v1/auth/candidate/logout
  */
 export const logoutCandidate = asyncHandler(async (req, res, _next) => {
-  const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
-
-  if (refreshToken && req.user) {
-    const hashedRefToken = hashToken(refreshToken);
-    const candidate = await Candidate.findById(req.user._id).select('+refreshTokens');
-    if (candidate) {
-      candidate.refreshTokens = candidate.refreshTokens.filter((token) => token !== hashedRefToken);
-      await candidate.save({ validateBeforeSave: false });
-    }
+  if (req.user) {
+    await revokeAllUserSessionsService(req.user._id, 'Candidate');
   }
-
-  res.clearCookie('refreshToken');
+  clearAuthCookies(res);
   return sendResponse(res, 200, true, 'Logged out successfully', null);
 });
 

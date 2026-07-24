@@ -21,6 +21,11 @@ import savedJobRoutes from './routes/savedJob.routes.js';
 import dashboardCandidateRoutes from './routes/dashboardCandidate.routes.js';
 import aiResumeRoutes from './routes/aiResume.routes.js';
 import interviewAIRoutes from './routes/interviewAI.routes.js';
+import codingAIRoutes from './routes/codingAI.routes.js';
+import videoInterviewRoutes from './routes/videoInterview.routes.js';
+
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 
 const app = express();
 
@@ -38,15 +43,38 @@ app.use((req, _res, next) => {
   next();
 });
 
+import { requestLogger } from './middleware/requestLogger.js';
+import { getPrometheusMetricsHandler } from './controllers/monitoring.controller.js';
+import monitoringRoutes from './routes/monitoring.routes.js';
+
 // Configure Security & Request Parsing Middlewares
 configureSecurityMiddlewares(app);
 
-// API Version 1 Health Check Endpoint
-app.get('/api/v1/health', (_req, res) => {
-  return sendResponse(res, 200, true, 'SkillBridge AI Server is healthy and running', {
-    environment: process.env.NODE_ENV,
-    version: 'v1',
-    timestamp: new Date().toISOString(),
+// Request Tracing & Structured HTTP Logger Middleware
+app.use(requestLogger);
+
+// Prometheus Metrics Endpoint
+app.get('/metrics', getPrometheusMetricsHandler);
+
+// Interactive Swagger UI & OpenAPI Specification JSON Endpoints
+app.get('/api/docs/json', (_req, res) => res.json(swaggerSpec));
+app.get('/api/v1/docs/json', (_req, res) => res.json(swaggerSpec));
+
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+import { getHealthDiagnosticHandler } from './controllers/health.controller.js';
+
+// Production Diagnostic Health Check Endpoints
+app.get('/health', getHealthDiagnosticHandler);
+app.get('/api/v1/health', getHealthDiagnosticHandler);
+
+// API Version 2 (Future-Ready Fallback / Deprecation Handler)
+app.use('/api/v2', (_req, res) => {
+  return sendResponse(res, 200, true, 'SkillBridge AI API Version 2 - Future Release Notice', {
+    version: 'v2',
+    status: 'upcoming',
+    documentationUrl: '/api/docs',
   });
 });
 
@@ -84,6 +112,15 @@ app.use('/api/v1/candidate/resume', checkDbConnection, aiResumeRoutes);
 
 // AI Mock Interview System Routes
 app.use('/api/v1/candidate/ai-interview', checkDbConnection, interviewAIRoutes);
+
+// AI Coding Assessment System Routes
+app.use('/api/v1/candidate/ai-coding', checkDbConnection, codingAIRoutes);
+
+// AI Video Interview System Routes
+app.use('/api/v1/candidate/video-interview', checkDbConnection, videoInterviewRoutes);
+
+// Admin Monitoring & Telemetry Routes
+app.use('/api/v1/admin', monitoringRoutes);
 
 // Handle Unmatched 404 Routes
 app.use(notFoundHandler);

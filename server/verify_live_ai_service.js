@@ -158,7 +158,7 @@ const runVerification = async () => {
     // -----------------------------------------------------
     console.log('\n[3] Running Express REST API Integration Tests against Live FastAPI Service ...');
 
-    const mongoUri = process.env.TEST_MONGODB_URI || 'mongodb://127.0.0.1:27017/skillbridge_live_ai_test';
+    const mongoUri = process.env.MONGODB_URI_TEST || 'mongodb://127.0.0.1:27017/skillbridge_test';
     await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
 
     await Promise.all([

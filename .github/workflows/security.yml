@@ -1,0 +1,81 @@
+name: Security Audit & SAST Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0' # Weekly scan on Sundays
+
+jobs:
+  dependency-security-audit:
+    name: Dependency Security Audit (NPM & PyPI)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Audit NPM Dependencies
+        run: |
+          cd server
+          npm audit --audit-level=high || true
+
+      - name: Setup Python & Audit PyPI Packages
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Audit Python Dependencies
+        run: |
+          cd ai-service
+          pip install pip-audit
+          pip-audit -r requirements.txt || true
+
+  codeql-analysis:
+    name: CodeQL Static Application Security Testing (SAST)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'javascript'
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  container-security-scan:
+    name: Trivy Container Image Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Local Image for Scanning
+        run: |
+          docker build -t skillbridge-backend:scan ./server
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'skillbridge-backend:scan'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'

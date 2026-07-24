@@ -59,6 +59,14 @@ const companySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
+    },
     refreshTokens: {
       type: [String],
       default: [],
@@ -81,6 +89,36 @@ companySchema.pre('save', async function (next) {
 // Compare password method
 companySchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Account Lockout check method (5 failed attempts locks for 15 minutes)
+companySchema.methods.isLocked = function () {
+  return !!(this.lockUntil && this.lockUntil > Date.now());
+};
+
+// Increment failed login attempts
+companySchema.methods.incFailedLoginAttempts = async function () {
+  if (this.lockUntil && this.lockUntil < Date.now()) {
+    return await this.updateOne({
+      $set: { failedLoginAttempts: 1 },
+      $unset: { lockUntil: 1 },
+    });
+  }
+
+  const updates = { $inc: { failedLoginAttempts: 1 } };
+  if (this.failedLoginAttempts + 1 >= 5 && !this.isLocked()) {
+    updates.$set = { lockUntil: new Date(Date.now() + 15 * 60 * 1000) };
+  }
+
+  return await this.updateOne(updates);
+};
+
+// Reset failed login attempts on successful login
+companySchema.methods.resetFailedLoginAttempts = async function () {
+  return await this.updateOne({
+    $set: { failedLoginAttempts: 0 },
+    $unset: { lockUntil: 1 },
+  });
 };
 
 export const Company = mongoose.model('Company', companySchema);
