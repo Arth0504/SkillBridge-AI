@@ -17,6 +17,9 @@ import notificationCandidateRoutes from './routes/notificationCandidate.routes.j
 import notificationCompanyRoutes from './routes/notificationCompany.routes.js';
 import interviewCompanyRoutes from './routes/interviewCompany.routes.js';
 import interviewCandidateRoutes from './routes/interviewCandidate.routes.js';
+import savedJobRoutes from './routes/savedJob.routes.js';
+import dashboardCandidateRoutes from './routes/dashboardCandidate.routes.js';
+import aiResumeRoutes from './routes/aiResume.routes.js';
 
 const app = express();
 
@@ -62,6 +65,7 @@ app.use('/api/v1/company/applications', checkDbConnection, applicationCompanyRou
 
 // Dashboard Routes
 app.use('/api/v1/company/dashboard', checkDbConnection, dashboardCompanyRoutes);
+app.use('/api/v1/candidate/dashboard', checkDbConnection, dashboardCandidateRoutes);
 
 // Notification System Routes
 app.use('/api/v1/candidate/notifications', checkDbConnection, notificationCandidateRoutes);
@@ -70,6 +74,12 @@ app.use('/api/v1/company/notifications', checkDbConnection, notificationCompanyR
 // Interview System Routes
 app.use('/api/v1/company/interviews', checkDbConnection, interviewCompanyRoutes);
 app.use('/api/v1/candidate/interviews', checkDbConnection, interviewCandidateRoutes);
+
+// Saved Job Routes
+app.use('/api/v1/candidate/saved-jobs', checkDbConnection, savedJobRoutes);
+
+// AI Resume Analyzer System Routes
+app.use('/api/v1/candidate/resume', checkDbConnection, aiResumeRoutes);
 
 // Handle Unmatched 404 Routes
 app.use(notFoundHandler);
