@@ -15,7 +15,7 @@ def extract_text_from_pdf(file_path: str) -> str:
     except Exception as e:
         print(f"pdfplumber failed: {e}, falling back to PyPDF2")
 
-    if not extracted_text.trim():
+    if not extracted_text.strip():
         try:
             import PyPDF2
             with open(file_path, "rb") as f:
