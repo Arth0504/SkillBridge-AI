@@ -3,19 +3,20 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '../../../utils/validationSchemas';
 import { Input, Button, Radio } from '../../../components/common';
-import { Mail, Lock, Sparkles } from 'lucide-react';
+import { Mail, Lock, Shield } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export const LoginForm = () => {
   const [accountType, setAccountType] = useState('candidate');
-  const { loginCandidate, loginCompany } = useAuth();
+  const { loginCandidate, loginCompany, loginAdmin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
@@ -25,15 +26,26 @@ export const LoginForm = () => {
     },
   });
 
+  const handleAccountTypeChange = (val) => {
+    setAccountType(val);
+    if (val === 'admin') {
+      setValue('email', 'admin@skillbridge.ai');
+      setValue('password', 'admin123');
+    }
+  };
+
   const onSubmit = async (data) => {
     setLoading(true);
     try {
       if (accountType === 'candidate') {
         await loginCandidate(data.email, data.password);
         navigate('/candidate/dashboard');
-      } else {
+      } else if (accountType === 'company') {
         await loginCompany(data.email, data.password);
         navigate('/company/dashboard');
+      } else {
+        await loginAdmin(data.email, data.password);
+        navigate('/admin/dashboard');
       }
     } catch (err) {
       // Error handled in AuthContext toast
@@ -48,11 +60,12 @@ export const LoginForm = () => {
         label="Account Type"
         name="accountType"
         value={accountType}
-        onChange={setAccountType}
+        onChange={handleAccountTypeChange}
         direction="horizontal"
         options={[
           { label: 'Candidate', value: 'candidate' },
-          { label: 'Company Employer', value: 'company' },
+          { label: 'Company', value: 'company' },
+          { label: 'System Admin', value: 'admin' },
         ]}
       />
 

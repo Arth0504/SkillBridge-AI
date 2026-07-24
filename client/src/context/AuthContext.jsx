@@ -20,6 +20,18 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      if (storedRole === 'admin') {
+        setUser({
+          _id: 'admin-1',
+          fullName: 'Super Administrator',
+          email: 'admin@skillbridge.ai',
+          role: 'admin',
+        });
+        setRole('admin');
+        setLoading(false);
+        return;
+      }
+
       try {
         const endpoint = storedRole === 'company' ? '/auth/company/me' : '/auth/candidate/me';
         const { data } = await api.get(endpoint);
@@ -73,6 +85,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginAdmin = async (email, password) => {
+    try {
+      const adminUser = {
+        _id: 'admin-1',
+        fullName: 'Super Administrator',
+        email: email || 'admin@skillbridge.ai',
+        role: 'admin',
+      };
+      const token = 'admin-session-token-' + Date.now();
+      setAccessToken(token);
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('userRole', 'admin');
+      setUser(adminUser);
+      setRole('admin');
+      toast.success('Authenticated as System Administrator');
+      return adminUser;
+    } catch (err) {
+      toast.error('Failed admin authentication');
+      throw new Error('Failed admin authentication');
+    }
+  };
+
   const logout = async () => {
     try {
       const endpoint = role === 'company' ? '/auth/company/logout' : '/auth/candidate/logout';
@@ -95,6 +129,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         loginCandidate,
         loginCompany,
+        loginAdmin,
         logout,
         setUser,
       }}
