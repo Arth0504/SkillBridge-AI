@@ -48,15 +48,15 @@ export const Navbar = () => {
 
           {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/jobs" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-500 transition-colors">
+            <Link to="/jobs" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-brand-500 transition-colors">
               Find Jobs
             </Link>
-            <Link to="/about" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-500 transition-colors">
-              About
-            </Link>
-            <Link to="/pricing" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-brand-500 transition-colors">
-              Enterprise
-            </Link>
+            <a href="/#features" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-brand-500 transition-colors">
+              Features
+            </a>
+            <a href="/#pricing" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-brand-500 transition-colors">
+              Pricing
+            </a>
           </div>
 
           {/* Actions & Theme Toggle */}

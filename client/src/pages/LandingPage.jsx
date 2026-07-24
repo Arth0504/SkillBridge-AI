@@ -1,76 +1,64 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, CheckCircle2, ShieldCheck, Zap, Cpu } from 'lucide-react';
-import { Button } from '../components/common/Button';
+import { AnnouncementBar } from '../features/landing/components/AnnouncementBar';
+import { NavbarLanding } from '../features/landing/components/NavbarLanding';
+import { HeroSection } from '../features/landing/components/HeroSection';
+import { TrustedCompaniesSection } from '../features/landing/components/TrustedCompaniesSection';
+import { StatsSection } from '../features/landing/components/StatsSection';
+import { FeaturesSection } from '../features/landing/components/FeaturesSection';
+import { HowItWorksSection } from '../features/landing/components/HowItWorksSection';
+import { AIShowcaseSection } from '../features/landing/components/AIShowcaseSection';
+import { DashboardShowcaseSection } from '../features/landing/components/DashboardShowcaseSection';
+import { WhyChooseSection } from '../features/landing/components/WhyChooseSection';
+import { TestimonialsSection } from '../features/landing/components/TestimonialsSection';
+import { PricingSection } from '../features/landing/components/PricingSection';
+import { FAQSection } from '../features/landing/components/FAQSection';
+import { CTASection } from '../features/landing/components/CTASection';
+import { FooterLanding } from '../features/landing/components/FooterLanding';
 
 export const LandingPage = () => {
   return (
-    <div className="relative overflow-hidden">
-      {/* Background Hero Accent Blur */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-tr from-brand-600/20 via-accent-purple/20 to-accent-cyan/20 blur-3xl rounded-full pointer-events-none -z-10" />
+    <div className="space-y-12 bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 selection:bg-brand-500 selection:text-white">
+      {/* 1. Announcement Bar */}
+      <AnnouncementBar />
 
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-xs font-semibold text-brand-600 dark:text-brand-400 mb-6">
-          <Sparkles className="w-4 h-4" /> Next-Gen AI Talent Marketplace & Assessment Engine
-        </div>
+      {/* Main Content Sections */}
+      <main className="flex-1 space-y-12">
+        {/* 3. Hero Section */}
+        <HeroSection />
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight max-w-4xl mx-auto leading-tight mb-6">
-          Hire Top Global Talent & Ace Interviews with <span className="gradient-text">Gemini AI</span>
-        </h1>
+        {/* 4. Trusted Companies */}
+        <TrustedCompaniesSection />
 
-        <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-10">
-          Automated ATS resume parsing, AI mock technical interviews, multi-language coding assessments, and asynchronous video evaluations.
-        </p>
+        {/* 5. Platform Statistics */}
+        <StatsSection />
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link to="/auth/register">
-            <Button variant="primary" size="lg" className="w-full sm:w-auto">
-              Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
-          <Link to="/jobs">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              Explore Job Marketplace
-            </Button>
-          </Link>
-        </div>
-      </section>
+        {/* 6. Features Section (12 Premium Cards) */}
+        <FeaturesSection />
 
-      {/* Feature Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="glass-card p-8 rounded-2xl">
-            <div className="p-3 rounded-xl bg-brand-500/10 text-brand-500 w-fit mb-4">
-              <Zap className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">AI Resume Analyzer</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Instant ATS score auditing, job description keyword matching, and recruiter feedback powered by Gemini 1.5 Pro.
-            </p>
-          </div>
+        {/* 7. How It Works */}
+        <HowItWorksSection />
 
-          <div className="glass-card p-8 rounded-2xl">
-            <div className="p-3 rounded-xl bg-accent-purple/10 text-accent-purple w-fit mb-4">
-              <Cpu className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">AI Coding Assessment</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Evaluate coding challenges across Python, JS, Java, C++, and SQL with dynamic complexity analysis.
-            </p>
-          </div>
+        {/* 8. AI Showcase */}
+        <AIShowcaseSection />
 
-          <div className="glass-card p-8 rounded-2xl">
-            <div className="p-3 rounded-xl bg-accent-cyan/10 text-accent-cyan w-fit mb-4">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">Enterprise Security</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Account lockout protection, refresh token rotation, audit logging, and role-enforced access security.
-            </p>
-          </div>
-        </div>
-      </section>
+        {/* 9. Dashboard Showcase */}
+        <DashboardShowcaseSection />
+
+        {/* 10. Why Choose SkillBridge AI */}
+        <WhyChooseSection />
+
+        {/* 11. Testimonials */}
+        <TestimonialsSection />
+
+        {/* 12. Pricing */}
+        <PricingSection />
+
+        {/* 13. FAQ */}
+        <FAQSection />
+
+        {/* 14. Call To Action */}
+        <CTASection />
+      </main>
     </div>
   );
 };

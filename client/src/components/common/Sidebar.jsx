@@ -14,6 +14,11 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  Users,
+  Building,
+  Activity,
+  Lock,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -27,21 +32,32 @@ export const Sidebar = ({ role = 'candidate', isCollapsed, onToggle }) => {
       { label: 'AI Mock Interview', icon: MessageSquare, path: '/candidate/ai-interview' },
       { label: 'AI Coding Assessment', icon: Code2, path: '/candidate/ai-coding' },
       { label: 'AI Video Interview', icon: Video, path: '/candidate/video-interview' },
-      { label: 'Notifications', icon: Bell, path: '/candidate/notifications' },
+      {label: 'Notifications', icon: Bell, path: '/candidate/notifications' },
       { label: 'Profile', icon: User, path: '/candidate/profile' },
+      { label: 'Settings', icon: Settings, path: '/candidate/settings' },
     ],
     company: [
       { label: 'Overview', icon: LayoutDashboard, path: '/company/dashboard' },
       { label: 'Post New Job', icon: Briefcase, path: '/company/jobs/new' },
       { label: 'Manage Jobs', icon: FileText, path: '/company/jobs' },
-      { label: 'Candidate Applications', icon: MessageSquare, path: '/company/applications' },
+      { label: 'Candidate Applications', icon: Users, path: '/company/applications' },
       { label: 'Interviews', icon: Video, path: '/company/interviews' },
+      { label: 'Hiring Analytics', icon: BarChart3, path: '/company/analytics' },
       { label: 'Notifications', icon: Bell, path: '/company/notifications' },
+      { label: 'Company Profile', icon: User, path: '/company/profile' },
+      { label: 'Settings', icon: Settings, path: '/company/settings' },
     ],
     admin: [
       { label: 'System Overview', icon: LayoutDashboard, path: '/admin/dashboard' },
-      { label: 'Audit Analytics', icon: ShieldAlert, path: '/admin/audit' },
-      { label: 'Prometheus Metrics', icon: Settings, path: '/admin/metrics' },
+      { label: 'User Management', icon: Users, path: '/admin/users' },
+      { label: 'Company Verification', icon: Building, path: '/admin/companies' },
+      { label: 'Job Moderation', icon: Briefcase, path: '/admin/jobs' },
+      { label: 'AI Telemetry Monitoring', icon: Activity, path: '/admin/ai-monitoring' },
+      { label: 'Reports & Growth Analytics', icon: BarChart3, path: '/admin/analytics' },
+      { label: 'System Notifications', icon: Bell, path: '/admin/notifications' },
+      { label: 'Platform Settings', icon: Settings, path: '/admin/settings' },
+      { label: 'Security Audit Logs', icon: ShieldAlert, path: '/admin/audit' },
+      { label: 'Role & RBAC Matrix', icon: Lock, path: '/admin/rbac' },
     ],
   };
 
