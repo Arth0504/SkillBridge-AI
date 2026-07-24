@@ -20,6 +20,7 @@ import interviewCandidateRoutes from './routes/interviewCandidate.routes.js';
 import savedJobRoutes from './routes/savedJob.routes.js';
 import dashboardCandidateRoutes from './routes/dashboardCandidate.routes.js';
 import aiResumeRoutes from './routes/aiResume.routes.js';
+import interviewAIRoutes from './routes/interviewAI.routes.js';
 
 const app = express();
 
@@ -80,6 +81,9 @@ app.use('/api/v1/candidate/saved-jobs', checkDbConnection, savedJobRoutes);
 
 // AI Resume Analyzer System Routes
 app.use('/api/v1/candidate/resume', checkDbConnection, aiResumeRoutes);
+
+// AI Mock Interview System Routes
+app.use('/api/v1/candidate/ai-interview', checkDbConnection, interviewAIRoutes);
 
 // Handle Unmatched 404 Routes
 app.use(notFoundHandler);
