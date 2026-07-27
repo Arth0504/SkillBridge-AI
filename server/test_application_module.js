@@ -56,7 +56,7 @@ const runTests = async () => {
       email: companyEmail,
       password: 'Password123!',
       industry: 'Software & AI',
-      companySize: '100-500',
+      companySize: '51-200',
       location: 'New York, NY',
       isEmailVerified: true,
     });

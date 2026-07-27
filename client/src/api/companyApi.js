@@ -33,6 +33,11 @@ export const companyApi = {
     return data;
   },
 
+  getPublicProfile: async (id) => {
+    const { data } = await api.get(`/company/profile/public/${id}`);
+    return data;
+  },
+
   updateProfile: async (profileData) => {
     const { data } = await api.put('/company/profile', profileData);
     return data;

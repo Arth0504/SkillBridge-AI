@@ -15,13 +15,14 @@ import {
  * @route POST /api/v1/candidate/ai-interview/start
  */
 export const startInterviewSessionHandler = asyncHandler(async (req, res, _next) => {
-  const { jobId, interviewType, difficulty, totalQuestions } = req.body;
+  const { jobId, interviewType, difficulty, experienceLevel, totalQuestions } = req.body;
 
   const session = await startInterviewSessionService({
     candidateIdStr: req.user._id,
     jobIdStr: jobId || null,
     interviewType: interviewType || 'Mixed',
     difficulty: difficulty || 'Medium',
+    experienceLevel: experienceLevel || 'Senior',
     totalQuestions: totalQuestions || 5,
   });
 
@@ -43,16 +44,18 @@ export const getInterviewSessionByIdHandler = asyncHandler(async (req, res, _nex
  * @route POST /api/v1/candidate/ai-interview/:sessionId/submit-answer
  */
 export const submitAnswerHandler = asyncHandler(async (req, res, next) => {
-  const { answerText } = req.body;
+  const rawAnswer = req.body?.answerText || req.body?.answer || req.body?.submittedAnswer || req.body?.code;
 
-  if (!answerText || !answerText.trim()) {
-    return next(new AppError('answerText is required.', 400));
+  if (!rawAnswer || !String(rawAnswer).trim()) {
+    return next(new AppError('answerText (or answer) is required.', 400));
   }
+
+  const answerText = String(rawAnswer).trim();
 
   const result = await submitAnswerService({
     sessionId: req.params.sessionId,
     candidateIdStr: req.user._id,
-    answerText: answerText.trim(),
+    answerText,
   });
 
   return sendResponse(res, 200, true, 'Answer evaluated successfully', result);

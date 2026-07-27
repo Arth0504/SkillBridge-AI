@@ -50,7 +50,9 @@ def parse_extracted_sections(text: str) -> Dict[str, Any]:
     phones = re.findall(phone_pattern, text)
 
     email = emails[0] if emails else ""
-    phone = phones[0] if isinstance(phones[0], str) else (phones[0][0] if phones else "")
+    phone = ""
+    if phones:
+        phone = phones[0] if isinstance(phones[0], str) else phones[0][0]
 
     lines = [line.strip() for line in text.split("\n") if line.strip()]
     name = lines[0] if lines else ""

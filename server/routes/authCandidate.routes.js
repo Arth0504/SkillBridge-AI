@@ -3,6 +3,7 @@ import {
   registerCandidate,
   loginCandidate,
   verifyEmailCandidate,
+  resendVerificationCandidate,
   forgotPasswordCandidate,
   resetPasswordCandidate,
   refreshTokenCandidate,
@@ -22,6 +23,8 @@ const router = express.Router();
 router.post('/register', authLimiter, validateCandidateRegister, registerCandidate);
 router.post('/login', authLimiter, validateCandidateLogin, loginCandidate);
 router.post('/verify-email', verifyEmailCandidate);
+router.get('/verify-email', verifyEmailCandidate);
+router.post('/resend-verification', resendVerificationCandidate);
 router.post('/forgot-password', authLimiter, forgotPasswordCandidate);
 router.post('/reset-password/:token', authLimiter, resetPasswordCandidate);
 router.post('/refresh-token', authLimiter, refreshTokenCandidate);

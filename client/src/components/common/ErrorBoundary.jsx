@@ -23,13 +23,13 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-900 text-white">
-          <div className="max-w-md w-full p-8 rounded-2xl bg-slate-800 border border-slate-700 text-center shadow-2xl">
-            <div className="p-4 rounded-full bg-rose-500/20 text-rose-400 inline-block mb-4">
+        <div role="alert" className="min-h-screen flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+          <div className="max-w-md w-full p-8 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center shadow-2xl">
+            <div className="p-4 rounded-full bg-rose-500/20 text-rose-500 dark:text-rose-400 inline-block mb-4">
               <AlertTriangle className="w-10 h-10" />
             </div>
             <h2 className="text-xl font-bold mb-2">Unexpected Application Error</h2>
-            <p className="text-sm text-slate-400 mb-6">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
               SkillBridge AI encountered an unhandled render exception.
             </p>
             <Button onClick={this.handleReload} variant="primary" className="w-full">

@@ -15,12 +15,14 @@ export const submitApplication = async ({ candidateId, jobId, coverLetter = '', 
     throw new AppError('Candidate profile not found', 404);
   }
 
-  if (!candidate.isEmailVerified) {
+  const isEmailVerificationRequired = process.env.EMAIL_VERIFICATION_REQUIRED === 'true';
+  if (isEmailVerificationRequired && !candidate.isEmailVerified) {
     throw new AppError('Your email address must be verified before applying to jobs.', 403);
   }
 
-  if (!candidate.profileCompleted) {
-    throw new AppError('Please complete your profile before applying to jobs.', 400);
+  const isProfileReady = candidate.profileCompleted || Boolean(candidate.resumeUrl) || Boolean(customResumeUrl) || (candidate.skills && candidate.skills.length > 0);
+  if (!isProfileReady) {
+    throw new AppError('Please complete your profile or upload a resume before applying to jobs.', 400);
   }
 
   const resumeUrl = customResumeUrl || candidate.resumeUrl;
@@ -61,6 +63,7 @@ export const submitApplication = async ({ candidateId, jobId, coverLetter = '', 
     headline: candidate.headline || '',
     skills: candidate.skills || [],
     experienceYears: candidate.experienceYears || 0,
+    resumeUrl: resumeUrl,
   };
 
   // 5. Create Application
@@ -224,10 +227,10 @@ export const withdrawApplication = async (applicationId, candidateId) => {
  */
 export const getCompanyApplications = async (companyId, queryParams = {}) => {
   const page = Math.max(1, parseInt(queryParams.page, 10) || 1);
-  const limit = Math.max(1, Math.min(100, parseInt(queryParams.limit, 10) || 10));
+  const limit = Math.max(1, Math.min(1000, parseInt(queryParams.limit, 10) || 100));
   const skip = (page - 1) * limit;
 
-  const filter = { companyId, isDeleted: false };
+  const filter = { companyId, isDeleted: { $ne: true } };
 
   if (queryParams.jobId) {
     filter.jobId = queryParams.jobId;
@@ -235,6 +238,8 @@ export const getCompanyApplications = async (companyId, queryParams = {}) => {
 
   if (queryParams.status) {
     filter.status = queryParams.status;
+  } else if (queryParams.excludeRejected === 'true' || queryParams.excludeRejected === true) {
+    filter.status = { $ne: APPLICATION_STATUS.REJECTED };
   }
 
   if (queryParams.search) {
@@ -247,16 +252,16 @@ export const getCompanyApplications = async (companyId, queryParams = {}) => {
     ];
   }
 
-  let sort = { appliedAt: -1 };
+  let sort = { appliedAt: -1, createdAt: -1 };
   if (queryParams.sort) {
     const sortVal = queryParams.sort.toString().toLowerCase();
-    if (sortVal === 'oldest') sort = { appliedAt: 1 };
-    else if (sortVal === 'rating') sort = { rating: -1, appliedAt: -1 };
+    if (sortVal === 'oldest') sort = { appliedAt: 1, createdAt: 1 };
+    else if (sortVal === 'rating') sort = { rating: -1, appliedAt: -1, createdAt: -1 };
   }
 
   const [applications, totalCount] = await Promise.all([
     Application.find(filter)
-      .populate('jobId', 'title department status')
+      .populate('jobId', 'title department status location city state country employmentType workMode createdAt')
       .populate('candidateId', 'fullName email phone headline avatarUrl skills experienceYears resumeUrl')
       .sort(sort)
       .skip(skip)
@@ -265,10 +270,59 @@ export const getCompanyApplications = async (companyId, queryParams = {}) => {
     Application.countDocuments(filter),
   ]);
 
+  const formattedApplications = applications.map((app) => {
+    const finalResumeUrl =
+      app.resumeUrl ||
+      app.candidateId?.resumeUrl ||
+      app.candidateSnapshot?.resumeUrl ||
+      '';
+
+    const cand = app.candidateId && typeof app.candidateId === 'object' ? app.candidateId : {};
+    const candName = cand.fullName || app.candidateSnapshot?.fullName || 'Candidate Name';
+    const candEmail = cand.email || app.candidateSnapshot?.email || '';
+    const candPhone = cand.phone || app.candidateSnapshot?.phone || '';
+
+    const jobObj = app.jobId && typeof app.jobId === 'object' ? app.jobId : {};
+    const jobTitle = jobObj.title || 'Untitled Job Post';
+
+    const locStr = [
+      jobObj.location?.city || jobObj.city,
+      jobObj.location?.state || jobObj.state,
+      jobObj.location?.country || jobObj.country,
+    ]
+      .filter(Boolean)
+      .join(', ') || jobObj.workMode || 'Remote';
+
+    return {
+      ...app,
+      resumeUrl: finalResumeUrl,
+      candidate: {
+        _id: cand._id || app.candidateId,
+        fullName: candName,
+        email: candEmail,
+        phone: candPhone,
+        headline: cand.headline || app.candidateSnapshot?.headline || 'Software Engineer',
+        avatarUrl: cand.avatarUrl || '',
+        skills: cand.skills?.length ? cand.skills : (app.candidateSnapshot?.skills || []),
+        experienceYears: cand.experienceYears ?? app.candidateSnapshot?.experienceYears ?? 0,
+      },
+      job: {
+        _id: jobObj._id || app.jobId,
+        title: jobTitle,
+        department: jobObj.department || 'Engineering',
+        status: jobObj.status || 'open',
+        location: locStr,
+        employmentType: jobObj.employmentType || 'Full Time',
+        workMode: jobObj.workMode || 'Remote',
+        createdAt: jobObj.createdAt || app.createdAt,
+      },
+    };
+  });
+
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
   return {
-    applications,
+    applications: formattedApplications,
     pagination: {
       currentPage: page,
       limit,
@@ -296,7 +350,14 @@ export const getCompanyApplicationById = async (applicationId, companyId) => {
     throw new AppError('Application record not found or unauthorized.', 404);
   }
 
-  return application;
+  const appObj = application.toObject ? application.toObject() : application;
+  appObj.resumeUrl =
+    appObj.resumeUrl ||
+    appObj.candidateId?.resumeUrl ||
+    appObj.candidateSnapshot?.resumeUrl ||
+    '';
+
+  return appObj;
 };
 
 /**

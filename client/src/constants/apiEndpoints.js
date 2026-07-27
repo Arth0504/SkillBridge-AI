@@ -5,12 +5,16 @@ export const API_ENDPOINTS = {
     CANDIDATE_LOGOUT: '/auth/candidate/logout',
     CANDIDATE_REFRESH: '/auth/candidate/refresh-token',
     CANDIDATE_ME: '/auth/candidate/me',
+    CANDIDATE_VERIFY_EMAIL: '/auth/candidate/verify-email',
+    CANDIDATE_RESEND_VERIFICATION: '/auth/candidate/resend-verification',
 
     COMPANY_LOGIN: '/auth/company/login',
     COMPANY_REGISTER: '/auth/company/register',
     COMPANY_LOGOUT: '/auth/company/logout',
     COMPANY_REFRESH: '/auth/company/refresh-token',
     COMPANY_ME: '/auth/company/me',
+    COMPANY_VERIFY_EMAIL: '/auth/company/verify-email',
+    COMPANY_RESEND_VERIFICATION: '/auth/company/resend-verification',
   },
 
   JOBS: {

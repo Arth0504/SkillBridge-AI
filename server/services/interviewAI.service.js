@@ -39,6 +39,54 @@ const postToAIService = async (endpoint, data, retries = 2) => {
   }
 };
 
+const ALLOWED_DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
+const ALLOWED_EXPERIENCE_LEVELS = ['Entry', 'Junior', 'Mid', 'Senior', 'Lead', 'Architect', 'Executive'];
+
+/**
+ * Migration & Sanitizer Helper:
+ * Separates difficulty (Easy, Medium, Hard) and experienceLevel (Entry, Junior, Mid, Senior, Lead, Architect, Executive)
+ */
+export const sanitizeInterviewConfig = (inputDifficulty, inputExperienceLevel) => {
+  let difficulty = 'Medium';
+  let experienceLevel = 'Senior';
+
+  if (inputDifficulty) {
+    const diffStr = inputDifficulty.toString().trim();
+    if (ALLOWED_DIFFICULTIES.includes(diffStr)) {
+      difficulty = diffStr;
+    } else {
+      const lower = diffStr.toLowerCase();
+      if (lower.includes('architect')) {
+        experienceLevel = 'Architect';
+        difficulty = 'Hard';
+      } else if (lower.includes('executive')) {
+        experienceLevel = 'Executive';
+        difficulty = 'Hard';
+      } else if (lower.includes('lead')) {
+        experienceLevel = 'Lead';
+        difficulty = 'Hard';
+      } else if (lower.includes('senior')) {
+        experienceLevel = 'Senior';
+        difficulty = 'Hard';
+      } else if (lower.includes('junior') || lower.includes('entry')) {
+        experienceLevel = lower.includes('entry') ? 'Entry' : 'Junior';
+        difficulty = 'Easy';
+      } else if (lower.includes('mid')) {
+        experienceLevel = 'Mid';
+        difficulty = 'Medium';
+      }
+    }
+  }
+
+  if (inputExperienceLevel) {
+    const expStr = inputExperienceLevel.toString().trim();
+    const match = ALLOWED_EXPERIENCE_LEVELS.find((l) => l.toLowerCase() === expStr.toLowerCase());
+    if (match) experienceLevel = match;
+  }
+
+  return { difficulty, experienceLevel };
+};
+
 /**
  * 1. Start AI Mock Interview Session
  */
@@ -47,8 +95,18 @@ export const startInterviewSessionService = async ({
   jobIdStr = null,
   interviewType = 'Mixed',
   difficulty = 'Medium',
+  experienceLevel = 'Senior',
   totalQuestions = 5,
 }) => {
+  const { difficulty: validDifficulty, experienceLevel: validExperienceLevel } = sanitizeInterviewConfig(
+    difficulty,
+    experienceLevel
+  );
+
+  if (!candidateIdStr || !mongoose.Types.ObjectId.isValid(candidateIdStr)) {
+    throw new AppError('Invalid or missing candidate ID.', 400);
+  }
+
   const candidateId = new mongoose.Types.ObjectId(candidateIdStr);
   const candidate = await Candidate.findById(candidateId).lean();
   if (!candidate) throw new AppError('Candidate profile not found.', 404);
@@ -68,7 +126,8 @@ export const startInterviewSessionService = async ({
   try {
     const aiRes = await postToAIService('/api/v1/ai/interview/start', {
       interviewType,
-      difficulty,
+      difficulty: validDifficulty,
+      experienceLevel: validExperienceLevel,
       candidateSkills: candidate.skills || [],
       jobDescription,
     });
@@ -81,19 +140,21 @@ export const startInterviewSessionService = async ({
 
   if (!initialQuestion) {
     initialQuestion = {
-      questionText: `Welcome ${candidate.fullName || 'Candidate'}. To start our ${interviewType} mock interview, could you walk me through your technical background and most impactful project?`,
+      questionText: `Welcome ${candidate.fullName || 'Candidate'}. To start our ${interviewType} mock interview (${validExperienceLevel} level), could you walk me through your technical background and most impactful project?`,
       category: 'Technical',
-      difficulty,
+      difficulty: validDifficulty,
       expectedKeyPoints: ['Technical background overview', 'Key technologies used', 'Measurable project impact'],
       interviewerContext: 'Assess communication confidence and technical scope.',
     };
   }
 
+  const qDiff = sanitizeInterviewConfig(initialQuestion.difficulty, null).difficulty;
+
   const firstQ = {
     questionId: new mongoose.Types.ObjectId().toString(),
     questionText: initialQuestion.questionText,
     category: initialQuestion.category || 'Technical',
-    difficulty: initialQuestion.difficulty || difficulty,
+    difficulty: qDiff,
     expectedKeyPoints: initialQuestion.expectedKeyPoints || [],
   };
 
@@ -101,7 +162,8 @@ export const startInterviewSessionService = async ({
     candidateId,
     jobId,
     interviewType,
-    difficulty,
+    difficulty: validDifficulty,
+    experienceLevel: validExperienceLevel,
     status: 'In Progress',
     totalQuestions: totalQuestions || 5,
     currentQuestionIndex: 0,
@@ -186,6 +248,7 @@ export const submitAnswerService = async ({ sessionId, candidateIdStr, answerTex
       nextQ = await postToAIService('/api/v1/ai/interview/question', {
         interviewType: session.interviewType,
         difficulty: nextDifficulty,
+        experienceLevel: session.experienceLevel || 'Senior',
         candidateSkills: [],
         previousQuestions: session.questions.map((q) => ({
           questionText: q.questionText,
@@ -206,11 +269,13 @@ export const submitAnswerService = async ({ sessionId, candidateIdStr, answerTex
       };
     }
 
+    const nextQDiff = sanitizeInterviewConfig(nextQ.difficulty, null).difficulty;
+
     const newQuestionObj = {
       questionId: new mongoose.Types.ObjectId().toString(),
       questionText: nextQ.questionText,
       category: nextQ.category || 'Technical',
-      difficulty: nextQ.difficulty || nextDifficulty,
+      difficulty: nextQDiff,
       expectedKeyPoints: nextQ.expectedKeyPoints || [],
     };
 

@@ -19,11 +19,7 @@ export const AdminUsersPage = () => {
     queryFn: () => adminApi.getUsers({ role: roleFilter === 'ALL' ? undefined : roleFilter }),
   });
 
-  const users = usersResponse?.data?.users || [
-    { _id: 'u1', fullName: 'Alex Johnson', email: 'alex@example.com', role: 'candidate', isEmailVerified: true, status: 'active', createdAt: '2026-01-14T10:00:00Z', headline: 'Senior AI Engineer' },
-    { _id: 'u2', fullName: 'Acme Corp HR', companyName: 'Acme AI Technologies', email: 'hr@acme.com', role: 'company', isEmailVerified: true, status: 'active', createdAt: '2026-01-10T10:00:00Z' },
-    { _id: 'u3', fullName: 'Sarah Miller', email: 'sarah@example.com', role: 'candidate', isEmailVerified: false, status: 'suspended', createdAt: '2026-01-02T10:00:00Z', headline: 'Full Stack React Specialist' },
-  ];
+  const users = usersResponse?.data?.users ?? [];
 
   // User Status Toggle Mutation
   const statusMutation = useMutation({

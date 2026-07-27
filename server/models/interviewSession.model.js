@@ -67,13 +67,17 @@ const interviewSessionSchema = new mongoose.Schema(
     },
     interviewType: {
       type: String,
-      enum: ['HR', 'Technical', 'Coding', 'Managerial', 'Mixed'],
       default: 'Mixed',
     },
     difficulty: {
       type: String,
       enum: ['Easy', 'Medium', 'Hard'],
       default: 'Medium',
+    },
+    experienceLevel: {
+      type: String,
+      enum: ['Entry', 'Junior', 'Mid', 'Senior', 'Lead', 'Architect', 'Executive'],
+      default: 'Senior',
     },
     status: {
       type: String,

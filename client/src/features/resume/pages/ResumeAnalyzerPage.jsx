@@ -151,78 +151,83 @@ export const ResumeAnalyzerPage = () => {
           </div>
 
           {/* Results Display */}
-          {currentAnalysis && (
-            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-3xl space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
-                <div>
-                  <Badge variant="purple" icon={Sparkles}>
-                    Gemini AI ATS Compatibility
+          {currentAnalysis && (() => {
+            const atsData = currentAnalysis.aiResponse?.atsAnalysis || currentAnalysis.atsAnalysis || currentAnalysis;
+            const scoreVal = currentAnalysis.atsScore || atsData.overallAtsScore || currentAnalysis.score || 75;
+            const summaryVal = currentAnalysis.summary || atsData.resumeSummary || atsData.recruiterImpression || currentAnalysis.extractedText || 'Detailed ATS resume analysis complete.';
+            const strengthsArr = (currentAnalysis.strengths && currentAnalysis.strengths.length > 0) ? currentAnalysis.strengths : (atsData.strengths || []);
+            const weaknessesArr = (currentAnalysis.weaknesses && currentAnalysis.weaknesses.length > 0) ? currentAnalysis.weaknesses : (atsData.weaknesses || atsData.top5Improvements || atsData.improvementSuggestions || []);
+            const missingSkillsArr = currentAnalysis.missingSkills || atsData.skillMatch?.missingSkills || atsData.keywordAnalysis?.missingKeywords || [];
+
+            return (
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-3xl space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
+                  <div>
+                    <Badge variant="purple" icon={Sparkles}>
+                      Gemini AI ATS Compatibility
+                    </Badge>
+                    <h2 className="text-3xl font-black text-white mt-1">
+                      Score: <span className="gradient-text">{scoreVal}/100</span>
+                    </h2>
+                  </div>
+                  <Badge variant="success" size="lg">
+                    Ready for Job Applications
                   </Badge>
-                  <h2 className="text-3xl font-black text-white mt-1">
-                    Score: <span className="gradient-text">{currentAnalysis.atsScore || currentAnalysis.score || 94}/100</span>
-                  </h2>
-                </div>
-                <Badge variant="success" size="lg">
-                  Ready for Job Applications
-                </Badge>
-              </div>
-
-              {/* Executive Summary */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-white">Executive Summary</h4>
-                <p className="text-xs text-slate-300 bg-slate-800/60 p-4 rounded-2xl leading-relaxed">
-                  {currentAnalysis.summary ||
-                    'Excellent candidate profile with strong emphasis on React, Node.js, PyTorch, and cloud deployment architecture.'}
-                </p>
-
-                {/* Strengths & Weaknesses Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                  <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-3">
-                    <h5 className="text-xs font-bold text-emerald-400 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" /> Strong Key Highlights
-                    </h5>
-                    <ul className="text-xs space-y-2 text-slate-300 list-disc pl-4">
-                      {(currentAnalysis.strengths || [
-                        'High keyword density for Full Stack & AI engineering roles',
-                        'Quantifiable impact metrics in project accomplishments',
-                        'Clean section layout and professional formatting',
-                      ]).map((s, i) => (
-                        <li key={i}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-3">
-                    <h5 className="text-xs font-bold text-amber-400 flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4" /> Recommended Enhancements
-                    </h5>
-                    <ul className="text-xs space-y-2 text-slate-300 list-disc pl-4">
-                      {(currentAnalysis.weaknesses || currentAnalysis.improvements || [
-                        'Consider adding specific LLM framework certifications (LangChain, LlamaIndex)',
-                        'Expand on CI/CD deployment pipelines & Kubernetes cluster management',
-                      ]).map((imp, i) => (
-                        <li key={i}>{imp}</li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
 
-                {/* Missing Skills */}
-                {currentAnalysis.missingSkills && currentAnalysis.missingSkills.length > 0 && (
-                  <div className="space-y-2 pt-2">
-                    <h4 className="text-xs font-bold text-white">Detected Skill Gaps for Target Role:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {currentAnalysis.missingSkills.map((sk, i) => (
-                        <Badge key={i} variant="warning">
-                          {sk}
-                        </Badge>
-                      ))}
+                {/* Executive Summary */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-white">Executive Summary</h4>
+                  <p className="text-xs text-slate-300 bg-slate-800/60 p-4 rounded-2xl leading-relaxed">
+                    {summaryVal}
+                  </p>
+
+                  {/* Strengths & Weaknesses Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    {strengthsArr.length > 0 && (
+                      <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-3">
+                        <h5 className="text-xs font-bold text-emerald-400 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4" /> Strong Key Highlights
+                        </h5>
+                        <ul className="text-xs space-y-2 text-slate-300 list-disc pl-4">
+                          {strengthsArr.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {weaknessesArr.length > 0 && (
+                      <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                        <h5 className="text-xs font-bold text-amber-400 flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4" /> Recommended Enhancements
+                        </h5>
+                        <ul className="text-xs space-y-2 text-slate-300 list-disc pl-4">
+                          {weaknessesArr.map((imp, i) => (
+                            <li key={i}>{imp}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Missing Skills */}
+                  {missingSkillsArr.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <h4 className="text-xs font-bold text-white">Detected Skill Gaps for Target Role:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {missingSkillsArr.map((sk, i) => (
+                          <Badge key={i} variant="warning">
+                            {sk}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
+                  )}
+                </div>
+              </motion.div>
+            );
+          })()}
         </div>
       )}
 

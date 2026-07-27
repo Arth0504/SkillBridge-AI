@@ -5,6 +5,7 @@ import { Candidate } from './models/candidate.model.js';
 import { Company } from './models/company.model.js';
 import { Job } from './models/job.model.js';
 import { Application, APPLICATION_STATUS } from './models/application.model.js';
+import { Interview, INTERVIEW_STATUS } from './models/interview.model.js';
 import { generateToken } from './utils/generateToken.js';
 
 dotenv.config();
@@ -28,6 +29,7 @@ const runDashboardTests = async () => {
       Company.deleteMany({}),
       Job.deleteMany({}),
       Application.deleteMany({}),
+      Interview.deleteMany({}),
     ]);
 
     const PORT = 5057;
@@ -172,7 +174,7 @@ const runDashboardTests = async () => {
       appliedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
     });
 
-    await Application.create({
+    const scheduledApp = await Application.create({
       candidateId: new mongoose.Types.ObjectId(),
       jobId: jobOpen1._id,
       companyId: testCompany._id,
@@ -182,6 +184,20 @@ const runDashboardTests = async () => {
       interviewDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days in future
       candidateSnapshot: { fullName: 'John Doe', email: 'john@gmail.com' },
       appliedAt: new Date(),
+    });
+
+    await Interview.create({
+      applicationId: scheduledApp._id,
+      candidateId: scheduledApp.candidateId,
+      companyId: testCompany._id,
+      jobId: jobOpen1._id,
+      interviewType: 'Technical',
+      round: 1,
+      title: 'Technical Coding Round 1',
+      scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      startTime: '10:00 AM',
+      endTime: '11:00 AM',
+      status: INTERVIEW_STATUS.SCHEDULED,
     });
 
     await Application.create({

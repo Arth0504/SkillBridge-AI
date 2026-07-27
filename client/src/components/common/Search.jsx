@@ -8,8 +8,8 @@ export const Search = ({ value, onChange, onClear, placeholder = 'Search jobs, s
       <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={value ?? ''}
+        onChange={(e) => onChange && onChange(e)}
         placeholder={placeholder}
         className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all shadow-sm"
       />

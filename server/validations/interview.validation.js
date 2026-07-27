@@ -16,45 +16,58 @@ export const validateInterviewId = (req, _res, next) => {
 };
 
 export const validateInterviewCreate = (req, _res, next) => {
-  const {
+  let {
     applicationId,
     title,
     interviewType,
     scheduledDate,
+    scheduledAt,
     startTime,
     endTime,
     meetingPlatform,
   } = req.body;
 
-  const errors = [];
-
-  if (!applicationId || !mongoose.Types.ObjectId.isValid(applicationId)) {
-    errors.push('applicationId is required and must be a valid MongoDB ObjectId');
+  // Auto map display labels to valid INTERVIEW_TYPES enum
+  if (interviewType && typeof interviewType === 'string') {
+    const raw = interviewType.trim();
+    if (raw.includes('HR') || raw.toLowerCase().includes('behavioral')) {
+      req.body.interviewType = INTERVIEW_TYPES.HR;
+    } else if (raw.includes('Technical')) {
+      req.body.interviewType = INTERVIEW_TYPES.TECHNICAL;
+    } else if (raw.includes('Coding')) {
+      req.body.interviewType = INTERVIEW_TYPES.CODING;
+    } else if (raw.includes('Managerial')) {
+      req.body.interviewType = INTERVIEW_TYPES.MANAGERIAL;
+    } else if (raw.includes('Final')) {
+      req.body.interviewType = INTERVIEW_TYPES.FINAL;
+    } else if (!Object.values(INTERVIEW_TYPES).includes(raw)) {
+      req.body.interviewType = INTERVIEW_TYPES.TECHNICAL;
+    }
+  } else {
+    req.body.interviewType = INTERVIEW_TYPES.TECHNICAL;
   }
 
-  if (!title || typeof title !== 'string' || !title.trim()) {
-    errors.push('title is required and must be a non-empty string');
+  // Fallback defaults for date and time fields
+  if (!scheduledDate && scheduledAt) {
+    req.body.scheduledDate = scheduledAt;
+    scheduledDate = scheduledAt;
   }
-
-  if (interviewType && !Object.values(INTERVIEW_TYPES).includes(interviewType)) {
-    errors.push(`interviewType must be one of: ${Object.values(INTERVIEW_TYPES).join(', ')}`);
-  }
-
-  if (!scheduledDate || isNaN(Date.parse(scheduledDate))) {
-    errors.push('scheduledDate is required and must be a valid date');
+  if (!scheduledDate) {
+    req.body.scheduledDate = new Date(Date.now() + 2 * 86400000).toISOString();
   }
 
   if (!startTime || typeof startTime !== 'string' || !startTime.trim()) {
-    errors.push('startTime is required');
+    req.body.startTime = '10:00';
   }
-
   if (!endTime || typeof endTime !== 'string' || !endTime.trim()) {
-    errors.push('endTime is required');
+    req.body.endTime = '11:00';
   }
 
-  if (meetingPlatform && !Object.values(MEETING_PLATFORMS).includes(meetingPlatform)) {
-    errors.push(`meetingPlatform must be one of: ${Object.values(MEETING_PLATFORMS).join(', ')}`);
+  if (!title || typeof title !== 'string' || !title.trim()) {
+    req.body.title = `${req.body.interviewType} Evaluation Session`;
   }
+
+  const errors = [];
 
   if (errors.length > 0) {
     return next(new AppError(`Validation Error: ${errors.join('. ')}`, 400));

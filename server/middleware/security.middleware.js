@@ -7,11 +7,12 @@ import hpp from 'hpp';
 import { env } from '../config/env.js';
 
 /**
- * Strict Rate Limiter for Authentication Endpoints (10 requests / 15 minutes)
+ * Strict Rate Limiter for Authentication Endpoints (10 requests / 15 minutes in prod, 10000 in dev)
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === 'production' ? 10 : 10000,
+  skip: () => process.env.NODE_ENV !== 'production',
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -23,11 +24,23 @@ export const authLimiter = rateLimit({
 });
 
 /**
- * Global API Rate Limiter (100 requests / 15 minutes)
+ * Global API Rate Limiter (100 requests / 15 minutes in prod, 10000 in dev)
  */
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: process.env.NODE_ENV === 'production' ? 100 : 10000,
+  skip: (req) => {
+    if (process.env.NODE_ENV !== 'production') return true;
+    const excludedPaths = [
+      '/api/v1/auth',
+      '/api/v1/jobs',
+      '/api/v1/resume',
+      '/api/v1/interview',
+      '/api/v1/dashboard',
+      '/api/v1/candidate/me',
+    ];
+    return excludedPaths.some((path) => req.originalUrl.startsWith(path));
+  },
   standardHeaders: true,
   legacyHeaders: false,
   message: {

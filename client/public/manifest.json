@@ -1,0 +1,16 @@
+{
+  "short_name": "SkillBridge AI",
+  "name": "SkillBridge AI - Enterprise Talent Marketplace & AI Assessment Platform",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0B0F19",
+  "theme_color": "#6366F1",
+  "display": "standalone"
+}

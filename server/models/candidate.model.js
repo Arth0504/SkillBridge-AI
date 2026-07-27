@@ -104,6 +104,16 @@ const candidateSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform: (_doc, ret) => {
+        return ret;
+      },
+    },
+    toObject: {
+      transform: (_doc, ret) => {
+        return ret;
+      },
+    },
   }
 );
 

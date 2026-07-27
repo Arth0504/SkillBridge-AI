@@ -33,6 +33,8 @@ export const Modal = ({ isOpen, onClose, title, children, className, maxWidth = 
 
           {/* Dialog Container */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -49,6 +51,7 @@ export const Modal = ({ isOpen, onClose, title, children, className, maxWidth = 
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h3>
                 <button
                   onClick={onClose}
+                  aria-label="Close modal"
                   className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                   <X className="w-5 h-5" />

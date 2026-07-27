@@ -33,34 +33,7 @@ export const ApplicationsListPage = () => {
     queryFn: () => candidateApi.getApplications({ status: statusFilter === 'ALL' ? undefined : statusFilter }),
   });
 
-  const applications = data?.data?.applications || [
-    {
-      _id: 'app-1',
-      job: { _id: 'j1', title: 'Senior AI Platform Engineer', companyName: 'TechCorp AI', location: 'Remote', salaryRange: '$150k - $190k' },
-      status: 'Screening In Progress',
-      createdAt: '2026-07-20T10:00:00Z',
-      matchScore: 96,
-      timeline: [
-        { status: 'Applied', date: '2026-07-20', note: 'Application received and passed ATS screening' },
-        { status: 'Screening', date: '2026-07-22', note: 'AI resume evaluation score: 96%' },
-      ],
-      coverLetter: 'I have 6 years building high-throughput PyTorch and React AI platforms.',
-    },
-    {
-      _id: 'app-2',
-      job: { _id: 'j2', title: 'Full Stack React Developer', companyName: 'Nexus Labs', location: 'New York, NY', salaryRange: '$130k - $160k' },
-      status: 'Interview Scheduled',
-      createdAt: '2026-07-15T10:00:00Z',
-      matchScore: 92,
-      interviewDate: '2026-07-28T15:00:00Z',
-      timeline: [
-        { status: 'Applied', date: '2026-07-15', note: 'Application submitted' },
-        { status: 'Screening Passed', date: '2026-07-17', note: 'Shortlisted by hiring manager' },
-        { status: 'Interview Scheduled', date: '2026-07-20', note: 'Technical System Design Interview' },
-      ],
-      coverLetter: 'Passionate about modern component design systems and Tailwind UI.',
-    },
-  ];
+  const applications = data?.data?.applications ?? [];
 
   // Withdraw Application Mutation
   const withdrawMutation = useMutation({
@@ -276,7 +249,7 @@ export const ApplicationsListPage = () => {
               rows={3}
               placeholder="e.g. Accepted another offer, position no longer aligns..."
               value={withdrawReason}
-              onChange={(e) => setCoverLetter(e.target.value)}
+              onChange={(e) => setWithdrawReason(e.target.value)}
             />
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
               <Button variant="ghost" onClick={() => setWithdrawApp(null)}>

@@ -29,6 +29,7 @@ export const updateCandidateProfile = asyncHandler(async (req, res, _next) => {
     'education',
     'experience',
     'socialLinks',
+    'resumeUrl',
   ];
 
   const updates = {};
@@ -122,4 +123,20 @@ export const uploadAvatar = asyncHandler(async (req, res, next) => {
     avatarUrl: candidate.avatarUrl,
     avatarPublicId: candidate.avatarPublicId,
   });
+});
+
+/**
+ * Get Public Candidate Profile (Unrestricted / Public View)
+ * @route GET /api/v1/candidate/profile/public/:id
+ */
+export const getPublicCandidateProfile = asyncHandler(async (req, res, next) => {
+  const candidate = await Candidate.findById(req.params.id).select(
+    'fullName headline location bio avatarUrl skills experience education socialLinks resumeUrl createdAt'
+  );
+
+  if (!candidate || candidate.isDeleted) {
+    return next(new AppError('Candidate profile not found or unavailable.', 404));
+  }
+
+  return sendResponse(res, 200, true, 'Candidate public profile retrieved', { candidate });
 });

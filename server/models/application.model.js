@@ -19,6 +19,7 @@ const candidateSnapshotSchema = new mongoose.Schema(
     headline: { type: String, default: '', trim: true },
     skills: { type: [String], default: [] },
     experienceYears: { type: Number, default: 0 },
+    resumeUrl: { type: String, default: '', trim: true },
   },
   { _id: false }
 );
@@ -117,6 +118,16 @@ const applicationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform: (_doc, ret) => {
+        return ret;
+      },
+    },
+    toObject: {
+      transform: (_doc, ret) => {
+        return ret;
+      },
+    },
   }
 );
 

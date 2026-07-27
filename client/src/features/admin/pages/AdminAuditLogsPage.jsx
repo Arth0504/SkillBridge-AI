@@ -16,13 +16,7 @@ export const AdminAuditLogsPage = () => {
   });
 
   const auditData = auditResponse?.data || {};
-  const logs = auditData.logs || [
-    { _id: 'l1', event: 'SECURITY_TOKEN_REFRESH', userId: 'candidate_8492', ip: '192.168.1.45', status: 'SUCCESS', timestamp: '2026-07-24T14:12:00Z' },
-    { _id: 'l2', event: 'AI_RESUME_ANALYSIS_JOB', userId: 'candidate_1120', ip: '10.0.0.12', status: 'SUCCESS', timestamp: '2026-07-24T14:08:00Z' },
-    { _id: 'l3', event: 'EMPLOYER_JOB_CREATED', userId: 'company_techcorp', ip: '172.16.0.4', status: 'SUCCESS', timestamp: '2026-07-24T13:55:00Z' },
-    { _id: 'l4', event: 'ADMIN_USER_MODERATION', userId: 'admin_super', ip: '127.0.0.1', status: 'SUCCESS', timestamp: '2026-07-24T13:30:00Z' },
-    { _id: 'l5', event: 'LOGIN_ATTEMPT_FAILED', userId: 'unauthorized_attempt', ip: '45.33.22.11', status: 'BLOCKED', timestamp: '2026-07-24T13:10:00Z' },
-  ];
+  const logs = auditData.logs ?? [];
 
   const filteredLogs = logs.filter((l) => {
     const ev = l.event || '';

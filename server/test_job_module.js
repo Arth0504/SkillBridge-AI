@@ -7,7 +7,6 @@ try {
 
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from './app.js';
 import { Company } from './models/company.model.js';
 import { Job } from './models/job.model.js';
@@ -16,30 +15,14 @@ import { generateToken } from './utils/generateToken.js';
 dotenv.config();
 
 let server;
-let mongoServer;
 
 const runTests = async () => {
   console.log('--- STARTING PHASE 3 JOB MODULE VERIFICATION TESTS ---');
 
   try {
-    // 1. Setup Mongo Connection (Try Atlas, fallback to MongoMemoryServer)
-    let mongoUri = process.env.MONGODB_URI;
-    try {
-      if (mongoUri) {
-        console.log('Connecting to primary MongoDB URI...');
-        await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 3000 });
-        console.log('✅ Connected to Atlas MongoDB.');
-      } else {
-        throw new Error('No MONGODB_URI found');
-      }
-    } catch (dbErr) {
-      console.warn(`⚠️ Atlas connection failed (${dbErr.message}). Starting MongoMemoryServer fallback...`);
-      mongoServer = await MongoMemoryServer.create();
-      mongoUri = mongoServer.getUri();
-      await mongoose.disconnect();
-      await mongoose.connect(mongoUri);
-      console.log('✅ Connected to MongoMemoryServer successfully.');
-    }
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/skillbridge_test';
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
+    console.log('✅ Connected to MongoDB successfully.');
 
     // Start express server on port 5055
     const PORT = 5055;
@@ -53,7 +36,7 @@ const runTests = async () => {
       email: testCompanyEmail,
       password: 'Password123!',
       industry: 'Artificial Intelligence',
-      companySize: '50-200',
+      companySize: '51-200',
       location: 'San Francisco, CA',
       website: 'https://techcorp-example.ai',
       isEmailVerified: true,
@@ -258,9 +241,6 @@ const runTests = async () => {
       server.close();
     }
     await mongoose.disconnect();
-    if (mongoServer) {
-      await mongoServer.stop();
-    }
     console.log('Disconnected from database.');
   }
 };

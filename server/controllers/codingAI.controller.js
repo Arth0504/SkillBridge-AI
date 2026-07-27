@@ -44,16 +44,18 @@ export const getCodingAssessmentByIdHandler = asyncHandler(async (req, res, _nex
  * @route POST /api/v1/candidate/ai-coding/:assessmentId/submit-answer
  */
 export const submitCodingAnswerHandler = asyncHandler(async (req, res, next) => {
-  const { submittedAnswer } = req.body;
+  const rawCode = req.body?.submittedAnswer || req.body?.code || req.body?.answer || req.body?.answerText;
 
-  if (!submittedAnswer || !submittedAnswer.trim()) {
-    return next(new AppError('submittedAnswer is required.', 400));
+  if (!rawCode || !String(rawCode).trim()) {
+    return next(new AppError('submittedAnswer (or code) is required.', 400));
   }
+
+  const submittedAnswer = String(rawCode).trim();
 
   const result = await submitCodingAnswerService({
     assessmentId: req.params.assessmentId,
     candidateIdStr: req.user._id,
-    submittedAnswer: submittedAnswer.trim(),
+    submittedAnswer,
   });
 
   return sendResponse(res, 200, true, 'Code evaluated successfully', result);

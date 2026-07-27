@@ -3,6 +3,7 @@ import {
   getCompanyProfile,
   updateCompanyProfile,
   uploadLogo,
+  getPublicCompanyProfile,
 } from '../controllers/profileCompany.controller.js';
 import { validateCompanyProfileUpdate } from '../validations/profileCompany.validation.js';
 import { protect, restrictTo } from '../middleware/auth.middleware.js';
@@ -11,7 +12,10 @@ import { ROLES } from '../config/constants.js';
 
 const router = express.Router();
 
-// All profile endpoints require company authentication
+// Public company profile endpoint (Unrestricted)
+router.get('/public/:id', getPublicCompanyProfile);
+
+// Protected company profile endpoints
 router.use(protect);
 router.use(restrictTo(ROLES.COMPANY));
 

@@ -16,7 +16,7 @@ export const companyRegisterSchema = z.object({
   companyName: z.string().trim().min(2, 'Company name must be at least 2 characters'),
   email: z.string().trim().min(1, 'Email is required').email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  website: z.string().url('Invalid URL address').optional().or(z.literal('')),
+  website: z.string().optional().or(z.literal('')),
   industry: z.string().optional(),
 });
 

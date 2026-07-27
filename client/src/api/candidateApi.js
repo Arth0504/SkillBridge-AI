@@ -38,6 +38,11 @@ export const candidateApi = {
     return data;
   },
 
+  getPublicProfile: async (id) => {
+    const { data } = await api.get(`/candidate/profile/public/${id}`);
+    return data;
+  },
+
   updateProfile: async (profileData) => {
     const { data } = await api.put('/candidate/profile', profileData);
     return data;
@@ -138,7 +143,12 @@ export const candidateApi = {
   },
 
   submitInterviewAnswer: async (sessionId, payload) => {
-    const { data } = await api.post(`/candidate/ai-interview/${sessionId}/submit-answer`, payload);
+    const answerVal = typeof payload === 'string' ? payload : (payload?.answerText || payload?.answer || payload?.submittedAnswer || payload?.code);
+    const { data } = await api.post(`/candidate/ai-interview/${sessionId}/submit-answer`, {
+      answer: answerVal,
+      answerText: answerVal,
+      submittedAnswer: answerVal,
+    });
     return data;
   },
 
@@ -169,7 +179,12 @@ export const candidateApi = {
   },
 
   submitCodingAnswer: async (assessmentId, payload) => {
-    const { data } = await api.post(`/candidate/ai-coding/${assessmentId}/submit-answer`, payload);
+    const codeVal = typeof payload === 'string' ? payload : (payload?.submittedAnswer || payload?.code || payload?.answer || payload?.answerText);
+    const { data } = await api.post(`/candidate/ai-coding/${assessmentId}/submit-answer`, {
+      code: codeVal,
+      submittedAnswer: codeVal,
+      language: payload?.language,
+    });
     return data;
   },
 

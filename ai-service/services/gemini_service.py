@@ -37,49 +37,71 @@ class GeminiService:
             except Exception as e:
                 print(f"Gemini ATS Generation error: {e}, falling back to rule-based analysis")
 
-        # Fallback Rule-Based Engine
+        # Fallback Dynamic Rule-Based Engine
         word_count = len(resume_text.split())
-        score = min(95, max(45, int((word_count / 300) * 80)))
-        skills = [s.title() for s in ["Node.js", "React", "MongoDB", "Python", "Docker", "REST API", "Git"] if s.lower() in resume_text.lower()]
+        skill_catalog = [
+            "Java", "Spring Boot", "Hibernate", "Maven", "JUnit", "SQL", "MySQL", "PostgreSQL",
+            "React", "Node.js", "Express", "MongoDB", "JavaScript", "TypeScript", "Redux",
+            "Python", "Pandas", "NumPy", "PyTorch", "TensorFlow", "Scikit-Learn", "Machine Learning", "Data Science",
+            "C++", "C#", ".NET", "AWS", "Docker", "Kubernetes", "CI/CD", "Git", "DevOps"
+        ]
+        matched_skills = [s for s in skill_catalog if re.search(r'\b' + re.escape(s) + r'\b', resume_text, re.IGNORECASE)]
+
+        domain = "Software Development"
+        if any(s in ["Java", "Spring Boot", "Hibernate", "Maven"] for s in matched_skills):
+            domain = "Java Enterprise Development"
+        elif any(s in ["Pandas", "NumPy", "PyTorch", "TensorFlow", "Data Science", "Machine Learning"] for s in matched_skills):
+            domain = "Data Science & Machine Learning"
+        elif any(s in ["React", "Node.js", "Express", "MongoDB"] for s in matched_skills):
+            domain = "MERN Full Stack Development"
+        elif any(s in ["AWS", "Docker", "Kubernetes", "DevOps"] for s in matched_skills):
+            domain = "Cloud & DevOps Engineering"
+
+        score = min(96, max(55, 55 + len(matched_skills) * 4 + min(20, word_count // 25)))
+        missing_skills = [s for s in skill_catalog if s not in matched_skills][:5]
+
+        sentences = [s.strip() for s in re.split(r'[.!\n]', resume_text) if len(s.strip()) > 15]
+        snippet = ". ".join(sentences[:2])
+        summary = f'Analyzed {domain} candidate: "{snippet}."' if snippet else f"Qualified candidate with expertise in {domain} and skills in {', '.join(matched_skills[:4]) or 'software engineering'}."
 
         return {
             "overallAtsScore": score,
             "skillMatch": {
-                "technicalSkills": skills,
+                "technicalSkills": matched_skills if matched_skills else ["Software Engineering"],
                 "softSkills": ["Problem Solving", "Team Collaboration", "Communication"],
-                "missingSkills": ["TypeScript", "GraphQL", "CI/CD"],
+                "missingSkills": missing_skills,
             },
             "keywordAnalysis": {
-                "matchedKeywords": skills,
-                "missingKeywords": ["AWS", "Microservices", "Unit Testing"],
+                "matchedKeywords": matched_skills,
+                "missingKeywords": missing_skills,
             },
             "strengths": [
-                "Strong core technical skill alignment",
-                "Clear project descriptions and responsibilities",
-                "Good structure and section organization",
+                f"Technical proficiency in {', '.join(matched_skills[:3]) if matched_skills else 'core engineering domain'}",
+                f"Experience alignment tailored for {domain} roles",
+                f"Parsed text volume of {word_count} words",
             ],
             "weaknesses": [
-                "Lacks quantifiable metrics for career impact (e.g. % performance improvement)",
-                "Could include more industry keywords in summary",
+                f"Recommended to expand proficiency in {', '.join(missing_skills[:2]) or 'cloud infrastructure'}",
+                "Add quantifiable metrics to career accomplishments",
             ],
             "grammarReview": "Good phrasing, clear passive-to-active action verbs.",
             "formattingSuggestions": [
                 "Use standard bullet points for section readability",
                 "Keep skills categorized clearly by domain",
             ],
-            "projectReview": "Projects clearly highlight relevant modern web technologies.",
-            "experienceReview": "Demonstrates solid hands-on engineering involvement.",
+            "projectReview": f"Projects clearly highlight relevant work in {domain}.",
+            "experienceReview": f"Demonstrates solid hands-on involvement in {domain}.",
             "educationReview": "Academic background is clearly stated.",
             "certificationReview": "Certifications add positive technical credibility.",
-            "resumeSummary": "Qualified candidate with strong practical software engineering skills.",
+            "resumeSummary": summary,
             "improvementSuggestions": [
-                "Add measurable metrics to key job accomplishments",
+                f"Add measurable metrics and target keywords like {', '.join(missing_skills[:2])}",
                 "Incorporate missing target keywords from job description",
             ],
-            "recruiterImpression": "Strong candidate profile worthy of first-round technical interview.",
+            "recruiterImpression": f"Strong candidate profile for {domain} opportunities.",
             "top5Improvements": [
+                f"Add skills in {', '.join(missing_skills[:2])}",
                 "Quantify achievements with percentages and numbers",
-                "Add TypeScript and AWS to technical skills",
                 "Enhance professional summary with top career achievements",
                 "Standardize section heading titles for ATS parsers",
                 "Include direct links to portfolio or GitHub repositories",

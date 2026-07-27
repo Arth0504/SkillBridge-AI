@@ -1,7 +1,7 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-echo "🔍 Running pre-commit quality checks..."
+echo " Running pre-commit quality checks..."
 
 # Run lint-staged on staged files
 npx lint-staged || exit 1
@@ -9,4 +9,4 @@ npx lint-staged || exit 1
 # Execute quick security verification test
 cd server && node test_production_module.js || exit 1
 
-echo "✅ Pre-commit verification passed successfully!"
+echo " Pre-commit verification passed successfully!"

@@ -4,7 +4,8 @@ def get_interview_question_prompt(
     candidate_skills: list,
     previous_questions: list = None,
     previous_score: int = None,
-    job_description: str = None
+    job_description: str = None,
+    experience_level: str = "Senior"
 ) -> str:
     skills_str = ", ".join(candidate_skills) if candidate_skills else "General Software Engineering"
     prev_q_str = "\n".join([f"- Q: {q['questionText']} (Score: {q.get('score', 'N/A')})" for q in (previous_questions or [])])
@@ -13,17 +14,18 @@ def get_interview_question_prompt(
     adaptive_note = ""
     if previous_score is not None:
         if previous_score >= 80:
-            adaptive_note = "\nNOTE: The candidate performed very well on the previous question. Increase question difficulty, probe deeper into architectural decisions or edge cases."
+            adaptive_note = "\nNOTE: The candidate performed very well on the previous question. Increase question complexity, probe deeper into architectural decisions or edge cases."
         elif previous_score < 50:
             adaptive_note = "\nNOTE: The candidate struggled on the previous question. Ask a clarifying follow-up question or adjust to a foundational concept."
 
     return f"""
-You are a Senior Technical Hiring Manager and Executive Recruiter conducting a live {interview_type} mock interview ({difficulty} level).
-Generate the next single interview question for the candidate based on their skills, experience, and previous answers.
+You are a Senior Technical Hiring Manager and Executive Recruiter conducting a live {interview_type} mock interview.
+Generate the next single interview question for the candidate based on their target experience level, skills, and previous answers.
 
 Candidate Skills: {skills_str}
 Target Interview Type: {interview_type}
-Current Target Difficulty: {difficulty}
+Question Difficulty Rating: {difficulty} (Easy | Medium | Hard)
+Target Seniority / Experience Level: {experience_level} (Entry | Junior | Mid | Senior | Lead | Architect | Executive)
 {jd_str}
 
 Previous Questions Asked:

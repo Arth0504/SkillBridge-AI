@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,7 +21,9 @@ import {
   Link as LinkIcon,
 } from 'lucide-react';
 import { Button, Input, Textarea, Badge, Loader } from '../../../components/common';
+import { Avatar } from '../../../components/common/Avatar';
 import { candidateApi } from '../../../api';
+import { useAuth } from '../../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 // Zod Validation Schema
@@ -95,11 +98,18 @@ export const CandidateProfilePage = () => {
     }
   }, [profileResponse, reset]);
 
+  const { user, updateUser, refreshUser } = useAuth();
+
   // Profile Update Mutation
   const updateMutation = useMutation({
     mutationFn: candidateApi.updateProfile,
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success('Candidate profile saved successfully!');
+      const updatedCandidate = data?.data?.profile || data?.profile;
+      if (updatedCandidate) {
+        updateUser(updatedCandidate);
+      }
+      refreshUser();
       queryClient.invalidateQueries({ queryKey: ['candidate-profile'] });
       queryClient.invalidateQueries({ queryKey: ['candidate-dashboard-summary'] });
     },
@@ -113,6 +123,11 @@ export const CandidateProfilePage = () => {
     mutationFn: candidateApi.uploadAvatar,
     onSuccess: (data) => {
       toast.success('Profile avatar updated successfully!');
+      const newAvatarUrl = data?.data?.avatarUrl || data?.avatarUrl;
+      if (newAvatarUrl) {
+        updateUser({ avatarUrl: newAvatarUrl });
+      }
+      refreshUser();
       queryClient.invalidateQueries({ queryKey: ['candidate-profile'] });
     },
     onError: (err) => {
@@ -125,6 +140,11 @@ export const CandidateProfilePage = () => {
     mutationFn: candidateApi.uploadResume,
     onSuccess: (data) => {
       toast.success('Resume PDF uploaded successfully!');
+      const newResumeUrl = data?.data?.resumeUrl || data?.resumeUrl;
+      if (newResumeUrl) {
+        updateUser({ resumeUrl: newResumeUrl, profileCompleted: true });
+      }
+      refreshUser();
       queryClient.invalidateQueries({ queryKey: ['candidate-profile'] });
     },
     onError: (err) => {
@@ -250,14 +270,24 @@ export const CandidateProfilePage = () => {
           </p>
         </div>
 
-        {/* Completion Progress Badge */}
-        <div className="glass-panel px-5 py-3 rounded-2xl border border-brand-500/20 flex items-center gap-4 shrink-0">
-          <div>
-            <p className="text-[11px] font-semibold text-slate-400">Profile Completion</p>
-            <h4 className="text-lg font-black text-brand-500">{completionPct}% Completed</h4>
-          </div>
-          <div className="w-12 h-12 rounded-full border-4 border-brand-500/20 border-t-brand-500 flex items-center justify-center text-xs font-bold text-slate-900 dark:text-white">
-            {completionPct}%
+        {/* Completion Progress & Public Profile Button */}
+        <div className="flex flex-wrap items-center gap-3">
+          {user?._id && (
+            <Link to={`/candidate/public/${user._id}`} target="_blank">
+              <Button variant="secondary" size="sm" type="button">
+                <Globe className="w-4 h-4 mr-2 text-brand-500" /> View Public Profile
+              </Button>
+            </Link>
+          )}
+
+          <div className="glass-panel px-5 py-3 rounded-2xl border border-brand-500/20 flex items-center gap-4 shrink-0">
+            <div>
+              <p className="text-[11px] font-semibold text-slate-400">Profile Completion</p>
+              <h4 className="text-lg font-black text-brand-500">{completionPct}% Completed</h4>
+            </div>
+            <div className="w-12 h-12 rounded-full border-4 border-brand-500/20 border-t-brand-500 flex items-center justify-center text-xs font-bold text-slate-900 dark:text-white">
+              {completionPct}%
+            </div>
           </div>
         </div>
       </div>

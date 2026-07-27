@@ -33,7 +33,8 @@ class AIInterviewService:
         candidate_skills: List[str],
         previous_questions: List[Dict[str, Any]] = None,
         previous_score: int = None,
-        job_description: str = None
+        job_description: str = None,
+        experience_level: str = "Senior"
     ) -> Dict[str, Any]:
         prompt = get_interview_question_prompt(
             interview_type,
@@ -41,7 +42,8 @@ class AIInterviewService:
             candidate_skills,
             previous_questions,
             previous_score,
-            job_description
+            job_description,
+            experience_level
         )
 
         if self.model:

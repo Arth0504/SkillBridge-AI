@@ -58,6 +58,10 @@ export const createJob = asyncHandler(async (req, res, next) => {
     );
   }
 
+  const parsedLocation = typeof location === 'string'
+    ? { city: location.trim(), state: '', country: '' }
+    : (location && typeof location === 'object' ? location : {});
+
   const job = await Job.create({
     title: title.trim(),
     department: department ? department.trim() : '',
@@ -73,10 +77,10 @@ export const createJob = asyncHandler(async (req, res, next) => {
     salary: salary || {},
     salaryType: salaryType || 'yearly',
     currency: currency || 'USD',
-    location: location || {},
-    country: country || (location && location.country) || company.location || '',
-    state: state || (location && location.state) || '',
-    city: city || (location && location.city) || '',
+    location: parsedLocation,
+    country: country || parsedLocation.country || company.location || '',
+    state: state || parsedLocation.state || '',
+    city: city || parsedLocation.city || '',
     openings: openings || 1,
     applicationDeadline: applicationDeadline ? new Date(applicationDeadline) : undefined,
     status: status || 'open',
@@ -170,6 +174,10 @@ export const updateJob = asyncHandler(async (req, res, next) => {
     'benefits',
     'tags',
   ];
+
+  if (req.body.location && typeof req.body.location === 'string') {
+    req.body.location = { city: req.body.location.trim(), state: '', country: '' };
+  }
 
   allowedFields.forEach((field) => {
     if (req.body[field] !== undefined) {

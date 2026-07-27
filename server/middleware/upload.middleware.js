@@ -1,34 +1,48 @@
 import multer from 'multer';
 import { AppError } from '../utils/AppError.js';
 
-// Memory storage for stream uploads directly to Cloudinary
 const storage = multer.memoryStorage();
 
-const fileFilter = (_req, file, cb) => {
-  const allowedMimeTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'application/pdf',
-  ];
+// 1. Resume Filter & Validation (PDF only)
+const resumeFileFilter = (_req, file, cb) => {
+  const isPdfMime = file.mimetype === 'application/pdf';
+  const isPdfExt = (file.originalname || '').toLowerCase().endsWith('.pdf');
 
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  if (isPdfMime || isPdfExt) {
     cb(null, true);
   } else {
-    cb(
-      new AppError(
-        'Invalid file type. Only JPEG, PNG, WEBP images and PDF documents are allowed.',
-        400
-      ),
-      false
-    );
+    cb(new AppError('Only PDF resumes are allowed.', 400), false);
   }
 };
 
-export const upload = multer({
+export const uploadResume = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB max file size
+    fileSize: 5 * 1024 * 1024, // 5 MB max size limit
   },
-  fileFilter,
+  fileFilter: resumeFileFilter,
 });
+
+// 2. Avatar Filter & Validation (JPG, JPEG, PNG, WEBP only)
+const avatarFileFilter = (_req, file, cb) => {
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const ext = (file.originalname || '').toLowerCase().split('.').pop();
+  const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+
+  if (allowedMimeTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Only JPG, JPEG, PNG, or WEBP image formats are allowed for avatars.', 400), false);
+  }
+};
+
+export const uploadAvatar = multer({
+  storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2 MB max size limit
+  },
+  fileFilter: avatarFileFilter,
+});
+
+// Legacy default export for backwards compatibility
+export const upload = uploadResume;

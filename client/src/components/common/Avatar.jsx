@@ -42,14 +42,22 @@ export const Avatar = ({
     return parts[0][0].toUpperCase();
   };
 
+  const [imgError, setImgError] = React.useState(false);
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [src]);
+
+  const isValidSrc = src && !src.includes('cloudinary.com/demo') && !imgError;
   const initials = getInitials(name);
 
   return (
     <div className={cn('relative inline-flex shrink-0', className)}>
-      {src ? (
+      {isValidSrc ? (
         <img
           src={src}
           alt={alt}
+          onError={() => setImgError(true)}
           className={cn(
             'rounded-full object-cover border border-slate-200 dark:border-slate-800',
             sizes[size]

@@ -75,6 +75,22 @@ const companySchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform: (_doc, ret) => {
+        if (ret.logoUrl && (ret.logoUrl.includes('cloudinary.com/demo') || ret.logoUrl.includes('mock_'))) {
+          ret.logoUrl = '';
+        }
+        return ret;
+      },
+    },
+    toObject: {
+      transform: (_doc, ret) => {
+        if (ret.logoUrl && (ret.logoUrl.includes('cloudinary.com/demo') || ret.logoUrl.includes('mock_'))) {
+          ret.logoUrl = '';
+        }
+        return ret;
+      },
+    },
   }
 );
 

@@ -10,7 +10,8 @@ export const InterviewPrepPage = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('practice');
   const [category, setCategory] = useState('Behavioral');
-  const [difficulty, setDifficulty] = useState('Senior');
+  const [difficulty, setDifficulty] = useState('Medium');
+  const [experienceLevel, setExperienceLevel] = useState('Senior');
   const [activeSession, setActiveSession] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
 
@@ -62,7 +63,7 @@ export const InterviewPrepPage = () => {
   });
 
   const handleStartSession = () => {
-    startSessionMutation.mutate({ category, difficulty });
+    startSessionMutation.mutate({ interviewType: category, difficulty, experienceLevel });
   };
 
   const handleAnswerSubmit = () => {
@@ -124,17 +125,17 @@ export const InterviewPrepPage = () => {
                 <Sparkles className="w-5 h-5 text-brand-500" /> Configure Interview Session
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Category Picker */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-300">Category Domain</label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2">
                     {['Behavioral', 'Frontend React', 'Backend Node', 'System Design', 'AI / ML Ops'].map((cat) => (
                       <button
                         key={cat}
                         type="button"
                         onClick={() => setCategory(cat)}
-                        className={`p-3 rounded-xl text-xs font-bold border transition-all text-left ${
+                        className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-left ${
                           category === cat
                             ? 'bg-brand-600 border-brand-500 text-white'
                             : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-slate-800'
@@ -146,22 +147,43 @@ export const InterviewPrepPage = () => {
                   </div>
                 </div>
 
-                {/* Difficulty Picker */}
+                {/* Difficulty Rating Picker */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-300">Target Seniority Level</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['Junior', 'Mid-Level', 'Senior', 'Lead Architect'].map((diff) => (
+                  <label className="text-xs font-bold text-slate-300">Difficulty Rating</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {['Easy', 'Medium', 'Hard'].map((diff) => (
                       <button
                         key={diff}
                         type="button"
                         onClick={() => setDifficulty(diff)}
-                        className={`p-3 rounded-xl text-xs font-bold border transition-all text-left ${
+                        className={`p-2.5 rounded-xl text-xs font-bold border transition-all text-left ${
                           difficulty === diff
-                            ? 'bg-purple-600 border-purple-500 text-white'
+                            ? 'bg-emerald-600 border-emerald-500 text-white'
                             : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-slate-800'
                         }`}
                       >
                         {diff}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Experience Level Picker */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-300">Seniority Level</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {['Entry', 'Junior', 'Mid', 'Senior', 'Lead', 'Architect', 'Executive'].map((level) => (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => setExperienceLevel(level)}
+                        className={`p-2 rounded-xl text-xs font-bold border transition-all text-left ${
+                          experienceLevel === level
+                            ? 'bg-purple-600 border-purple-500 text-white'
+                            : 'bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-slate-800'
+                        }`}
+                      >
+                        {level}
                       </button>
                     ))}
                   </div>

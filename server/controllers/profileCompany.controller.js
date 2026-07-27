@@ -1,4 +1,5 @@
 import { Company } from '../models/company.model.js';
+import { Job } from '../models/job.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../utils/AppError.js';
 import { sendResponse } from '../utils/sendResponse.js';
@@ -87,4 +88,24 @@ export const uploadLogo = asyncHandler(async (req, res, next) => {
     logoUrl: company.logoUrl,
     logoPublicId: company.logoPublicId,
   });
+});
+
+/**
+ * Get Public Company Profile (Unrestricted / Public View)
+ * @route GET /api/v1/company/profile/public/:id
+ */
+export const getPublicCompanyProfile = asyncHandler(async (req, res, next) => {
+  const company = await Company.findById(req.params.id).select(
+    'companyName email logoUrl website industry description location companySize socialLinks createdAt'
+  );
+
+  if (!company || company.isDeleted) {
+    return next(new AppError('Company profile not found or unavailable.', 404));
+  }
+
+  const openJobs = await Job.find({ companyId: company._id, status: 'open', isDeleted: false })
+    .select('title slug location salary employmentType workMode requiredSkills createdAt')
+    .sort({ createdAt: -1 });
+
+  return sendResponse(res, 200, true, 'Company public profile retrieved', { company, openJobs });
 });

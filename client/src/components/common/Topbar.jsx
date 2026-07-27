@@ -4,6 +4,7 @@ import { Sun, Moon, Bell, LogOut, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Dropdown } from './Dropdown';
+import { Avatar } from './Avatar';
 
 export const Topbar = () => {
   const { user, role, logout } = useAuth();
@@ -11,6 +12,16 @@ export const Topbar = () => {
   const navigate = useNavigate();
 
   const userMenuItems = [
+    {
+      label: 'My Profile',
+      icon: <UserIcon className="w-4 h-4" />,
+      onClick: () => navigate(`/${role}/profile`),
+    },
+    {
+      label: 'Settings',
+      icon: <UserIcon className="w-4 h-4" />,
+      onClick: () => navigate(`/${role}/settings`),
+    },
     {
       label: 'Logout',
       icon: <LogOut className="w-4 h-4" />,
@@ -52,10 +63,12 @@ export const Topbar = () => {
         {/* User Menu Dropdown */}
         <Dropdown
           trigger={
-            <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer">
-              <div className="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-500 flex items-center justify-center font-bold text-xs">
-                {user?.fullName?.[0] || user?.companyName?.[0] || 'U'}
-              </div>
+            <div className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+              <Avatar
+                src={user?.avatarUrl || user?.logoUrl}
+                name={user?.fullName || user?.companyName}
+                size="sm"
+              />
             </div>
           }
           items={userMenuItems}

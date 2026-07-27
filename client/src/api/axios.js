@@ -53,6 +53,14 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // If the request was to login or register, do not try to refresh
+      if (originalRequest.url?.includes('/auth/candidate/login') || 
+          originalRequest.url?.includes('/auth/company/login') ||
+          originalRequest.url?.includes('/auth/candidate/register') ||
+          originalRequest.url?.includes('/auth/company/register')) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -83,10 +91,20 @@ api.interceptors.response.use(
         processQueue(refreshErr, null);
         setAccessToken(null);
         localStorage.removeItem('userRole');
+        
+        // Redirect to login if session expired
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+          window.location.href = '/auth/login?sessionExpired=true';
+        }
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;
       }
+    }
+
+    // Handle 403 Forbidden gracefully
+    if (error.response?.status === 403) {
+      console.warn('Access Forbidden (403): User lacks required role permissions for this endpoint.');
     }
 
     return Promise.reject(error);

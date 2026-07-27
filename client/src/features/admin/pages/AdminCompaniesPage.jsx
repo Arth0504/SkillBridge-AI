@@ -20,32 +20,7 @@ export const AdminCompaniesPage = () => {
     queryFn: () => adminApi.getCompanies({ status: tab }),
   });
 
-  const companies = companiesResponse?.data?.companies || [
-    {
-      _id: 'c1',
-      companyName: 'DeepScale Systems',
-      email: 'hr@deepscale.ai',
-      website: 'https://deepscale.ai',
-      industry: 'MLOps & Distributed Compute',
-      companySize: '100-500 employees',
-      location: 'San Francisco, CA',
-      verificationStatus: 'pending',
-      recruiterContactName: 'Marcus Vance',
-      createdAt: '2026-07-22T10:00:00Z',
-    },
-    {
-      _id: 'c2',
-      companyName: 'TechCorp AI Solutions',
-      email: 'recruiting@techcorp.ai',
-      website: 'https://techcorp.ai',
-      industry: 'Enterprise Software',
-      companySize: '500+ employees',
-      location: 'Austin, TX',
-      verificationStatus: 'verified',
-      recruiterContactName: 'Elena Rostova',
-      createdAt: '2026-07-10T10:00:00Z',
-    },
-  ];
+  const companies = companiesResponse?.data?.companies ?? [];
 
   // Verification Mutation
   const verifyMutation = useMutation({

@@ -59,6 +59,8 @@ export const Drawer = ({
 
           {/* Drawer Panel */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
             initial="closed"
             animate="open"
             exit="closed"
@@ -85,6 +87,7 @@ export const Drawer = ({
               </div>
               <button
                 onClick={onClose}
+                aria-label="Close drawer"
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />

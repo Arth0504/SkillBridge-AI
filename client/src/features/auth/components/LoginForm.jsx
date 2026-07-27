@@ -28,10 +28,6 @@ export const LoginForm = () => {
 
   const handleAccountTypeChange = (val) => {
     setAccountType(val);
-    if (val === 'admin') {
-      setValue('email', 'admin@skillbridge.ai');
-      setValue('password', 'admin123');
-    }
   };
 
   const onSubmit = async (data) => {

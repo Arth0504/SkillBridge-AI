@@ -3,73 +3,53 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Bell, CheckCheck, Trash2, Check, Filter, Sparkles, Briefcase, Calendar, Info } from 'lucide-react';
 import { Button, Badge, Loader, EmptyState } from '../../../components/common';
-import { candidateApi } from '../../../api';
+import { candidateApi, companyApi, adminApi } from '../../../api';
+import { useAuth } from '../../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export const NotificationsPage = () => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
   const [readFilter, setReadFilter] = useState('ALL');
 
-  // Fetch Candidate Notifications
+  const activeApi = role === 'company' ? companyApi : role === 'admin' ? adminApi : candidateApi;
+  const queryKey = [`${role || 'candidate'}-notifications`, readFilter];
+
+  // Fetch Notifications
   const { data, isLoading } = useQuery({
-    queryKey: ['candidate-notifications', readFilter],
+    queryKey,
     queryFn: () =>
-      candidateApi.getNotifications({
+      activeApi.getNotifications({
         unreadOnly: readFilter === 'UNREAD' ? true : undefined,
       }),
   });
 
-  const notifications = data?.data?.notifications || [
-    {
-      _id: 'n1',
-      title: 'Application Moved to Screening',
-      message: 'Your candidate profile for Senior AI Engineer was moved to technical screening by TechCorp AI.',
-      type: 'APPLICATION',
-      isRead: false,
-      createdAt: '2026-07-24T12:00:00Z',
-    },
-    {
-      _id: 'n2',
-      title: 'AI High-Match Opportunity Alert',
-      message: 'A new role matching 96% of your verified skills was posted: Principal MLOps Architect at DeepScale.',
-      type: 'AI_MATCH',
-      isRead: false,
-      createdAt: '2026-07-24T09:30:00Z',
-    },
-    {
-      _id: 'n3',
-      title: 'Interview Reminder',
-      message: 'Your AI Mock Practice interview session is scheduled for tomorrow at 10:00 AM.',
-      type: 'INTERVIEW',
-      isRead: true,
-      createdAt: '2026-07-23T15:00:00Z',
-    },
-  ];
+  const notifications = data?.data?.notifications ?? [];
 
   // Mark Single as Read
   const markReadMutation = useMutation({
-    mutationFn: candidateApi.markNotificationAsRead,
+    mutationFn: (id) => activeApi.markNotificationAsRead(id),
     onSuccess: () => {
       toast.success('Notification marked as read.');
-      queryClient.invalidateQueries({ queryKey: ['candidate-notifications'] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   // Mark All as Read
   const markAllReadMutation = useMutation({
-    mutationFn: candidateApi.markAllNotificationsAsRead,
+    mutationFn: () => activeApi.markAllNotificationsAsRead(),
     onSuccess: () => {
       toast.success('All notifications marked as read.');
-      queryClient.invalidateQueries({ queryKey: ['candidate-notifications'] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   // Delete Notification
   const deleteMutation = useMutation({
-    mutationFn: candidateApi.deleteNotification,
+    mutationFn: (id) => activeApi.deleteNotification(id),
     onSuccess: () => {
       toast.success('Notification removed.');
-      queryClient.invalidateQueries({ queryKey: ['candidate-notifications'] });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 

@@ -18,12 +18,7 @@ export const CompanyAnalyticsPage = () => {
   });
 
   const analytics = analyticsResponse?.data || {};
-  const jobPerformance = jobPerfResponse?.data?.performance || [
-    { title: 'Senior AI Engineer', department: 'Core AI', views: 340, applications: 45, conversion: '13.2%' },
-    { title: 'Full Stack React Specialist', department: 'Frontend', views: 280, applications: 32, conversion: '11.4%' },
-    { title: 'Lead Python Backend Developer', department: 'Platform', views: 210, applications: 28, conversion: '13.3%' },
-    { title: 'Principal MLOps Architect', department: 'MLOps', views: 190, applications: 19, conversion: '10.0%' },
-  ];
+  const jobPerformance = jobPerfResponse?.data?.performance ?? [];
 
   if (isLoadingAnalytics) {
     return (
@@ -48,10 +43,10 @@ export const CompanyAnalyticsPage = () => {
       {/* Analytics KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Total Job Impressions', value: analytics.totalViews || '1,020', icon: Eye, color: 'text-brand-500', bg: 'bg-brand-500/10' },
-          { label: 'Avg Candidate Conversion', value: analytics.conversionRate || '12.4%', icon: TrendingUp, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
-          { label: 'Average Time-to-Hire', value: analytics.avgTimeToHire || '14 Days', icon: Clock, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { label: 'AI Screening Efficiency', value: analytics.aiEfficiency || '98.5%', icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+          { label: 'Total Job Impressions', value: analytics.totalViews ?? 0, icon: Eye, color: 'text-brand-500', bg: 'bg-brand-500/10' },
+          { label: 'Avg Candidate Conversion', value: analytics.conversionRate ?? '0%', icon: TrendingUp, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
+          { label: 'Average Time-to-Hire', value: analytics.avgTimeToHire ?? 'N/A', icon: Clock, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'AI Screening Efficiency', value: analytics.aiEfficiency ?? '0%', icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-500/10' },
         ].map((kpi, idx) => (
           <motion.div
             key={idx}

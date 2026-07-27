@@ -57,7 +57,7 @@ export const registerCompany = asyncHandler(async (req, res, next) => {
     subject: 'SkillBridge AI - Verify Company Email',
     text: `Welcome to SkillBridge AI! Please verify your company email address: ${verifyUrl}`,
     html: `<h3>Welcome to SkillBridge AI!</h3><p>Please click <a href="${verifyUrl}">here</a> to verify your company email address.</p>`,
-  });
+  }).catch((emailErr) => console.warn('Company email verification dispatch warning:', emailErr.message));
 
   // Set HTTP-Only Secure Cookies
   setAuthCookies(res, accessToken, refreshToken);

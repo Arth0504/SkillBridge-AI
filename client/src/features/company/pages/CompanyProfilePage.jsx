@@ -1,12 +1,15 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
 import { Building, Mail, Globe, MapPin, Camera, Save, Phone, UserCheck, ShieldCheck } from 'lucide-react';
-import { Button, Input, Textarea, Badge, Loader } from '../../../components/common';
+import { Button, Input, Textarea, Badge, Loader, Select } from '../../../components/common';
+import { Avatar } from '../../../components/common/Avatar';
 import { companyApi } from '../../../api';
+import { useAuth } from '../../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const companyProfileSchema = z.object({
@@ -60,7 +63,7 @@ export const CompanyProfilePage = () => {
         companyName: profile.companyName || '',
         website: profile.website || '',
         industry: profile.industry || 'Artificial Intelligence & Software',
-        companySize: profile.companySize || '50-200 employees',
+        companySize: profile.companySize || '51-200',
         location: profile.location || 'Austin, TX (Headquarters)',
         description: profile.description || 'SkillBridge AI is an enterprise talent technology company automating candidate screening & technical evaluations.',
         phone: profile.phone || '+1 (555) 234-5678',
@@ -125,29 +128,33 @@ export const CompanyProfilePage = () => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* Company Header Card with Logo */}
+        {/* Company Header Card with Logo & View Public Profile */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-3xl space-y-6">
-          <div className="flex flex-col md:flex-row items-center gap-6 border-b border-slate-800 pb-6">
-            <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-tr from-brand-600 to-purple-600 border-2 border-brand-500/30 flex items-center justify-center text-white font-black text-3xl shadow-xl overflow-hidden shrink-0">
-              {profile.logoUrl ? (
-                <img src={profile.logoUrl} alt="Logo" className="w-full h-full object-cover" />
-              ) : (
-                profile.companyName?.charAt(0) || 'C'
-              )}
-            </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-800 pb-6">
+            <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left flex-1">
+              <Avatar src={profile.logoUrl} name={profile.companyName} size="xl" className="w-24 h-24 rounded-2xl shrink-0" />
 
-            <div className="space-y-2 text-center md:text-left flex-1">
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                <h2 className="text-2xl font-extrabold text-white">{profile.companyName || 'Company Name'}</h2>
-                <Badge variant="purple" icon={ShieldCheck}>Verified Enterprise Employer</Badge>
+              <div className="space-y-2 flex-1">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                  <h2 className="text-2xl font-extrabold text-white">{profile.companyName || 'Company Name'}</h2>
+                  <Badge variant="purple" icon={ShieldCheck}>Verified Enterprise Employer</Badge>
+                </div>
+                <p className="text-xs text-slate-400">{profile.email || 'recruiter@skillbridge.ai'}</p>
+
+                <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-all mt-1">
+                  <Camera className="w-3.5 h-3.5 text-brand-400" /> Upload Company Logo
+                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+                </label>
               </div>
-              <p className="text-xs text-slate-400">{profile.email || 'recruiter@skillbridge.ai'}</p>
-
-              <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-all mt-1">
-                <Camera className="w-3.5 h-3.5 text-brand-400" /> Upload Company Logo
-                <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
-              </label>
             </div>
+
+            {profile._id && (
+              <Link to={`/company/public/${profile._id}`} target="_blank">
+                <Button variant="secondary" size="sm" type="button">
+                  <Globe className="w-4 h-4 mr-2 text-brand-500" /> View Public Profile
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Form Fields Grid */}
@@ -173,10 +180,16 @@ export const CompanyProfilePage = () => {
               {...register('industry')}
             />
 
-            <Input
+            <Select
               label="Company Size"
-              placeholder="e.g. 50 - 200 Employees"
               error={errors.companySize?.message}
+              options={[
+                { value: '1-10', label: '1 - 10 employees' },
+                { value: '11-50', label: '11 - 50 employees' },
+                { value: '51-200', label: '51 - 200 employees' },
+                { value: '201-500', label: '201 - 500 employees' },
+                { value: '500+', label: '500+ employees' },
+              ]}
               {...register('companySize')}
             />
 

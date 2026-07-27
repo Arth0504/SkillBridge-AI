@@ -19,29 +19,7 @@ export const AdminJobModerationPage = () => {
     queryFn: () => adminApi.getJobs({ status: tab === 'ALL' ? undefined : tab }),
   });
 
-  const jobs = jobsResponse?.data?.jobs || [
-    {
-      _id: 'j-mod-1',
-      title: 'Senior AI Engineer',
-      companyName: 'TechCorp AI',
-      location: 'Remote',
-      salaryRange: '$140k - $180k',
-      status: 'active',
-      isFeatured: true,
-      createdAt: '2026-07-20T10:00:00Z',
-    },
-    {
-      _id: 'j-mod-2',
-      title: 'Crypto Arbitrage Trader Bot Engineer',
-      companyName: 'Unverified Offshore LLC',
-      location: 'Remote',
-      salaryRange: '$300k - $500k',
-      status: 'flagged',
-      isFeatured: false,
-      createdAt: '2026-07-24T08:00:00Z',
-      flagReason: 'Unverified high risk financial keywords',
-    },
-  ];
+  const jobs = jobsResponse?.data?.jobs ?? [];
 
   // Moderate Job Mutation
   const moderateMutation = useMutation({

@@ -66,49 +66,69 @@ export const Sidebar = ({ role = 'candidate', isCollapsed, onToggle }) => {
   return (
     <aside
       className={cn(
-        'relative flex flex-col h-screen glass-panel border-r border-slate-200/80 dark:border-slate-800/80 transition-all duration-300 z-30',
+        'relative flex flex-col h-screen glass-panel border-r border-slate-200/80 dark:border-slate-800/80 transition-all duration-300 z-30 shrink-0 select-none justify-between',
         isCollapsed ? 'w-20' : 'w-64'
       )}
     >
-      {/* Brand Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200/80 dark:border-slate-800/80">
-        {!isCollapsed && (
-          <div className="flex items-center gap-2 font-extrabold text-lg">
-            <div className="p-1.5 rounded-lg bg-brand-600 text-white">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <span className="text-slate-900 dark:text-white capitalize">{role} Portal</span>
-          </div>
-        )}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Brand Header */}
+        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200/80 dark:border-slate-800/80 shrink-0">
+          {!isCollapsed && (
+            <NavLink to="/" className="flex items-center gap-2.5 font-extrabold text-lg group">
+              <div className="p-2 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-500 text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-black text-slate-900 dark:text-white leading-none">SkillBridge AI</span>
+                <span className="text-[10px] font-bold text-brand-500 capitalize tracking-wider mt-0.5">{role} Portal</span>
+              </div>
+            </NavLink>
+          )}
 
-        <button
-          onClick={onToggle}
-          className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mx-auto"
-        >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+          <button
+            onClick={onToggle}
+            className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mx-auto"
+            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          >
+            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {/* Nav Links Container */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-1.5 scrollbar-thin">
+          {navItems.map((item, idx) => (
+            <NavLink
+              key={idx}
+              to={item.path}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200',
+                  isActive
+                    ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-md shadow-brand-500/20 font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white'
+                )
+              }
+              title={isCollapsed ? item.label : undefined}
+            >
+              <item.icon className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>{item.label}</span>}
+            </NavLink>
+          ))}
+        </div>
       </div>
 
-      {/* Nav Links */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        {navItems.map((item, idx) => (
-          <NavLink
-            key={idx}
-            to={item.path}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-md shadow-brand-500/20'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white'
-              )
-            }
-            title={isCollapsed ? item.label : undefined}
-          >
-            <item.icon className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span>{item.label}</span>}
-          </NavLink>
-        ))}
+      {/* Sidebar Footer */}
+      <div className="shrink-0 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-900/20">
+        {!isCollapsed ? (
+          <div className="p-4 text-center space-y-1">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-tight">SkillBridge AI Platform</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">© 2026 LB Infotech. All Rights Reserved.</p>
+          </div>
+        ) : (
+          <div className="p-3 text-[10px] font-bold text-slate-400 text-center">
+            LB
+          </div>
+        )}
       </div>
     </aside>
   );

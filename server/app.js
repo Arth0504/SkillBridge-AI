@@ -47,8 +47,17 @@ import { requestLogger } from './middleware/requestLogger.js';
 import { getPrometheusMetricsHandler } from './controllers/monitoring.controller.js';
 import monitoringRoutes from './routes/monitoring.routes.js';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Configure Security & Request Parsing Middlewares
 configureSecurityMiddlewares(app);
+
+// Serve local uploaded files in development (/uploads/resumes/..., /uploads/avatars/...)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Request Tracing & Structured HTTP Logger Middleware
 app.use(requestLogger);

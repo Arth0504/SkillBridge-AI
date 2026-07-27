@@ -21,6 +21,7 @@ const OfflinePage = lazy(() => import('../pages/OfflinePage').then(m => ({ defau
 // Auth Features (Lazy Loaded)
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('../features/auth/pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
+const VerifyEmailPage = lazy(() => import('../features/auth/pages/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
 
 // Jobs Feature (Lazy Loaded)
 const JobsListPage = lazy(() => import('../features/jobs/pages/JobsListPage').then(m => ({ default: m.JobsListPage })));
@@ -31,12 +32,14 @@ const CompanyJobsPage = lazy(() => import('../features/jobs/pages/CompanyJobsPag
 // Candidate Features (Lazy Loaded)
 const CandidateDashboardPage = lazy(() => import('../features/candidate/pages/CandidateDashboardPage').then(m => ({ default: m.CandidateDashboardPage })));
 const CandidateProfilePage = lazy(() => import('../features/candidate/pages/CandidateProfilePage').then(m => ({ default: m.CandidateProfilePage })));
+const PublicProfilePage = lazy(() => import('../features/candidate/pages/PublicProfilePage').then(m => ({ default: m.PublicProfilePage })));
 const SavedJobsPage = lazy(() => import('../features/candidate/pages/SavedJobsPage').then(m => ({ default: m.SavedJobsPage })));
 const CandidateSettingsPage = lazy(() => import('../features/candidate/pages/CandidateSettingsPage').then(m => ({ default: m.CandidateSettingsPage })));
 
 // Company Features (Lazy Loaded)
 const CompanyDashboardPage = lazy(() => import('../features/company/pages/CompanyDashboardPage').then(m => ({ default: m.CompanyDashboardPage })));
 const CompanyProfilePage = lazy(() => import('../features/company/pages/CompanyProfilePage').then(m => ({ default: m.CompanyProfilePage })));
+const PublicCompanyProfilePage = lazy(() => import('../features/company/pages/PublicCompanyProfilePage').then(m => ({ default: m.PublicCompanyProfilePage })));
 const CompanyApplicationsPage = lazy(() => import('../features/company/pages/CompanyApplicationsPage').then(m => ({ default: m.CompanyApplicationsPage })));
 const CompanyInterviewsPage = lazy(() => import('../features/company/pages/CompanyInterviewsPage').then(m => ({ default: m.CompanyInterviewsPage })));
 const CompanyAnalyticsPage = lazy(() => import('../features/company/pages/CompanyAnalyticsPage').then(m => ({ default: m.CompanyAnalyticsPage })));
@@ -71,11 +74,14 @@ export const AppRoutes = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/jobs" element={<JobsListPage />} />
           <Route path="/jobs/:id" element={<JobDetailPage />} />
+          <Route path="/candidate/public/:candidateId" element={<PublicProfilePage />} />
+          <Route path="/company/public/:companyId" element={<PublicCompanyProfilePage />} />
         </Route>
 
         {/* Auth Standalone Routes */}
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* Candidate Protected Routes */}
         <Route element={<ProtectedRoute allowedRoles={['candidate']} />}>

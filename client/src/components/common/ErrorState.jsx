@@ -8,7 +8,7 @@ export const ErrorState = ({
   onRetry,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
+    <div role="alert" className="flex flex-col items-center justify-center p-8 text-center rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400">
       <AlertTriangle className="w-10 h-10 mb-3" />
       <h4 className="text-base font-bold mb-1">{title}</h4>
       <p className="text-xs text-rose-500/80 max-w-sm mb-4">{description}</p>

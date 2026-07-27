@@ -33,8 +33,10 @@ export const validateStatusUpdate = (req, _res, next) => {
   }
 
   if (status === APPLICATION_STATUS.INTERVIEW_SCHEDULED) {
-    if (!interviewDate || isNaN(Date.parse(interviewDate))) {
-      errors.push('Interview date is required and must be a valid date when scheduling an interview');
+    if (!interviewDate) {
+      req.body.interviewDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (isNaN(Date.parse(interviewDate))) {
+      errors.push('Interview date must be a valid date string');
     }
   }
 

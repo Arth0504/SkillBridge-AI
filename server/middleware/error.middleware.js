@@ -44,6 +44,15 @@ export const errorHandler = (err, _req, res, _next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
+  // Handle Multer limit file size errors
+  if (err.name === 'MulterError') {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      const isResume = err.field === 'resume';
+      const msg = isResume ? 'Maximum resume size is 5 MB.' : 'Maximum avatar image size is 2 MB.';
+      err = new AppError(msg, 400);
+    }
+  }
+
   if (env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else {

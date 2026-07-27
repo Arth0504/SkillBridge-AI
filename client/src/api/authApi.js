@@ -41,4 +41,19 @@ export const authApi = {
     const { data } = await api.post(API_ENDPOINTS.AUTH.COMPANY_LOGOUT);
     return data;
   },
+
+  resendCandidateVerification: async (email) => {
+    const { data } = await api.post(API_ENDPOINTS.AUTH.CANDIDATE_RESEND_VERIFICATION, { email });
+    return data;
+  },
+
+  verifyEmailCandidate: async (token) => {
+    const { data } = await api.post(API_ENDPOINTS.AUTH.CANDIDATE_VERIFY_EMAIL, { token });
+    return data;
+  },
+
+  resendCompanyVerification: async (email) => {
+    const { data } = await api.post(API_ENDPOINTS.AUTH.COMPANY_RESEND_VERIFICATION, { email });
+    return data;
+  },
 };

@@ -43,21 +43,14 @@ export const CompanyDashboardPage = () => {
   });
 
   const summary = summaryResponse?.data || {};
-  const recentApps = recentAppsResponse?.data?.applications || [
-    { _id: 'a1', candidateName: 'Alex Mercer', role: 'Senior AI Engineer', matchScore: 96, status: 'Screening', createdAt: '10 mins ago' },
-    { _id: 'a2', candidateName: 'Sophia Lin', role: 'Full Stack React Specialist', matchScore: 94, status: 'Interview Scheduled', createdAt: '1 hour ago' },
-    { _id: 'a3', candidateName: 'David Chen', role: 'Lead Python Backend Developer', matchScore: 89, status: 'Shortlisted', createdAt: '3 hours ago' },
-  ];
-  const upcomingInterviews = interviewsResponse?.data?.interviews || [
-    { _id: 'i1', candidateName: 'Sophia Lin', title: 'Technical System Design Interview', date: '2026-07-28T15:00:00Z', type: 'Live Recruiter Session' },
-    { _id: 'i2', candidateName: 'Alex Mercer', title: 'AI Mock & Coding Evaluation Review', date: '2026-07-29T11:00:00Z', type: 'AI Assessment Review' },
-  ];
+  const recentApps = recentAppsResponse?.data?.applications ?? [];
+  const upcomingInterviews = interviewsResponse?.data?.interviews ?? [];
 
   const stats = [
-    { label: 'Active Job Posts', value: summary?.activeJobsCount || 6, icon: Briefcase, color: 'text-brand-500', bg: 'bg-brand-500/10' },
-    { label: 'Total Applications', value: summary?.totalApplications || 142, icon: Users, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
-    { label: 'AI-Screened Candidates', value: summary?.aiScreenedCount || 89, icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { label: 'Interviews Scheduled', value: summary?.upcomingInterviewsCount || upcomingInterviews.length || 12, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: 'Active Job Posts', value: summary?.activeJobsCount ?? 0, icon: Briefcase, color: 'text-brand-500', bg: 'bg-brand-500/10' },
+    { label: 'Total Applications', value: summary?.totalApplications ?? 0, icon: Users, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
+    { label: 'AI-Screened Candidates', value: summary?.aiScreenedCount ?? 0, icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: 'Interviews Scheduled', value: summary?.upcomingInterviewsCount ?? upcomingInterviews.length, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
   ];
 
   if (isLoadingSummary) {

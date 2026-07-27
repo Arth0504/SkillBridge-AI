@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 import { Interview, INTERVIEW_STATUS } from '../models/interview.model.js';
 import { Application, APPLICATION_STATUS } from '../models/application.model.js';
+import { Candidate } from '../models/candidate.model.js';
+import { Job } from '../models/job.model.js';
+import { Company } from '../models/company.model.js';
 import { AppError } from '../utils/AppError.js';
 import { createNotificationService } from './notification.service.js';
 import { NOTIFICATION_TYPES } from '../models/notification.model.js';
@@ -9,15 +12,28 @@ import { NOTIFICATION_TYPES } from '../models/notification.model.js';
  * 1. Schedule New Interview (Company Only)
  */
 export const createInterviewService = async (companyIdStr, payload) => {
+  if (!companyIdStr || !mongoose.Types.ObjectId.isValid(companyIdStr)) {
+    throw new AppError('Invalid Company ID format.', 400);
+  }
   const companyId = new mongoose.Types.ObjectId(companyIdStr);
   const { applicationId } = payload;
 
-  // Verify Application existence & Company ownership
+  if (!applicationId || !mongoose.Types.ObjectId.isValid(applicationId)) {
+    throw new AppError('applicationId is required and must be a valid MongoDB ObjectId.', 400);
+  }
+
+  // 1. Verify Company exists and is active
+  const company = await Company.findById(companyId);
+  if (!company) {
+    throw new AppError('Company account not found or access denied.', 404);
+  }
+
+  // 2. Verify Application exists and belongs to this Company
   const application = await Application.findOne({
     _id: applicationId,
     companyId,
     isDeleted: false,
-  }).populate('jobId', 'title department');
+  });
 
   if (!application) {
     throw new AppError('Application not found or access denied.', 404);
@@ -28,21 +44,49 @@ export const createInterviewService = async (companyIdStr, payload) => {
     throw new AppError('Cannot schedule an interview for a rejected application.', 400);
   }
 
-  const scheduledDate = new Date(payload.scheduledDate);
+  // 3. Verify Candidate exists
+  const candidate = await Candidate.findById(application.candidateId);
+  if (!candidate) {
+    throw new AppError('Associated Candidate profile not found.', 404);
+  }
+
+  // 4. Verify Job posting exists
+  const job = await Job.findById(application.jobId);
+  if (!job) {
+    throw new AppError('Associated Job posting not found.', 404);
+  }
+
+  const scheduledDate = payload.scheduledDate
+    ? new Date(payload.scheduledDate)
+    : new Date(Date.now() + 2 * 86400000);
+
+  const rawType = payload.interviewType || payload.type || 'Technical';
+  let interviewType = 'Technical';
+  if (rawType.includes('HR') || rawType.toLowerCase().includes('behavioral')) {
+    interviewType = 'HR';
+  } else if (rawType.includes('Technical')) {
+    interviewType = 'Technical';
+  } else if (rawType.includes('Coding')) {
+    interviewType = 'Coding';
+  } else if (rawType.includes('Managerial')) {
+    interviewType = 'Managerial';
+  } else if (rawType.includes('Final')) {
+    interviewType = 'Final';
+  }
 
   const interview = await Interview.create({
     applicationId: application._id,
-    candidateId: application.candidateId,
-    companyId,
-    jobId: application.jobId._id,
-    interviewType: payload.interviewType || 'Technical',
+    candidateId: candidate._id,
+    companyId: company._id,
+    jobId: job._id,
+    interviewType,
     round: payload.round || 1,
-    title: payload.title.trim(),
+    title: (payload.title || `${interviewType} Evaluation - ${candidate.fullName}`).trim(),
     description: payload.description ? payload.description.trim() : '',
     scheduledDate,
-    startTime: payload.startTime.trim(),
-    endTime: payload.endTime.trim(),
-    meetingLink: payload.meetingLink ? payload.meetingLink.trim() : '',
+    startTime: payload.startTime ? payload.startTime.trim() : '10:00',
+    endTime: payload.endTime ? payload.endTime.trim() : '11:00',
+    meetingLink: payload.meetingLink || payload.meetingUrl || '',
     meetingPlatform: payload.meetingPlatform || 'Google Meet',
     status: INTERVIEW_STATUS.SCHEDULED,
     interviewerName: payload.interviewerName ? payload.interviewerName.trim() : '',
@@ -60,19 +104,19 @@ export const createInterviewService = async (companyIdStr, payload) => {
 
   // Trigger Automatic Candidate Notification (Interview Scheduled)
   createNotificationService({
-    receiverId: application.candidateId,
+    receiverId: candidate._id,
     receiverRole: 'candidate',
-    senderId: companyId,
+    senderId: company._id,
     senderRole: 'company',
     title: 'Interview Scheduled',
-    message: `An interview "${interview.title}" has been scheduled for position "${application.jobId.title}".`,
+    message: `An interview "${interview.title}" has been scheduled for position "${job.title}".`,
     type: NOTIFICATION_TYPES.INTERVIEW_SCHEDULED,
     priority: 'urgent',
     metadata: {
       interviewId: interview._id,
       applicationId: application._id,
-      jobId: application.jobId._id,
-      jobTitle: application.jobId.title,
+      jobId: job._id,
+      jobTitle: job.title,
       scheduledDate,
       startTime: interview.startTime,
       meetingLink: interview.meetingLink,

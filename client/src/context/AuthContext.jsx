@@ -9,8 +9,13 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(() => localStorage.getItem('userRole') || null);
   const [loading, setLoading] = useState(true);
 
+  const hydratedRef = React.useRef(false);
+
   // Initial Auth Hydration
   useEffect(() => {
+    if (hydratedRef.current) return;
+    hydratedRef.current = true;
+
     const hydrateUser = async () => {
       const storedRole = localStorage.getItem('userRole');
       const token = localStorage.getItem('accessToken');
@@ -87,10 +92,13 @@ export const AuthProvider = ({ children }) => {
 
   const loginAdmin = async (email, password) => {
     try {
+      if (!email || !password) {
+        throw new Error('Admin credentials required');
+      }
       const adminUser = {
         _id: 'admin-1',
-        fullName: 'Super Administrator',
-        email: email || 'admin@skillbridge.ai',
+        fullName: 'System Administrator',
+        email: email,
         role: 'admin',
       };
       const token = 'admin-session-token-' + Date.now();
@@ -102,9 +110,31 @@ export const AuthProvider = ({ children }) => {
       toast.success('Authenticated as System Administrator');
       return adminUser;
     } catch (err) {
-      toast.error('Failed admin authentication');
-      throw new Error('Failed admin authentication');
+      toast.error('Invalid administrator credentials');
+      throw new Error('Invalid administrator credentials');
     }
+  };
+
+  const updateUser = (userData) => {
+    setUser((prev) => (prev ? { ...prev, ...userData } : userData));
+  };
+
+  const refreshUser = async () => {
+    const storedRole = localStorage.getItem('userRole') || role;
+    if (!storedRole || storedRole === 'admin') return user;
+
+    try {
+      const endpoint = storedRole === 'company' ? '/auth/company/me' : '/auth/candidate/me';
+      const { data } = await api.get(endpoint);
+      const freshUser = data.data?.user || data.data || data.user;
+      if (freshUser) {
+        setUser(freshUser);
+        return freshUser;
+      }
+    } catch (err) {
+      console.warn('Failed to refresh user profile:', err.message);
+    }
+    return user;
   };
 
   const logout = async () => {
@@ -132,6 +162,8 @@ export const AuthProvider = ({ children }) => {
         loginAdmin,
         logout,
         setUser,
+        updateUser,
+        refreshUser,
       }}
     >
       {children}

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import { Candidate } from '../models/candidate.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../utils/AppError.js';
@@ -28,22 +29,21 @@ export const registerCandidate = asyncHandler(async (req, res, next) => {
   const rawVerificationToken = generateRandomToken();
   const hashedVerificationToken = hashToken(rawVerificationToken);
 
+  const candidateId = new mongoose.Types.ObjectId();
+  const payload = { id: candidateId, role: ROLES.CANDIDATE };
+  const accessToken = generateToken(payload);
+  const refreshToken = generateRefreshToken(payload);
+
   const candidate = await Candidate.create({
+    _id: candidateId,
     fullName: fullName.trim(),
     email: email.toLowerCase().trim(),
     password,
     phone: phone ? phone.trim() : '',
     emailVerificationToken: hashedVerificationToken,
     emailVerificationExpires: Date.now() + 24 * 60 * 60 * 1000, // 24 Hours
+    refreshTokens: [hashToken(refreshToken)],
   });
-
-  const payload = { id: candidate._id, role: ROLES.CANDIDATE };
-  const accessToken = generateToken(payload);
-  const refreshToken = generateRefreshToken(payload);
-
-  // Store SHA-256 HASHED refresh token in DB
-  candidate.refreshTokens = [hashToken(refreshToken)];
-  await candidate.save({ validateBeforeSave: false });
 
   // Send verification email
   const verifyUrl = `${env.CLIENT_URL}/verify-email?token=${rawVerificationToken}&type=candidate`;
@@ -189,7 +189,7 @@ export const loginCandidate = asyncHandler(async (req, res, next) => {
  * @route POST /api/v1/auth/candidate/verify-email
  */
 export const verifyEmailCandidate = asyncHandler(async (req, res, next) => {
-  const { token } = req.body;
+  const token = req.body?.token || req.query?.token;
 
   if (!token) {
     return next(new AppError('Verification token is required.', 400));
@@ -210,7 +210,49 @@ export const verifyEmailCandidate = asyncHandler(async (req, res, next) => {
   candidate.emailVerificationExpires = undefined;
   await candidate.save({ validateBeforeSave: false });
 
-  return sendResponse(res, 200, true, 'Email verified successfully!', null);
+  return sendResponse(res, 200, true, 'Email verified successfully!', {
+    user: {
+      id: candidate._id,
+      email: candidate.email,
+      isEmailVerified: true,
+    },
+  });
+});
+
+/**
+ * Resend Verification Email Candidate
+ * @route POST /api/v1/auth/candidate/resend-verification
+ */
+export const resendVerificationCandidate = asyncHandler(async (req, res, next) => {
+  const emailInput = req.body?.email || req.user?.email;
+
+  if (!emailInput) {
+    return next(new AppError('Email address is required to resend verification.', 400));
+  }
+
+  const candidate = await Candidate.findOne({ email: emailInput.toLowerCase() });
+  if (!candidate) {
+    return next(new AppError('Candidate account with this email address was not found.', 404));
+  }
+
+  if (candidate.isEmailVerified) {
+    return sendResponse(res, 200, true, 'Email address is already verified.', { isEmailVerified: true });
+  }
+
+  const rawToken = generateRandomToken();
+  candidate.emailVerificationToken = hashToken(rawToken);
+  candidate.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+  await candidate.save({ validateBeforeSave: false });
+
+  const verifyUrl = `${env.CLIENT_URL}/verify-email?token=${rawToken}&type=candidate`;
+  await sendEmail({
+    to: candidate.email,
+    subject: 'SkillBridge AI - Verify Your Email Address',
+    text: `Please click the link to verify your candidate email address: ${verifyUrl}`,
+    html: `<h3>Verify Your Email Address</h3><p>Please click <a href="${verifyUrl}">here</a> to verify your email address. Link expires in 24 hours.</p>`,
+  }).catch((emailErr) => console.warn('Email verification send warning:', emailErr.message));
+
+  return sendResponse(res, 200, true, 'Verification email sent successfully! Please check your inbox.', null);
 });
 
 /**

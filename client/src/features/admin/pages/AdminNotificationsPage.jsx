@@ -16,32 +16,7 @@ export const AdminNotificationsPage = () => {
     queryFn: () => adminApi.getNotifications({ unreadOnly: filter === 'UNREAD' ? true : undefined }),
   });
 
-  const alerts = data?.data?.notifications || [
-    {
-      _id: 'an-1',
-      title: 'High API Traffic Warning',
-      message: 'FastAPI AI Engine experiencing 15% traffic surge. Auto-scaling instance active.',
-      type: 'WARNING',
-      isRead: false,
-      createdAt: '2026-07-24T14:00:00Z',
-    },
-    {
-      _id: 'an-2',
-      title: 'Employer Verification Pending',
-      message: 'DeepScale Systems requested employer verification approval.',
-      type: 'INFO',
-      isRead: false,
-      createdAt: '2026-07-24T11:20:00Z',
-    },
-    {
-      _id: 'an-3',
-      title: 'Failed Login Threshold Reached',
-      message: 'User account candidate_8492 locked out due to 5 failed password attempts.',
-      type: 'SECURITY',
-      isRead: true,
-      createdAt: '2026-07-23T18:00:00Z',
-    },
-  ];
+  const alerts = data?.data?.notifications ?? [];
 
   const getAlertIcon = (type) => {
     switch (type) {

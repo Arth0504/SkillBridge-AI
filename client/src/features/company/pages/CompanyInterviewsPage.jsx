@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -13,6 +14,8 @@ import {
   RefreshCw,
   ExternalLink,
   UserCheck,
+  Briefcase,
+  User,
 } from 'lucide-react';
 import { Button, Badge, Loader, EmptyState, Modal, Input, Select, Textarea } from '../../../components/common';
 import { companyApi } from '../../../api';
@@ -20,20 +23,48 @@ import toast from 'react-hot-toast';
 
 export const CompanyInterviewsPage = () => {
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('ALL');
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState('');
   const [selectedAIResult, setSelectedAIResult] = useState(null);
 
   // Form State for Schedule Interview
   const [scheduleForm, setScheduleForm] = useState({
+    applicationId: '',
+    candidateId: '',
+    jobId: '',
     candidateName: '',
+    candidateEmail: '',
     role: '',
-    date: '',
-    time: '',
-    type: 'Technical Interview',
+    date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    time: '10:00',
+    type: 'Technical',
     meetingUrl: '',
     notes: '',
   });
+
+  // Handle location state if navigated from Applications page with pre-selected applicant
+  useEffect(() => {
+    if (location.state?.applicant) {
+      const app = location.state.applicant;
+      const jId = app.job?._id || app.jobId?._id || app.jobId;
+      const cand = app.candidate || app;
+      if (jId) setSelectedJobId(String(jId));
+      setScheduleForm((prev) => ({
+        ...prev,
+        applicationId: app._id,
+        candidateId: cand._id,
+        jobId: jId || '',
+        candidateName: cand.fullName || 'Candidate',
+        candidateEmail: cand.email || '',
+        role: app.job?.title || app.jobSnapshot?.title || 'Job Vacancy',
+      }));
+      setScheduleModalOpen(true);
+      navigate('/company/interviews', { replace: true, state: {} });
+    }
+  }, [location.state, navigate]);
 
   // Fetch Company Interviews
   const { data: interviewsResponse, isLoading } = useQuery({
@@ -41,30 +72,23 @@ export const CompanyInterviewsPage = () => {
     queryFn: () => companyApi.getInterviews({ status: activeTab === 'ALL' ? undefined : activeTab }),
   });
 
-  const interviews = interviewsResponse?.data?.interviews || [
-    {
-      _id: 'iv-1',
-      candidateName: 'Sophia Lin',
-      role: 'Full Stack React Specialist',
-      title: 'Technical System Design Interview',
-      date: '2026-07-28T15:00:00Z',
-      type: 'Live Recruiter Session',
-      status: 'Scheduled',
-      meetingUrl: 'https://meet.google.com/abc-defg-hij',
-      aiScores: { mockScore: 94, codingScore: 92, videoScore: 95 },
-    },
-    {
-      _id: 'iv-2',
-      candidateName: 'Alex Mercer',
-      role: 'Senior AI Engineer',
-      title: 'AI Automated Technical Assessment Review',
-      date: '2026-07-29T11:00:00Z',
-      type: 'AI Evaluation Review',
-      status: 'Scheduled',
-      meetingUrl: 'https://skillbridge.ai/room/alex-mercer',
-      aiScores: { mockScore: 96, codingScore: 98, videoScore: 94 },
-    },
-  ];
+  // Fetch Company Jobs (for job selector)
+  const { data: jobsResponse } = useQuery({
+    queryKey: ['company-jobs-for-interviews'],
+    queryFn: () => companyApi.getCompanyJobs({ limit: 100 }),
+    enabled: scheduleModalOpen,
+  });
+
+  // Fetch Applications for Selected Job
+  const { data: jobApplicationsResponse, isLoading: isLoadingApplicants } = useQuery({
+    queryKey: ['job-applications-for-interviews', selectedJobId],
+    queryFn: () => companyApi.getApplications({ jobId: selectedJobId, excludeRejected: true, limit: 100 }),
+    enabled: Boolean(selectedJobId) && scheduleModalOpen,
+  });
+
+  const interviews = interviewsResponse?.data?.interviews ?? [];
+  const jobs = jobsResponse?.data?.jobs ?? [];
+  const jobApplications = jobApplicationsResponse?.data?.applications ?? [];
 
   // Schedule Interview Mutation
   const scheduleMutation = useMutation({
@@ -72,7 +96,22 @@ export const CompanyInterviewsPage = () => {
     onSuccess: () => {
       toast.success('Interview scheduled successfully!');
       setScheduleModalOpen(false);
+      setSelectedJobId('');
+      setScheduleForm({
+        applicationId: '',
+        candidateId: '',
+        jobId: '',
+        candidateName: '',
+        candidateEmail: '',
+        role: '',
+        date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+        time: '10:00',
+        type: 'Technical',
+        meetingUrl: '',
+        notes: '',
+      });
       queryClient.invalidateQueries({ queryKey: ['company-interviews'] });
+      queryClient.invalidateQueries({ queryKey: ['company-applications'] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to schedule interview.');
@@ -90,12 +129,27 @@ export const CompanyInterviewsPage = () => {
 
   const handleScheduleSubmit = (e) => {
     e.preventDefault();
+    if (!scheduleForm.applicationId) {
+      toast.error('Please select an applicant candidate.');
+      return;
+    }
+
+    const startTime = scheduleForm.time || '10:00';
+    const [h, m] = startTime.split(':').map(Number);
+    const endTime = `${String((h + 1) % 24).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
+
     scheduleMutation.mutate({
+      applicationId: scheduleForm.applicationId,
+      candidateId: scheduleForm.candidateId || undefined,
+      jobId: scheduleForm.jobId || selectedJobId || undefined,
       candidateName: scheduleForm.candidateName,
-      title: `${scheduleForm.type} - ${scheduleForm.role}`,
-      scheduledAt: `${scheduleForm.date}T${scheduleForm.time || '10:00'}:00Z`,
-      type: scheduleForm.type,
-      meetingUrl: scheduleForm.meetingUrl,
+      role: scheduleForm.role,
+      title: `${scheduleForm.type} Interview - ${scheduleForm.role || 'Vacancy'}`,
+      scheduledDate: scheduleForm.date || new Date(Date.now() + 86400000).toISOString(),
+      startTime,
+      endTime,
+      interviewType: scheduleForm.type,
+      meetingLink: scheduleForm.meetingUrl,
       notes: scheduleForm.notes,
     });
   };
@@ -248,22 +302,114 @@ export const CompanyInterviewsPage = () => {
           title="Schedule Candidate Interview"
         >
           <form onSubmit={handleScheduleSubmit} className="space-y-4">
-            <Input
-              required
-              label="Candidate Full Name *"
-              placeholder="e.g. Alex Mercer"
-              value={scheduleForm.candidateName}
-              onChange={(e) => setScheduleForm({ ...scheduleForm, candidateName: e.target.value })}
-            />
+            {/* Step 1: Select Job Position */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-brand-400" /> Select Job Position *
+              </label>
+              <select
+                value={selectedJobId}
+                onChange={(e) => {
+                  const jId = e.target.value;
+                  const chosenJob = jobs.find((j) => j._id === jId);
+                  setSelectedJobId(jId);
+                  setScheduleForm((prev) => ({
+                    ...prev,
+                    applicationId: '',
+                    candidateId: '',
+                    jobId: jId,
+                    candidateName: '',
+                    candidateEmail: '',
+                    role: chosenJob?.title || '',
+                  }));
+                }}
+                className="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-brand-500 cursor-pointer"
+                required
+              >
+                <option value="">-- Choose Job Opening --</option>
+                {jobs.map((j) => (
+                  <option key={j._id} value={j._id}>
+                    {j.title} ({j.department || 'General'})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <Input
-              required
-              label="Job Role Title *"
-              placeholder="e.g. Senior AI Platform Engineer"
-              value={scheduleForm.role}
-              onChange={(e) => setScheduleForm({ ...scheduleForm, role: e.target.value })}
-            />
+            {/* Step 2: Select Applicant Candidate (Filtered by Selected Job) */}
+            {selectedJobId && (
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-emerald-400" /> Select Applicant Candidate *
+                </label>
+                {isLoadingApplicants ? (
+                  <div className="p-3 text-xs text-slate-400 flex items-center gap-2">
+                    <Loader size="sm" /> Loading candidates who applied to this job...
+                  </div>
+                ) : jobApplications.length === 0 ? (
+                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-amber-400 font-semibold">
+                    No active applicants found for this job position.
+                  </div>
+                ) : (
+                  <select
+                    value={scheduleForm.applicationId}
+                    onChange={(e) => {
+                      const selectedAppId = e.target.value;
+                      const selectedApp = jobApplications.find((a) => a._id === selectedAppId);
+                      const cand = selectedApp?.candidate || selectedApp;
+                      const jobObj = selectedApp?.jobId || selectedApp?.job;
+                      setScheduleForm((prev) => ({
+                        ...prev,
+                        applicationId: selectedAppId,
+                        candidateId: cand?._id || selectedApp?.candidateId,
+                        jobId: selectedJobId,
+                        candidateName: cand?.fullName || selectedApp?.candidateSnapshot?.fullName || '',
+                        candidateEmail: cand?.email || selectedApp?.candidateSnapshot?.email || '',
+                        role: jobObj?.title || selectedApp?.jobSnapshot?.title || scheduleForm.role,
+                      }));
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-brand-500 cursor-pointer"
+                    required
+                  >
+                    <option value="">-- Select Candidate --</option>
+                    {jobApplications.map((app) => {
+                      const cand = app.candidate || app;
+                      return (
+                        <option key={app._id} value={app._id}>
+                          {cand.fullName || 'Candidate'} ({cand.email || 'No email'}) - Status: {app.status || 'Applied'}
+                        </option>
+                      );
+                    })}
+                  </select>
+                )}
+              </div>
+            )}
 
+            {/* Auto-Populated Candidate Name & Job Title (Read-Only) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Candidate Name (Auto-filled)</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={scheduleForm.candidateName}
+                  placeholder="Select candidate above..."
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-900/60 border border-slate-800 text-brand-400 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Job Role Title (Auto-filled)</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={scheduleForm.role}
+                  placeholder="Select job above..."
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-900/60 border border-slate-800 text-emerald-400 cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            {/* Date & Time Picker */}
             <div className="grid grid-cols-2 gap-4">
               <Input
                 required
@@ -275,7 +421,7 @@ export const CompanyInterviewsPage = () => {
               <Input
                 required
                 type="time"
-                label="Time *"
+                label="Start Time *"
                 value={scheduleForm.time}
                 onChange={(e) => setScheduleForm({ ...scheduleForm, time: e.target.value })}
               />
@@ -285,7 +431,7 @@ export const CompanyInterviewsPage = () => {
               label="Interview Type"
               value={scheduleForm.type}
               onChange={(e) => setScheduleForm({ ...scheduleForm, type: e.target.value })}
-              options={['Technical Interview', 'Behavioral HR Interview', 'System Design Screen', 'Executive Review']}
+              options={['Technical', 'HR', 'Coding', 'Managerial', 'Final']}
             />
 
             <Input
@@ -326,20 +472,26 @@ export const CompanyInterviewsPage = () => {
             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">AI Mock Interview Rating:</span>
-                <span className="font-extrabold text-emerald-400">{selectedAIResult.aiScores?.mockScore || 94}%</span>
+                <span className="font-extrabold text-emerald-400">
+                  {selectedAIResult.aiScores?.mockScore !== undefined ? `${selectedAIResult.aiScores.mockScore}%` : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">AI Technical Coding Test:</span>
-                <span className="font-extrabold text-brand-400">{selectedAIResult.aiScores?.codingScore || 92}%</span>
+                <span className="font-extrabold text-brand-400">
+                  {selectedAIResult.aiScores?.codingScore !== undefined ? `${selectedAIResult.aiScores.codingScore}%` : 'N/A'}
+                </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">AI Automated Video Screening:</span>
-                <span className="font-extrabold text-purple-400">{selectedAIResult.aiScores?.videoScore || 95}%</span>
+                <span className="font-extrabold text-purple-400">
+                  {selectedAIResult.aiScores?.videoScore !== undefined ? `${selectedAIResult.aiScores.videoScore}%` : 'N/A'}
+                </span>
               </div>
             </div>
 
             <p className="text-xs text-slate-300 bg-slate-800/50 p-4 rounded-xl leading-relaxed">
-              Candidate demonstrated strong architectural grasp of React, state management, and high-throughput Node.js microservices.
+              {selectedAIResult.feedback || selectedAIResult.notes || 'No detailed evaluation notes recorded.'}
             </p>
 
             <div className="flex justify-end pt-2">

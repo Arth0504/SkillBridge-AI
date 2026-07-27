@@ -47,56 +47,81 @@ const postToAIService = async (endpoint, data, isForm = false, retries = 2) => {
 /**
  * Local Fallback ATS Engine (runs if FastAPI microservice is offline)
  */
-const fallbackAnalyzeATS = (resumeText, jobDescription = '') => {
-  const words = resumeText.split(/\s+/).filter(Boolean);
-  const wordCount = words.length;
-  const score = Math.min(95, Math.max(50, Math.round((wordCount / 250) * 75)));
+export const fallbackAnalyzeATS = (resumeText, jobDescription = '') => {
+  const cleanText = resumeText || '';
+  const wordList = cleanText.split(/\s+/).filter(Boolean);
+  const wordCount = wordList.length;
 
-  const knownSkills = ['Node.js', 'React', 'MongoDB', 'JavaScript', 'TypeScript', 'Python', 'AWS', 'Docker', 'Express', 'SQL', 'Git'];
-  const matchedSkills = knownSkills.filter((s) => new RegExp(`\\b${s}\\b`, 'i').test(resumeText));
-  const missingSkills = knownSkills.filter((s) => !matchedSkills.includes(s));
+  const SKILL_LIBRARY = [
+    'Java', 'Spring Boot', 'Spring', 'Hibernate', 'JPA', 'Maven', 'JUnit', 'Mockito', 'SQL', 'MySQL', 'PostgreSQL',
+    'React', 'Node.js', 'Express', 'MongoDB', 'JavaScript', 'TypeScript', 'Redux', 'HTML', 'CSS', 'Tailwind',
+    'Python', 'Pandas', 'NumPy', 'Scikit-learn', 'PyTorch', 'TensorFlow', 'Keras', 'Data Science', 'Machine Learning', 'AI', 'NLP',
+    'C++', 'C#', '.NET', 'PHP', 'Laravel', 'Ruby', 'Rails', 'Go', 'Golang', 'Rust',
+    'AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Git', 'Linux', 'GCP', 'Azure', 'DevOps', 'Microservices'
+  ];
+
+  const matchedSkills = SKILL_LIBRARY.filter((s) => new RegExp(`\\b${s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(cleanText));
+
+  let domain = 'Software Development';
+  if (matchedSkills.some(s => ['Java', 'Spring Boot', 'Hibernate', 'Maven'].includes(s))) domain = 'Java Enterprise Development';
+  else if (matchedSkills.some(s => ['Pandas', 'NumPy', 'PyTorch', 'TensorFlow', 'Machine Learning', 'Data Science'].includes(s))) domain = 'Data Science & Machine Learning';
+  else if (matchedSkills.some(s => ['React', 'Node.js', 'Express', 'MongoDB'].includes(s))) domain = 'MERN Full Stack Development';
+  else if (matchedSkills.some(s => ['AWS', 'Docker', 'Kubernetes', 'DevOps'].includes(s))) domain = 'Cloud & DevOps Engineering';
+
+  const score = Math.min(96, Math.max(55, Math.round(55 + (matchedSkills.length * 4) + Math.min(20, wordCount / 25))));
+  const missingSkills = SKILL_LIBRARY.filter(s => !matchedSkills.includes(s)).slice(0, 5);
+
+  const sentences = cleanText.split(/[.!\n]/).map(s => s.trim()).filter(s => s.length > 15);
+  const snippet = sentences.slice(0, 2).join('. ');
+  const resumeSummary = snippet
+    ? `Analyzed ${domain} profile: "${snippet}."`
+    : `Candidate profile demonstrating technical background in ${domain} with skills in ${matchedSkills.slice(0, 4).join(', ') || 'software engineering'}.`;
+
+  const strengths = [
+    `Demonstrates technical proficiency in ${matchedSkills.slice(0, 3).join(', ') || 'core domain skills'}`,
+    `Structured experience alignment for ${domain} engineering roles`,
+    `Total extracted vocabulary density of ${wordCount} words`,
+  ];
+
+  const weaknesses = [
+    `Recommended to expand knowledge in ${missingSkills.slice(0, 2).join(' & ') || 'cloud infrastructure'}`,
+    `Add quantifiable performance numbers to project achievements`,
+  ];
 
   return {
     overallAtsScore: score,
     skillMatch: {
-      technicalSkills: matchedSkills,
-      softSkills: ['Problem Solving', 'Teamwork', 'Communication'],
-      missingSkills: missingSkills.slice(0, 4),
+      technicalSkills: matchedSkills.length ? matchedSkills : ['Software Engineering'],
+      softSkills: ['Analytical Thinking', 'Problem Solving', 'Teamwork'],
+      missingSkills,
     },
     keywordAnalysis: {
       matchedKeywords: matchedSkills,
-      missingKeywords: missingSkills.slice(0, 5),
+      missingKeywords: missingSkills,
     },
-    strengths: [
-      'Strong technical foundational skills',
-      'Clear project implementation descriptions',
-      'Organized structure and layout',
-    ],
-    weaknesses: [
-      'Could include more quantifiable business metrics and numbers',
-      'Lacks specific cloud infrastructure details',
-    ],
-    grammarReview: 'Clean tone, active verbs used appropriately.',
+    strengths,
+    weaknesses,
+    grammarReview: 'Clean professional tone throughout parsed resume text.',
     formattingSuggestions: [
-      'Use standard bulleted list format for experience',
-      'Keep contact information clearly visible at the top',
+      'Use bullet points for work experience details',
+      'Keep technical skills organized by subcategories',
     ],
-    projectReview: 'Projects effectively demonstrate full stack web development capabilities.',
-    experienceReview: 'Solid practical experience highlighted in key technological domains.',
-    educationReview: 'Educational degree background clearly specified.',
-    certificationReview: 'Technical credentials add positive value.',
-    resumeSummary: 'Qualified candidate with solid hands-on technical software engineering skills.',
+    projectReview: `Projects highlight practical applications in ${domain}.`,
+    experienceReview: `Solid experience profile tailoring to ${domain}.`,
+    educationReview: 'Educational background is specified.',
+    certificationReview: 'Relevant technical credentials enhance profile strength.',
+    resumeSummary,
     improvementSuggestions: [
-      'Quantify achievements with metrics (e.g. reduced load time by 30%)',
-      'Align skills section closely with target job requirements',
+      `Incorporate key target keywords such as ${missingSkills.slice(0, 2).join(', ')}`,
+      'Include quantitative metrics (e.g. improved performance by X%)',
     ],
-    recruiterImpression: 'Strong candidate profile worthy of first-round technical screening.',
+    recruiterImpression: `Strong candidate profile for ${domain} opportunities.`,
     top5Improvements: [
-      'Add measurable metrics to key achievements',
-      'Include missing technical keywords from job description',
-      'Enhance professional summary with top career wins',
-      'Standardize section titles for ATS compatibility',
-      'Include direct links to portfolio or GitHub repositories',
+      `Add technical skills in ${missingSkills.slice(0, 2).join(' and ')}`,
+      'Include quantifiable business impact metrics',
+      'Highlight top career achievements in professional summary',
+      'Ensure section titles use standard ATS headings',
+      'Provide direct links to GitHub or portfolio projects',
     ],
   };
 };

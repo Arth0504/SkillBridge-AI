@@ -23,9 +23,14 @@ export const CandidateLayout = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          className="flex-1 overflow-y-auto p-6"
+          className="flex-1 overflow-y-auto p-6 flex flex-col justify-between"
         >
-          <Outlet />
+          <div>
+            <Outlet />
+          </div>
+          <footer className="mt-8 pt-4 border-t border-slate-200/80 dark:border-slate-800/80 text-center text-xs text-slate-500 dark:text-slate-400">
+            Made with ❤️ by <span className="font-bold text-brand-500">LB Infotech</span> • © 2026 SkillBridge AI. All Rights Reserved.
+          </footer>
         </motion.main>
       </div>
     </div>

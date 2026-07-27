@@ -21,6 +21,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { Button, Badge, Loader } from '../../../components/common';
+import { Avatar } from '../../../components/common/Avatar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { candidateApi } from '../../../api';
@@ -56,26 +57,16 @@ export const CandidateDashboardPage = () => {
   });
 
   const summary = summaryData?.data || {};
-  const completion = profileCompletionData?.data || { completionPercentage: 85, missingSections: ['Certifications', 'Portfolio Link'] };
-  const interviews = upcomingInterviewsData?.data?.interviews || [
-    { _id: '1', title: 'Senior AI Engineer Screening', companyName: 'TechCorp AI', date: '2026-07-28T14:00:00Z', type: 'Video Interview' },
-    { _id: '2', title: 'Full Stack React Mock Session', companyName: 'SkillBridge AI Practice', date: '2026-07-30T10:00:00Z', type: 'AI Mock Session' },
-  ];
-  const applications = recentApplicationsData?.data?.applications || summary?.recentApplications || [
-    { _id: 'a1', job: { title: 'Senior AI Platform Engineer', companyName: 'TechCorp AI', location: 'Remote' }, status: 'Screening', createdAt: '2026-07-20T10:00:00Z', matchScore: 96 },
-    { _id: 'a2', job: { title: 'Full Stack React Specialist', companyName: 'Nexus Labs', location: 'New York, NY' }, status: 'Interview Scheduled', createdAt: '2026-07-18T10:00:00Z', matchScore: 92 },
-    { _id: 'a3', job: { title: 'Lead Python Backend Developer', companyName: 'DataFlow Systems', location: 'San Francisco, CA' }, status: 'Applied', createdAt: '2026-07-15T10:00:00Z', matchScore: 88 },
-  ];
-  const notifications = notificationsData?.data?.notifications || [
-    { _id: 'n1', title: 'Application Update', message: 'Your application for Senior AI Platform Engineer moved to Screening', isRead: false, createdAt: '2 hours ago' },
-    { _id: 'n2', title: 'AI Match Alert', message: 'New 95% match job posted: Principal ML Ops Architect', isRead: false, createdAt: '5 hours ago' },
-  ];
+  const completion = profileCompletionData?.data || { completionPercentage: summary?.profileCompletionPercentage ?? 0, missingSections: [] };
+  const interviews = upcomingInterviewsData?.data?.interviews ?? [];
+  const applications = recentApplicationsData?.data?.applications ?? summary?.recentApplications ?? [];
+  const notifications = notificationsData?.data?.notifications ?? [];
 
   const stats = [
-    { label: 'Applications Sent', value: summary?.totalApplications || applications.length || 14, icon: Briefcase, color: 'text-brand-500', bg: 'bg-brand-500/10' },
-    { label: 'AI Resume Score', value: `${summary?.resumeScore || 92}/100`, icon: Sparkles, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
-    { label: 'Interviews Scheduled', value: summary?.upcomingInterviewsCount || interviews.length || 3, icon: FileCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { label: 'Skills Verified', value: `${summary?.verifiedBadgesCount || 8} Badges`, icon: Award, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: 'Applications Sent', value: summary?.totalApplications ?? applications.length, icon: Briefcase, color: 'text-brand-500', bg: 'bg-brand-500/10' },
+    { label: 'AI Resume Score', value: summary?.resumeScore ? `${summary.resumeScore}/100` : 'N/A', icon: Sparkles, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
+    { label: 'Interviews Scheduled', value: summary?.interviewsScheduled ?? interviews.length, icon: FileCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: 'Saved Jobs', value: `${summary?.savedJobsCount ?? 0} Saved`, icon: Award, color: 'text-purple-500', bg: 'bg-purple-500/10' },
   ];
 
   if (isLoadingSummary) {
@@ -123,9 +114,7 @@ export const CandidateDashboardPage = () => {
 
           {/* User Profile Mini Badge */}
           <div className="glass-card p-5 rounded-2xl border border-white/10 flex items-center gap-4 shrink-0 bg-white/5 backdrop-blur-md">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 to-accent-cyan flex items-center justify-center text-white font-black text-xl shadow-lg">
-              {user?.fullName?.charAt(0) || 'C'}
-            </div>
+            <Avatar src={user?.avatarUrl} name={user?.fullName} size="lg" />
             <div>
               <h3 className="text-base font-bold text-white">{user?.fullName || 'Candidate Name'}</h3>
               <p className="text-xs text-slate-400">{user?.email || 'candidate@skillbridge.ai'}</p>

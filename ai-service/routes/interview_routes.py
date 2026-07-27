@@ -14,12 +14,14 @@ def verify_secret_key(x_ai_secret_key: Optional[str] = Header(None)):
 class StartInterviewRequest(BaseModel):
     interviewType: str = "Mixed"
     difficulty: str = "Medium"
+    experienceLevel: str = "Senior"
     candidateSkills: List[str] = []
     jobDescription: Optional[str] = None
 
 class QuestionRequest(BaseModel):
     interviewType: str = "Mixed"
     difficulty: str = "Medium"
+    experienceLevel: str = "Senior"
     candidateSkills: List[str] = []
     previousQuestions: List[Dict[str, Any]] = []
     previousScore: Optional[int] = None
@@ -45,7 +47,8 @@ async def start_interview_endpoint(
         req.candidateSkills,
         [],
         None,
-        req.jobDescription
+        req.jobDescription,
+        req.experienceLevel
     )
     return {
         "status": "started",
@@ -63,7 +66,8 @@ async def get_question_endpoint(
         req.candidateSkills,
         req.previousQuestions,
         req.previousScore,
-        req.jobDescription
+        req.jobDescription,
+        req.experienceLevel
     )
     return question
 

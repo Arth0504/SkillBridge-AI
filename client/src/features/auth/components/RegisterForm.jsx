@@ -9,8 +9,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-export const RegisterForm = () => {
-  const [accountType, setAccountType] = useState('candidate');
+const RegisterFields = ({ accountType, setAccountType }) => {
   const { loginCandidate, loginCompany } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -23,19 +22,37 @@ export const RegisterForm = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      fullName: '',
+      companyName: '',
+      phone: '',
+      website: '',
+      email: '',
+      password: '',
+    },
   });
 
   const onSubmit = async (data) => {
     setLoading(true);
     try {
       if (accountType === 'candidate') {
-        await authApi.registerCandidate(data);
-        toast.success('Registration successful! Logging in...');
+        await authApi.registerCandidate({
+          fullName: data.fullName,
+          phone: data.phone,
+          email: data.email,
+          password: data.password,
+        });
+        toast.success('Candidate registered successfully! Logging in...');
         await loginCandidate(data.email, data.password);
         navigate('/candidate/dashboard');
       } else {
-        await authApi.registerCompany(data);
-        toast.success('Company registered successfully! Logging in...');
+        await authApi.registerCompany({
+          companyName: data.companyName,
+          website: data.website,
+          email: data.email,
+          password: data.password,
+        });
+        toast.success('Employer company registered successfully! Logging in...');
         await loginCompany(data.email, data.password);
         navigate('/company/dashboard');
       }
@@ -63,7 +80,7 @@ export const RegisterForm = () => {
       {accountType === 'candidate' ? (
         <>
           <Input
-            label="Full Name"
+            label="Full Name *"
             placeholder="John Doe"
             startIcon={User}
             error={errors.fullName?.message}
@@ -80,8 +97,8 @@ export const RegisterForm = () => {
       ) : (
         <>
           <Input
-            label="Company Name"
-            placeholder="Acme Corp AI"
+            label="Company Name *"
+            placeholder="Acme AI Technologies"
             startIcon={Building}
             error={errors.companyName?.message}
             {...register('companyName')}
@@ -97,7 +114,7 @@ export const RegisterForm = () => {
       )}
 
       <Input
-        label="Work Email"
+        label="Work Email *"
         type="email"
         placeholder="user@domain.com"
         startIcon={Mail}
@@ -106,7 +123,7 @@ export const RegisterForm = () => {
       />
 
       <Input
-        label="Password"
+        label="Password *"
         type="password"
         placeholder="••••••••"
         startIcon={Lock}
@@ -115,8 +132,13 @@ export const RegisterForm = () => {
       />
 
       <Button type="submit" variant="primary" className="w-full py-3 text-sm font-semibold" isLoading={loading}>
-        Create Free Account
+        {accountType === 'candidate' ? 'Create Candidate Account' : 'Register Employer Account'}
       </Button>
     </form>
   );
+};
+
+export const RegisterForm = () => {
+  const [accountType, setAccountType] = useState('candidate');
+  return <RegisterFields key={accountType} accountType={accountType} setAccountType={setAccountType} />;
 };
