@@ -9,6 +9,7 @@ export const Avatar = ({
   size = 'md',
   status,
   className,
+  isSquare = false,
 }) => {
   const sizes = {
     xs: 'w-6 h-6 text-[10px]',
@@ -35,11 +36,11 @@ export const Avatar = ({
 
   const getInitials = (str) => {
     if (!str) return '';
-    const parts = str.trim().split(' ');
+    const parts = str.trim().split(/\s+/);
     if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
-    return parts[0][0].toUpperCase();
+    return str.trim().substring(0, 2).toUpperCase();
   };
 
   const [imgError, setImgError] = React.useState(false);
@@ -50,6 +51,7 @@ export const Avatar = ({
 
   const isValidSrc = src && !src.includes('cloudinary.com/demo') && !imgError;
   const initials = getInitials(name);
+  const roundedClass = isSquare ? 'rounded-2xl' : 'rounded-full';
 
   return (
     <div className={cn('relative inline-flex shrink-0', className)}>
@@ -59,14 +61,18 @@ export const Avatar = ({
           alt={alt}
           onError={() => setImgError(true)}
           className={cn(
-            'rounded-full object-cover border border-slate-200 dark:border-slate-800',
+            roundedClass,
+            'object-cover border border-slate-200 dark:border-slate-800',
             sizes[size]
           )}
         />
       ) : name ? (
         <div
           className={cn(
-            'rounded-full bg-gradient-to-tr from-brand-600 to-accent-cyan text-white font-bold flex items-center justify-center border border-white/20 shadow-md',
+            roundedClass,
+            isSquare
+              ? 'bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-black flex items-center justify-center border border-white/20 shadow-md'
+              : 'bg-gradient-to-tr from-brand-600 to-accent-cyan text-white font-bold flex items-center justify-center border border-white/20 shadow-md',
             sizes[size]
           )}
         >
@@ -75,11 +81,12 @@ export const Avatar = ({
       ) : (
         <div
           className={cn(
-            'rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 flex items-center justify-center',
+            roundedClass,
+            'bg-slate-200 dark:bg-slate-800 text-slate-500 flex items-center justify-center font-bold',
             sizes[size]
           )}
         >
-          <User className="w-1/2 h-1/2" />
+          {isSquare ? 'CO' : <User className="w-1/2 h-1/2" />}
         </div>
       )}
 

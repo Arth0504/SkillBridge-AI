@@ -571,11 +571,7 @@ export const CandidateProfilePage = () => {
               </h3>
 
               <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-brand-500/30 bg-slate-800 flex items-center justify-center">
-                {profile.avatarUrl ? (
-                  <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-16 h-16 text-slate-500" />
-                )}
+                <Avatar src={profile.avatarUrl} name={profile.fullName} size="xl" className="w-full h-full text-2xl" />
               </div>
 
               <div className="space-y-2">
@@ -608,7 +604,12 @@ export const CandidateProfilePage = () => {
                   </a>
                 </div>
               ) : (
-                <p className="text-xs text-slate-400">No PDF uploaded yet.</p>
+                <button
+                  disabled
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed inline-flex items-center gap-1.5 opacity-60"
+                >
+                  <FileText className="w-4 h-4" /> No Resume Uploaded
+                </button>
               )}
 
               <div className="space-y-2">

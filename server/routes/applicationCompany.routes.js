@@ -6,6 +6,7 @@ import {
   updateRatingHandler,
   updateFeedbackHandler,
 } from '../controllers/applicationCompany.controller.js';
+import { handleHRAssistantQuery } from '../controllers/interviewAI.controller.js';
 import {
   validateStatusUpdate,
   validateRatingUpdate,
@@ -21,6 +22,7 @@ router.use(protect);
 router.use(restrictTo(ROLES.COMPANY));
 
 router.get('/', getCompanyApplicationsHandler);
+router.post('/ai-assistant/query', handleHRAssistantQuery);
 router.get('/:id', getCompanyApplicationByIdHandler);
 router.patch('/:id/status', validateStatusUpdate, updateStatusHandler);
 router.patch('/:id/rating', validateRatingUpdate, updateRatingHandler);

@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { SocketProvider } from './context/SocketContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { AppRoutes } from './routes/AppRoutes';
 
@@ -23,20 +24,22 @@ export const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <BrowserRouter>
-              <AppRoutes />
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  className: 'dark:bg-slate-900 dark:text-slate-100 font-sans text-xs rounded-xl shadow-xl border border-slate-200 dark:border-slate-800',
-                  style: {
-                    borderRadius: '12px',
-                    padding: '12px 16px',
-                  },
-                }}
-              />
-            </BrowserRouter>
+            <SocketProvider>
+              <BrowserRouter>
+                <AppRoutes />
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
+                    className: 'dark:bg-slate-900 dark:text-slate-100 font-sans text-xs rounded-xl shadow-xl border border-slate-200 dark:border-slate-800',
+                    style: {
+                      borderRadius: '12px',
+                      padding: '12px 16px',
+                    },
+                  }}
+                />
+              </BrowserRouter>
+            </SocketProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

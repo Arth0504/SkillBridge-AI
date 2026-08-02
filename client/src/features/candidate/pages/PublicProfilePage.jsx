@@ -129,15 +129,22 @@ export const PublicProfilePage = () => {
                     <Linkedin className="w-3.5 h-3.5 text-blue-400" /> LinkedIn
                   </a>
                 )}
-                {candidate.resumeUrl && (
+                {candidate.resumeUrl ? (
                   <a
                     href={candidate.resumeUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white shadow-lg transition-colors"
                   >
-                    <FileText className="w-3.5 h-3.5" /> Resume Highlights
+                    <FileText className="w-3.5 h-3.5" /> View Resume
                   </a>
+                ) : (
+                  <button
+                    disabled
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 text-xs font-semibold text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60"
+                  >
+                    <FileText className="w-3.5 h-3.5" /> No Resume Uploaded
+                  </button>
                 )}
               </div>
             </div>

@@ -4,7 +4,6 @@ import { connectDB } from './config/db.js';
 import { logger } from './utils/logger.js';
 import app from './app.js';
 import { initSocketServer } from './sockets/notification.socket.js';
-
 import { initRedis } from './config/redis.js';
 import { setupGracefulShutdown } from './utils/gracefulShutdown.js';
 
@@ -33,15 +32,22 @@ const startServer = async () => {
     );
   });
 
-  // Attach Graceful Shutdown Handlers (SIGINT, SIGTERM)
+  // Attach Graceful Shutdown Handlers (SIGINT, SIGTERM, SIGUSR2)
   setupGracefulShutdown(server, io);
 
   // Catch Unhandled Promise Rejections
   process.on('unhandledRejection', (reason) => {
     logger.error(`UNHANDLED REJECTION! 💥 Shutting down... ${reason}`);
-    server.close(() => {
+    if (server && typeof server.closeAllConnections === 'function') {
+      server.closeAllConnections();
+    }
+    if (server) {
+      server.close(() => {
+        process.exit(1);
+      });
+    } else {
       process.exit(1);
-    });
+    }
   });
 };
 

@@ -6,6 +6,7 @@ import {
   addInterviewFeedbackHandler,
   getCompanyInterviewsHandler,
   getCompanyInterviewByIdHandler,
+  deleteInterviewHandler,
 } from '../controllers/interviewCompany.controller.js';
 import {
   validateInterviewId,
@@ -59,5 +60,11 @@ router.patch('/:id/status', validateInterviewId, validateInterviewStatusUpdate, 
  * @desc Provide interview feedback, rating, and result
  */
 router.patch('/:id/feedback', validateInterviewId, validateInterviewFeedback, addInterviewFeedbackHandler);
+
+/**
+ * @route DELETE /api/v1/company/interviews/:id
+ * @desc Soft delete an interview
+ */
+router.delete('/:id', validateInterviewId, deleteInterviewHandler);
 
 export default router;

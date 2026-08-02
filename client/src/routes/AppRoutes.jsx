@@ -42,6 +42,7 @@ const CompanyProfilePage = lazy(() => import('../features/company/pages/CompanyP
 const PublicCompanyProfilePage = lazy(() => import('../features/company/pages/PublicCompanyProfilePage').then(m => ({ default: m.PublicCompanyProfilePage })));
 const CompanyApplicationsPage = lazy(() => import('../features/company/pages/CompanyApplicationsPage').then(m => ({ default: m.CompanyApplicationsPage })));
 const CompanyInterviewsPage = lazy(() => import('../features/company/pages/CompanyInterviewsPage').then(m => ({ default: m.CompanyInterviewsPage })));
+const CompanyCalendarPage = lazy(() => import('../features/company/pages/CompanyCalendarPage').then(m => ({ default: m.CompanyCalendarPage })));
 const CompanyAnalyticsPage = lazy(() => import('../features/company/pages/CompanyAnalyticsPage').then(m => ({ default: m.CompanyAnalyticsPage })));
 const CompanySettingsPage = lazy(() => import('../features/company/pages/CompanySettingsPage').then(m => ({ default: m.CompanySettingsPage })));
 
@@ -64,6 +65,7 @@ const ResumeAnalyzerPage = lazy(() => import('../features/resume/pages/ResumeAna
 const InterviewPrepPage = lazy(() => import('../features/interview/pages/InterviewPrepPage').then(m => ({ default: m.InterviewPrepPage })));
 const CodingAssessmentPage = lazy(() => import('../features/coding/pages/CodingAssessmentPage').then(m => ({ default: m.CodingAssessmentPage })));
 const VideoInterviewPage = lazy(() => import('../features/videoInterview/pages/VideoInterviewPage').then(m => ({ default: m.VideoInterviewPage })));
+const PrivateInterviewRoomPage = lazy(() => import('../features/videoInterview/pages/PrivateInterviewRoomPage').then(m => ({ default: m.PrivateInterviewRoomPage })));
 
 export const AppRoutes = () => {
   return (
@@ -109,6 +111,7 @@ export const AppRoutes = () => {
             <Route path="/company/jobs/edit/:id" element={<JobPostingPage />} />
             <Route path="/company/applications" element={<CompanyApplicationsPage />} />
             <Route path="/company/interviews" element={<CompanyInterviewsPage />} />
+            <Route path="/company/calendar" element={<CompanyCalendarPage />} />
             <Route path="/company/analytics" element={<CompanyAnalyticsPage />} />
             <Route path="/company/notifications" element={<NotificationsPage />} />
             <Route path="/company/settings" element={<CompanySettingsPage />} />
@@ -130,6 +133,11 @@ export const AppRoutes = () => {
             <Route path="/admin/rbac" element={<AdminRBACPage />} />
             <Route path="/admin/metrics" element={<AdminAIMonitoringPage />} />
           </Route>
+        </Route>
+
+        {/* Private Encrypted Video Interview Room Route */}
+        <Route element={<ProtectedRoute allowedRoles={['candidate', 'company', 'admin']} />}>
+          <Route path="/interview/room/:roomId" element={<PrivateInterviewRoomPage />} />
         </Route>
 
         {/* System Error & Fallback Routes */}

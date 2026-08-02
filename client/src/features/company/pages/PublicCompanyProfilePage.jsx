@@ -82,6 +82,7 @@ export const PublicCompanyProfilePage = () => {
               src={company.logoUrl}
               name={company.companyName}
               size="xl"
+              isSquare
               className="w-24 h-24 sm:w-28 sm:h-28 ring-4 ring-brand-500/30 shadow-2xl rounded-2xl"
             />
             <div className="space-y-2 flex-1">

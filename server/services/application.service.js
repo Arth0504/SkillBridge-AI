@@ -1,6 +1,7 @@
 import { Application, APPLICATION_STATUS } from '../models/application.model.js';
 import { Job } from '../models/job.model.js';
 import { Candidate } from '../models/candidate.model.js';
+import { Company } from '../models/company.model.js';
 import { AppError } from '../utils/AppError.js';
 import { createNotificationService } from './notification.service.js';
 import { NOTIFICATION_TYPES } from '../models/notification.model.js';
@@ -386,49 +387,116 @@ export const updateApplicationStatus = async (applicationId, companyId, { status
     application.interviewDate = new Date(interviewDate);
   }
 
+  // Push timeline audit entry
+  application.timeline = application.timeline || [];
+  application.timeline.push({
+    status,
+    date: new Date(),
+    note: notes || `Application moved to ${status} stage`,
+    updatedBy: 'Company Recruiter',
+  });
+
   await application.save();
 
-  // Automatic Notification for Candidate on Status Change
-  if (status === APPLICATION_STATUS.SHORTLISTED) {
+  // Populate candidate and job for email dispatches
+  const [candDoc, jobDoc, compDoc] = await Promise.all([
+    Candidate.findById(application.candidateId),
+    Job.findById(application.jobId),
+    Company.findById(companyId),
+  ]);
+
+  const candidateEmail = candDoc?.email;
+  const candidateName = candDoc?.fullName || 'Candidate';
+  const jobTitle = jobDoc?.title || 'Position';
+  const companyName = compDoc?.companyName || 'Employer';
+
+  // Emit Real-Time Socket Event to Candidate and Company
+  try {
+    const { getIO, emitNotificationToUser } = await import('../sockets/notification.socket.js');
+    const io = getIO();
+    if (io) {
+      const payload = {
+        applicationId: application._id,
+        candidateId: application.candidateId,
+        companyId: application.companyId,
+        jobId: application.jobId,
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+      io.emit('application:stage_updated', payload);
+      emitNotificationToUser(application.candidateId, 'candidate', 'application:stage_updated', payload);
+      emitNotificationToUser(application.companyId, 'company', 'application:stage_updated', payload);
+    }
+  } catch (err) {
+    console.warn('Socket stage emit error:', err.message);
+  }
+
+  // Email Automation & Candidate Notification dispatch
+  const { emailAutomationService } = await import('./emailAutomation.service.js');
+
+  if (status === APPLICATION_STATUS.SELECTED || status === APPLICATION_STATUS.HIRED) {
+    if (candidateEmail) {
+      emailAutomationService.sendOfferEmail(candidateEmail, candidateName, jobTitle, companyName)
+        .catch((err) => console.error('Auto-Email Error (Selected/Offer):', err.message));
+    }
     createNotificationService({
       receiverId: application.candidateId,
       receiverRole: 'candidate',
       senderId: companyId,
       senderRole: 'company',
-      title: 'Application Shortlisted',
-      message: `Your application has been shortlisted by the employer!`,
+      title: 'Congratulations! You are Selected 🎉',
+      message: `You have been selected for the position of "${jobTitle}" at ${companyName}!`,
       type: NOTIFICATION_TYPES.APPLICATION_STATUS_CHANGED,
-      priority: 'high',
+      priority: 'urgent',
       metadata: { applicationId: application._id, jobId: application.jobId, status },
-    }).catch((err) => console.error('Auto-Notification Error (Shortlisted):', err.message));
+    }).catch((err) => console.error('Auto-Notification Error (Selected):', err.message));
+
   } else if (status === APPLICATION_STATUS.REJECTED) {
+    if (candidateEmail) {
+      emailAutomationService.sendRejectionEmail(candidateEmail, candidateName, jobTitle, companyName)
+        .catch((err) => console.error('Auto-Email Error (Rejected):', err.message));
+    }
     createNotificationService({
       receiverId: application.candidateId,
       receiverRole: 'candidate',
       senderId: companyId,
       senderRole: 'company',
       title: 'Application Status Update',
-      message: `Your application status has been updated to Rejected.`,
+      message: `Your application for "${jobTitle}" has been updated to Rejected.`,
       type: NOTIFICATION_TYPES.APPLICATION_STATUS_CHANGED,
       priority: 'medium',
       metadata: { applicationId: application._id, jobId: application.jobId, status },
     }).catch((err) => console.error('Auto-Notification Error (Rejected):', err.message));
-  } else if (status === APPLICATION_STATUS.INTERVIEW_SCHEDULED) {
+
+  } else if (status === APPLICATION_STATUS.SHORTLISTED) {
+    if (candidateEmail) {
+      emailAutomationService.sendShortlistedEmail(candidateEmail, candidateName, jobTitle, companyName)
+        .catch((err) => console.error('Auto-Email Error (Shortlisted):', err.message));
+    }
     createNotificationService({
       receiverId: application.candidateId,
       receiverRole: 'candidate',
       senderId: companyId,
       senderRole: 'company',
-      title: 'Interview Scheduled',
-      message: `An interview has been scheduled for your application.`,
-      type: NOTIFICATION_TYPES.INTERVIEW_SCHEDULED,
-      priority: 'urgent',
-      metadata: {
-        applicationId: application._id,
-        jobId: application.jobId,
-        interviewDate: application.interviewDate,
-      },
-    }).catch((err) => console.error('Auto-Notification Error (Interview Scheduled):', err.message));
+      title: 'Application Shortlisted',
+      message: `Your application for "${jobTitle}" has been shortlisted!`,
+      type: NOTIFICATION_TYPES.APPLICATION_STATUS_CHANGED,
+      priority: 'high',
+      metadata: { applicationId: application._id, jobId: application.jobId, status },
+    }).catch((err) => console.error('Auto-Notification Error (Shortlisted):', err.message));
+
+  } else {
+    createNotificationService({
+      receiverId: application.candidateId,
+      receiverRole: 'candidate',
+      senderId: companyId,
+      senderRole: 'company',
+      title: `Application Status: ${status}`,
+      message: `Your application status for "${jobTitle}" has been updated to ${status}.`,
+      type: NOTIFICATION_TYPES.APPLICATION_STATUS_CHANGED,
+      priority: 'medium',
+      metadata: { applicationId: application._id, jobId: application.jobId, status },
+    }).catch((err) => console.error('Auto-Notification Error (Status Update):', err.message));
   }
 
   return application;

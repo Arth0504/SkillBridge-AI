@@ -64,7 +64,7 @@ export const CandidateDashboardPage = () => {
 
   const stats = [
     { label: 'Applications Sent', value: summary?.totalApplications ?? applications.length, icon: Briefcase, color: 'text-brand-500', bg: 'bg-brand-500/10' },
-    { label: 'AI Resume Score', value: summary?.resumeScore ? `${summary.resumeScore}/100` : 'N/A', icon: Sparkles, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
+    { label: 'AI Resume Score', value: summary?.resumeScore ? `${summary.resumeScore}/100` : 'Not Evaluated Yet', icon: Sparkles, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
     { label: 'Interviews Scheduled', value: summary?.interviewsScheduled ?? interviews.length, icon: FileCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { label: 'Saved Jobs', value: `${summary?.savedJobsCount ?? 0} Saved`, icon: Award, color: 'text-purple-500', bg: 'bg-purple-500/10' },
   ];

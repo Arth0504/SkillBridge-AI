@@ -6,6 +6,7 @@ import {
   getCompanyDashboardRecentApplicationsService,
   getCompanyDashboardJobPerformanceService,
   getCompanyDashboardInterviewsService,
+  getCompanyAnalyticsService,
 } from '../services/dashboard.service.js';
 
 /**
@@ -23,9 +24,9 @@ export const getDashboardSummaryHandler = asyncHandler(async (req, res, _next) =
  * @route GET /api/v1/company/dashboard/analytics
  */
 export const getDashboardAnalyticsHandler = asyncHandler(async (req, res, _next) => {
-  const analytics = await getCompanyDashboardAnalyticsService(req.user._id, req.query);
+  const analytics = await getCompanyAnalyticsService(req.user._id);
 
-  return sendResponse(res, 200, true, 'Company dashboard analytics retrieved successfully', analytics);
+  return sendResponse(res, 200, true, 'Company dashboard analytics retrieved successfully', { analytics });
 });
 
 /**

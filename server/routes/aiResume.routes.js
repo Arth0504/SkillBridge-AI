@@ -5,6 +5,8 @@ import {
   getResumeHistoryHandler,
   getResumeHistoryByIdHandler,
   deleteResumeHistoryHandler,
+  parseResumeHandler,
+  analyzeATSKeywordsHandler,
 } from '../controllers/aiResume.controller.js';
 import { protect, restrictTo } from '../middleware/auth.middleware.js';
 import { ROLES } from '../config/constants.js';
@@ -19,6 +21,18 @@ const router = express.Router();
 // Guard AI Resume routes for authenticated Candidates only
 router.use(protect);
 router.use(restrictTo(ROLES.CANDIDATE));
+
+/**
+ * @route POST /api/v1/candidate/resume/parse-autofill
+ * @desc Auto-extract contact, skills, experience, & social links from resume to candidate profile
+ */
+router.post('/parse-autofill', uploadMemory.single('resume'), parseResumeHandler);
+
+/**
+ * @route POST /api/v1/candidate/resume/ats-keywords
+ * @desc Compare candidate resume against job description & return keyword & skill gap analysis
+ */
+router.post('/ats-keywords', analyzeATSKeywordsHandler);
 
 /**
  * @route POST /api/v1/candidate/resume/analyze

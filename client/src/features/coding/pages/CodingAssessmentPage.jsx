@@ -22,6 +22,24 @@ export const CodingAssessmentPage = () => {
 
   const history = historyData?.data?.history || [];
 
+  const getStarterCode = (lang) => {
+    switch (lang) {
+      case 'Python':
+        return 'def solution(nums, target):\n    # Write your O(N) solution here\n    hashmap = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in hashmap:\n            return [hashmap[complement], i]\n        hashmap[num] = i\n    return []';
+      case 'Java':
+        return 'import java.util.*;\n\nclass Solution {\n    public int[] solution(int[] nums, int target) {\n        // Write your solution here\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int complement = target - nums[i];\n            if (map.containsKey(complement)) {\n                return new int[] { map.get(complement), i };\n            }\n            map.put(nums[i], i);\n        }\n        return new int[0];\n    }\n}';
+      case 'C++':
+        return '#include <vector>\n#include <unordered_map>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> solution(vector<int>& nums, int target) {\n        unordered_map<int, int> mp;\n        for (int i = 0; i < nums.size(); i++) {\n            int comp = target - nums[i];\n            if (mp.count(comp)) return {mp[comp], i};\n            mp[nums[i]] = i;\n        }\n        return {};\n    }\n};';
+      case 'C':
+        return '#include <stdio.h>\n#include <stdlib.h>\n\nint* solution(int* nums, int numsSize, int target, int* returnSize) {\n    *returnSize = 2;\n    int* result = (int*)malloc(2 * sizeof(int));\n    for (int i = 0; i < numsSize; i++) {\n        for (int j = i + 1; j < numsSize; j++) {\n            if (nums[i] + nums[j] == target) {\n                result[0] = i; result[1] = j;\n                return result;\n            }\n        }\n    }\n    return result;\n}';
+      case 'SQL':
+        return '-- Write your SQL query solution\nSELECT u.user_id, u.user_name, COUNT(a.application_id) AS total_applications\nFROM users u\nJOIN applications a ON u.user_id = a.candidate_id\nGROUP BY u.user_id, u.user_name\nHAVING COUNT(a.application_id) >= 1\nORDER BY total_applications DESC;';
+      case 'JavaScript':
+      default:
+        return 'function solution(nums, target) {\n  // Write your O(N) solution here\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) {\n      return [map.get(complement), i];\n    }\n    map.set(nums[i], i);\n  }\n  return [];\n}';
+    }
+  };
+
   // Start Assessment Mutation
   const startMutation = useMutation({
     mutationFn: candidateApi.startCodingAssessment,
@@ -29,11 +47,7 @@ export const CodingAssessmentPage = () => {
       toast.success('Coding Assessment started!');
       const session = data.data?.assessment || data.data;
       setActiveAssessment(session);
-      setCodeSolution(
-        language === 'Python'
-          ? 'def solution(nums, target):\n    # Write your solution here\n    pass'
-          : 'function solution(nums, target) {\n  // Write your solution here\n}'
-      );
+      setCodeSolution(getStarterCode(language));
       queryClient.invalidateQueries({ queryKey: ['candidate-coding-history'] });
     },
     onError: (err) => {
@@ -57,6 +71,7 @@ export const CodingAssessmentPage = () => {
   const handleStart = (selectedLang, selectedDiff) => {
     setLanguage(selectedLang);
     setDifficulty(selectedDiff);
+    setCodeSolution(getStarterCode(selectedLang));
     startMutation.mutate({ language: selectedLang, difficulty: selectedDiff });
   };
 

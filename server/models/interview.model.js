@@ -10,6 +10,7 @@ export const INTERVIEW_TYPES = {
 
 export const INTERVIEW_STATUS = {
   SCHEDULED: 'Scheduled',
+  LIVE: 'Live',
   RESCHEDULED: 'Rescheduled',
   COMPLETED: 'Completed',
   CANCELLED: 'Cancelled',
@@ -17,10 +18,7 @@ export const INTERVIEW_STATUS = {
 };
 
 export const MEETING_PLATFORMS = {
-  GOOGLE_MEET: 'Google Meet',
-  ZOOM: 'Zoom',
-  TEAMS: 'Microsoft Teams',
-  OTHER: 'Other',
+  SKILLBRIDGE_ROOM: 'SkillBridge AI Private Room',
 };
 
 export const INTERVIEW_RESULTS = {
@@ -101,7 +99,7 @@ const interviewSchema = new mongoose.Schema(
     meetingPlatform: {
       type: String,
       enum: Object.values(MEETING_PLATFORMS),
-      default: MEETING_PLATFORMS.GOOGLE_MEET,
+      default: MEETING_PLATFORMS.SKILLBRIDGE_ROOM,
     },
     status: {
       type: String,

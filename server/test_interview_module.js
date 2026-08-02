@@ -72,7 +72,7 @@ const runInterviewTests = async () => {
       password: 'Password123!',
       isEmailVerified: true,
       profileCompleted: true,
-      resumeUrl: 'https://cloudinary.com/resumes/lucas_scott.pdf',
+      resumeUrl: '',
     });
     const candidate1Token = generateToken({ id: candidate1._id, role: 'candidate' });
     const candidate1Headers = {
@@ -118,7 +118,7 @@ const runInterviewTests = async () => {
       candidateId: candidate2._id,
       jobId: job._id,
       companyId: company._id,
-      resumeUrl: 'https://cloudinary.com/resumes/sophia.pdf',
+      resumeUrl: '',
       status: APPLICATION_STATUS.REJECTED,
       candidateSnapshot: { fullName: candidate2.fullName, email: candidate2.email },
     });
@@ -138,8 +138,8 @@ const runInterviewTests = async () => {
       scheduledDate: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
       startTime: '10:00 AM',
       endTime: '11:00 AM',
-      meetingPlatform: 'Google Meet',
-      meetingLink: 'https://meet.google.com/abc-defg-hij',
+      meetingPlatform: 'SkillBridge AI Private Room',
+      meetingLink: '/interview/room/4c6e2a5b-bbc5-45ef-bb76-87cdd8f6c812',
       interviewerName: 'Alex River',
       interviewerEmail: 'alex.river@nova.io',
     };
@@ -207,7 +207,7 @@ const runInterviewTests = async () => {
       scheduledDate: new Date(Date.now() + 172800000).toISOString(), // Day after tomorrow
       startTime: '11:00 AM',
       endTime: '12:00 PM',
-      meetingLink: 'https://meet.google.com/xyz-uvwx-rst',
+      meetingLink: '/interview/room/4c6e2a5b-bbc5-45ef-bb76-87cdd8f6c812',
     };
 
     const res3 = await fetch(`${BASE_URL}/api/v1/company/interviews/${createdInterviewId}`, {
@@ -365,6 +365,30 @@ const runInterviewTests = async () => {
       console.log('✅ TEST 8 PASSED: All role security and multi-tenant access checks enforced cleanly.');
     } else {
       throw new Error('❌ TEST 8 FAILED: Multi-tenant or role security breach detected.');
+    }
+
+    // -----------------------------------------------------
+    // TEST 9: Status transition to Live & Soft Delete (DELETE /api/v1/company/interviews/:id)
+    // -----------------------------------------------------
+    console.log('\n[TEST 9] Testing Status update to Live & DELETE /api/v1/company/interviews/:id ...');
+    const res9a = await fetch(`${BASE_URL}/api/v1/company/interviews/${createdInterviewId}/status`, {
+      method: 'PATCH',
+      headers: companyHeaders,
+      body: JSON.stringify({ status: 'Live' }),
+    });
+
+    const res9b = await fetch(`${BASE_URL}/api/v1/company/interviews/${createdInterviewId}`, {
+      method: 'DELETE',
+      headers: companyHeaders,
+    });
+    const body9b = await res9b.json();
+
+    console.log('Live Status Response:', res9a.status, 'Delete Response:', res9b.status);
+
+    if (res9a.status === 200 && res9b.status === 200 && body9b.success) {
+      console.log('✅ TEST 9 PASSED: Live status update & interview soft delete executed cleanly.');
+    } else {
+      throw new Error('❌ TEST 9 FAILED: Live status or soft delete endpoint failed.');
     }
 
     console.log('\n=====================================================');

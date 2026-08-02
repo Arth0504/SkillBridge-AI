@@ -26,6 +26,8 @@ export const Button = React.forwardRef(
         'border-2 border-slate-300 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 text-slate-800 dark:text-slate-200 focus:ring-brand-500',
       danger:
         'bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-500/25 focus:ring-rose-500',
+      success:
+        'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/25 focus:ring-emerald-500',
       ghost:
         'hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:ring-slate-500',
     };

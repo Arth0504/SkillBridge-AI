@@ -57,3 +57,12 @@ export const restrictTo = (...allowedRoles) => {
     next();
   };
 };
+
+export const authenticate = protect;
+
+export default {
+  protect,
+  authenticate,
+  restrictTo,
+};
+

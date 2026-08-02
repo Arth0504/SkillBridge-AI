@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { ROLES } from '../config/constants.js';
+import { cleanResumeUrl, cleanAvatarUrl } from '../utils/cleaners.js';
 
 const educationSchema = new mongoose.Schema({
   institution: { type: String, required: true, trim: true },
@@ -69,6 +70,22 @@ const candidateSchema = new mongoose.Schema(
     experienceYears: { type: Number, default: 0 },
     education: { type: [educationSchema], default: [] },
     experience: { type: [experienceSchema], default: [] },
+    projects: [
+      {
+        title: { type: String, default: '' },
+        description: { type: String, default: '' },
+        link: { type: String, default: '' },
+        technologies: { type: [String], default: [] },
+      },
+    ],
+    certifications: [
+      {
+        name: { type: String, default: '' },
+        issuer: { type: String, default: '' },
+        issueDate: { type: Date },
+        credentialUrl: { type: String, default: '' },
+      },
+    ],
     resumeUrl: { type: String, default: '' },
     resumePublicId: { type: String, default: '' },
     avatarUrl: { type: String, default: '' },
@@ -106,11 +123,15 @@ const candidateSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: {
       transform: (_doc, ret) => {
+        ret.resumeUrl = cleanResumeUrl(ret.resumeUrl);
+        ret.avatarUrl = cleanAvatarUrl(ret.avatarUrl);
         return ret;
       },
     },
     toObject: {
       transform: (_doc, ret) => {
+        ret.resumeUrl = cleanResumeUrl(ret.resumeUrl);
+        ret.avatarUrl = cleanAvatarUrl(ret.avatarUrl);
         return ret;
       },
     },

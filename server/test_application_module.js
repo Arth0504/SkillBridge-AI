@@ -40,8 +40,8 @@ const runTests = async () => {
       headline: 'Senior Full Stack AI Developer',
       skills: ['Node.js', 'React', 'MongoDB', 'Python'],
       experienceYears: 5,
-      resumeUrl: 'https://cloudinary.com/resumes/alex_mercer_resume.pdf',
-      resumePublicId: 'resumes/alex_mercer_resume',
+      resumeUrl: '',
+      resumePublicId: '',
     });
     const candidateToken = generateToken({ id: testCandidate._id, role: 'candidate' });
     const candidateAuthHeaders = {

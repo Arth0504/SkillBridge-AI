@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { MessageSquare, Sparkles, Send, CheckCircle2, History, Award, ArrowRight, RefreshCw, Play } from 'lucide-react';
+import { MessageSquare, Sparkles, Send, CheckCircle2, History, Award, ArrowRight, RefreshCw, Play, Video } from 'lucide-react';
 import { Button, Badge, Loader, Textarea } from '../../../components/common';
 import { candidateApi } from '../../../api';
+import { useAuth } from '../../../context/AuthContext';
+import { AIInterviewRoomModal } from '../components/AIInterviewRoomModal';
 import toast from 'react-hot-toast';
 
 export const InterviewPrepPage = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('practice');
-  const [category, setCategory] = useState('Behavioral');
+  const [category, setCategory] = useState('MERN');
   const [difficulty, setDifficulty] = useState('Medium');
   const [experienceLevel, setExperienceLevel] = useState('Senior');
   const [activeSession, setActiveSession] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
+  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
 
   // Fetch Practice Session History
   const { data: historyData, isLoading: isLoadingHistory } = useQuery({
@@ -128,9 +132,9 @@ export const InterviewPrepPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Category Picker */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-300">Category Domain</label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {['Behavioral', 'Frontend React', 'Backend Node', 'System Design', 'AI / ML Ops'].map((cat) => (
+                  <label className="text-xs font-bold text-slate-300">Target Role / Tech Stack</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Python', 'Java', 'MERN', 'React', 'Node', 'JavaScript', 'Data Science', 'AI/ML', 'DevOps', 'UI/UX', 'HR'].map((cat) => (
                       <button
                         key={cat}
                         type="button"
@@ -190,15 +194,25 @@ export const InterviewPrepPage = () => {
                 </div>
               </div>
 
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-full justify-center"
-                isLoading={startSessionMutation.isPending}
-                onClick={handleStartSession}
-              >
-                <Sparkles className="w-4 h-4 mr-2" /> Start Gemini AI Interview
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full justify-center"
+                  onClick={() => setIsRoomModalOpen(true)}
+                >
+                  <Video className="w-4 h-4 mr-2" /> Start Live AI Interview Room (Pre-Flight Checks)
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full justify-center"
+                  isLoading={startSessionMutation.isPending}
+                  onClick={handleStartSession}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" /> Start Quick Text Session
+                </Button>
+              </div>
             </div>
           ) : (
             /* Active Q&A Interface */
@@ -288,6 +302,14 @@ export const InterviewPrepPage = () => {
           )}
         </div>
       )}
+
+      <AIInterviewRoomModal
+        isOpen={isRoomModalOpen}
+        onClose={() => setIsRoomModalOpen(false)}
+        user={user}
+        targetDomain={category}
+        experienceLevel={experienceLevel}
+      />
     </div>
   );
 };

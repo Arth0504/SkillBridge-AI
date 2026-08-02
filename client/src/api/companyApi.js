@@ -145,6 +145,11 @@ export const companyApi = {
     return data;
   },
 
+  deleteInterview: async (id) => {
+    const { data } = await api.delete(`/company/interviews/${id}`);
+    return data;
+  },
+
   // Company Notifications
   getNotifications: async (params) => {
     const { data } = await api.get('/company/notifications', { params });

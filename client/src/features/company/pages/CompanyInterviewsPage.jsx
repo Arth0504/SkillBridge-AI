@@ -16,6 +16,10 @@ import {
   UserCheck,
   Briefcase,
   User,
+  Edit3,
+  Trash2,
+  Copy,
+  Lock,
 } from 'lucide-react';
 import { Button, Badge, Loader, EmptyState, Modal, Input, Select, Textarea } from '../../../components/common';
 import { companyApi } from '../../../api';
@@ -29,6 +33,8 @@ export const CompanyInterviewsPage = () => {
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState('');
   const [selectedAIResult, setSelectedAIResult] = useState(null);
+  const [editingInterview, setEditingInterview] = useState(null);
+  const [deletingInterview, setDeletingInterview] = useState(null);
 
   // Form State for Schedule Interview
   const [scheduleForm, setScheduleForm] = useState({
@@ -124,6 +130,39 @@ export const CompanyInterviewsPage = () => {
     onSuccess: () => {
       toast.success('Interview status updated.');
       queryClient.invalidateQueries({ queryKey: ['company-interviews'] });
+      queryClient.invalidateQueries({ queryKey: ['company-applications'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Status update failed.');
+    },
+  });
+
+  // Update Interview Details Mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }) => companyApi.updateInterview(id, payload),
+    onSuccess: () => {
+      toast.success('Interview details updated successfully!');
+      setEditingInterview(null);
+      queryClient.invalidateQueries({ queryKey: ['company-interviews'] });
+      queryClient.invalidateQueries({ queryKey: ['company-applications'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update interview.');
+    },
+  });
+
+  // Soft Delete Interview Mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id) => companyApi.deleteInterview(id),
+    onSuccess: () => {
+      toast.success('Interview deleted successfully.');
+      setDeletingInterview(null);
+      queryClient.invalidateQueries({ queryKey: ['company-interviews'] });
+      queryClient.invalidateQueries({ queryKey: ['company-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['company-calendar'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete interview.');
     },
   });
 
@@ -245,16 +284,6 @@ export const CompanyInterviewsPage = () => {
                   <span className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-emerald-400" /> {new Date(iv.date || Date.now()).toLocaleString()}
                   </span>
-                  {iv.meetingUrl && (
-                    <a
-                      href={iv.meetingUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1 text-brand-400 hover:underline font-bold"
-                    >
-                      Meeting Link <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
                 </div>
 
                 {/* AI Screening Scores Summary Pill */}
@@ -271,23 +300,87 @@ export const CompanyInterviewsPage = () => {
               {/* Status Actions & AI Results Trigger */}
               <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <Button
+                  variant="primary"
+                  size="sm"
+                  className="shadow-md shadow-brand-500/20"
+                  onClick={() => {
+                    const rawRoomId = iv.roomId || (iv.meetingLink ? iv.meetingLink.replace('/interview/room/', '') : iv._id);
+                    navigate(`/interview/room/${rawRoomId}`);
+                  }}
+                >
+                  <Video className="w-4 h-4 mr-1.5" /> Join Private Interview
+                </Button>
+
+                <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => setSelectedAIResult(iv)}
                 >
-                  <Sparkles className="w-4 h-4 mr-1.5 text-brand-400" /> View AI Scores
+                  <Sparkles className="w-4 h-4 mr-1.5 text-brand-400" /> View Details
                 </Button>
 
                 <select
                   value={iv.status}
+                  disabled={iv.status === 'Completed'}
                   onChange={(e) => statusMutation.mutate({ id: iv._id, status: e.target.value })}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-brand-500 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-brand-500 cursor-pointer disabled:opacity-50"
                 >
                   <option value="Scheduled">Scheduled</option>
+                  <option value="Live">Live</option>
                   <option value="Completed">Completed</option>
-                  <option value="Rescheduled">Rescheduled</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
+
+                {/* Edit Button */}
+                {iv.status === 'Completed' ? (
+                  <button
+                    disabled
+                    title="Completed interviews are locked and cannot be edited"
+                    className="p-2 rounded-xl bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed"
+                  >
+                    <Lock className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setEditingInterview(iv)}
+                    title="Edit Interview Details"
+                    className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                )}
+
+                {/* Duplicate Button */}
+                <button
+                  onClick={() => {
+                    setScheduleForm({
+                      applicationId: iv.applicationId?._id || iv.applicationId || '',
+                      candidateId: iv.candidateId?._id || iv.candidateId || '',
+                      jobId: iv.jobId?._id || iv.jobId || '',
+                      candidateName: iv.candidateName || iv.candidateId?.fullName || '',
+                      candidateEmail: iv.candidateId?.email || '',
+                      role: iv.jobId?.title || iv.role || '',
+                      date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                      time: iv.startTime || '10:00',
+                      type: iv.interviewType || 'Technical',
+                      notes: iv.notes || '',
+                    });
+                    setScheduleModalOpen(true);
+                  }}
+                  title="Duplicate Interview"
+                  className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+
+                {/* Delete Button */}
+                <button
+                  onClick={() => setDeletingInterview(iv)}
+                  title="Delete Interview"
+                  className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </motion.div>
           ))}
@@ -434,12 +527,10 @@ export const CompanyInterviewsPage = () => {
               options={['Technical', 'HR', 'Coding', 'Managerial', 'Final']}
             />
 
-            <Input
-              label="Meeting URL (Google Meet / Zoom)"
-              placeholder="https://meet.google.com/abc-defg-hij"
-              value={scheduleForm.meetingUrl}
-              onChange={(e) => setScheduleForm({ ...scheduleForm, meetingUrl: e.target.value })}
-            />
+            <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 flex items-center gap-2">
+              <Video className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span>SkillBridge AI will automatically generate an encrypted private video room (UUID).</span>
+            </div>
 
             <Textarea
               label="Notes & Candidate Instructions"
@@ -473,19 +564,19 @@ export const CompanyInterviewsPage = () => {
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">AI Mock Interview Rating:</span>
                 <span className="font-extrabold text-emerald-400">
-                  {selectedAIResult.aiScores?.mockScore !== undefined ? `${selectedAIResult.aiScores.mockScore}%` : 'N/A'}
+                  {selectedAIResult.aiScores?.mockScore !== undefined && selectedAIResult.aiScores?.mockScore !== null ? `${selectedAIResult.aiScores.mockScore}%` : 'Not Evaluated Yet'}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">AI Technical Coding Test:</span>
                 <span className="font-extrabold text-brand-400">
-                  {selectedAIResult.aiScores?.codingScore !== undefined ? `${selectedAIResult.aiScores.codingScore}%` : 'N/A'}
+                  {selectedAIResult.aiScores?.codingScore !== undefined && selectedAIResult.aiScores?.codingScore !== null ? `${selectedAIResult.aiScores.codingScore}%` : 'Not Evaluated Yet'}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">AI Automated Video Screening:</span>
                 <span className="font-extrabold text-purple-400">
-                  {selectedAIResult.aiScores?.videoScore !== undefined ? `${selectedAIResult.aiScores.videoScore}%` : 'N/A'}
+                  {selectedAIResult.aiScores?.videoScore !== undefined && selectedAIResult.aiScores?.videoScore !== null ? `${selectedAIResult.aiScores.videoScore}%` : 'Not Evaluated Yet'}
                 </span>
               </div>
             </div>
@@ -497,6 +588,123 @@ export const CompanyInterviewsPage = () => {
             <div className="flex justify-end pt-2">
               <Button variant="secondary" onClick={() => setSelectedAIResult(null)}>
                 Close Audit
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Interview Modal */}
+      {editingInterview && (
+        <Modal
+          isOpen={Boolean(editingInterview)}
+          onClose={() => setEditingInterview(null)}
+          title={`Edit Interview: ${editingInterview.candidateName || 'Candidate'}`}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.target);
+              const payload = {
+                title: fd.get('title'),
+                scheduledDate: fd.get('date'),
+                startTime: fd.get('startTime'),
+                interviewType: fd.get('interviewType'),
+                interviewerName: fd.get('interviewerName'),
+                interviewerEmail: fd.get('interviewerEmail'),
+                notes: fd.get('notes'),
+              };
+              updateMutation.mutate({ id: editingInterview._id, payload });
+            }}
+            className="space-y-4"
+          >
+            <Input
+              required
+              name="title"
+              label="Interview Title *"
+              defaultValue={editingInterview.title || 'Technical Evaluation'}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                required
+                type="date"
+                name="date"
+                label="Date *"
+                defaultValue={editingInterview.scheduledDate ? editingInterview.scheduledDate.split('T')[0] : ''}
+              />
+              <Input
+                required
+                type="time"
+                name="startTime"
+                label="Start Time *"
+                defaultValue={editingInterview.startTime || '10:00'}
+              />
+            </div>
+
+            <Select
+              name="interviewType"
+              label="Interview Type"
+              defaultValue={editingInterview.interviewType || 'Technical'}
+              options={['Technical', 'HR', 'Coding', 'Managerial', 'Final']}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                name="interviewerName"
+                label="Interviewer Name"
+                defaultValue={editingInterview.interviewerName || ''}
+              />
+              <Input
+                name="interviewerEmail"
+                type="email"
+                label="Interviewer Email"
+                defaultValue={editingInterview.interviewerEmail || ''}
+              />
+            </div>
+
+            <Textarea
+              name="notes"
+              label="Recruiter Notes & Instructions"
+              rows={3}
+              defaultValue={editingInterview.notes || ''}
+            />
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <Button variant="ghost" type="button" onClick={() => setEditingInterview(null)}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" isLoading={updateMutation.isPending}>
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingInterview && (
+        <Modal
+          isOpen={Boolean(deletingInterview)}
+          onClose={() => setDeletingInterview(null)}
+          title="Delete this interview?"
+        >
+          <div className="space-y-4">
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Are you sure you want to delete the scheduled interview for{' '}
+              <strong className="text-white">{deletingInterview.candidateName || 'this candidate'}</strong>? This action will remove the session from candidate and company dashboards.
+            </p>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <Button variant="ghost" type="button" onClick={() => setDeletingInterview(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                isLoading={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate(deletingInterview._id)}
+              >
+                Delete Interview
               </Button>
             </div>
           </div>

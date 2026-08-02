@@ -1,11 +1,17 @@
 import mongoose from 'mongoose';
+import { cleanResumeUrl } from '../utils/cleaners.js';
 
 export const APPLICATION_STATUS = {
   APPLIED: 'Applied',
   UNDER_REVIEW: 'Under Review',
+  SCREENING: 'Screening',
   SHORTLISTED: 'Shortlisted',
   INTERVIEW_SCHEDULED: 'Interview Scheduled',
   INTERVIEW_COMPLETED: 'Interview Completed',
+  TECHNICAL_ROUND: 'Technical Round',
+  HR_ROUND: 'HR Round',
+  OFFER: 'Offer',
+  HIRED: 'Hired',
   SELECTED: 'Selected',
   REJECTED: 'Rejected',
   WITHDRAWN: 'Withdrawn',
@@ -46,7 +52,7 @@ const applicationSchema = new mongoose.Schema(
     },
     resumeUrl: {
       type: String,
-      required: [true, 'Resume URL is required'],
+      default: '',
       trim: true,
     },
     resumePublicId: {
@@ -100,6 +106,30 @@ const applicationSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    // AI Evaluation & Scoring Pipeline Fields
+    resumeScore: { type: Number, default: null },
+    interviewScore: { type: Number, default: null },
+    codingScore: { type: Number, default: null },
+    communicationScore: { type: Number, default: null },
+    matchScore: { type: Number, default: null, index: true },
+    hiringRecommendation: {
+      type: String,
+      enum: ['', 'Highly Recommended', 'Recommended', 'Needs Improvement', 'Not Recommended'],
+      default: '',
+    },
+    strengths: { type: [String], default: [] },
+    weaknesses: { type: [String], default: [] },
+    timeline: [
+      {
+        status: { type: String, required: true },
+        date: { type: Date, default: Date.now },
+        note: { type: String, default: '' },
+        updatedBy: { type: String, default: '' },
+      },
+    ],
+    interviewSessionId: { type: mongoose.Schema.Types.ObjectId, ref: 'InterviewSession', default: null },
+    codingSessionId: { type: mongoose.Schema.Types.ObjectId, ref: 'CodingAssessment', default: null },
+
     isWithdrawn: {
       type: Boolean,
       default: false,
@@ -120,11 +150,19 @@ const applicationSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: {
       transform: (_doc, ret) => {
+        ret.resumeUrl = cleanResumeUrl(ret.resumeUrl);
+        if (ret.candidateSnapshot) {
+          ret.candidateSnapshot.resumeUrl = cleanResumeUrl(ret.candidateSnapshot.resumeUrl);
+        }
         return ret;
       },
     },
     toObject: {
       transform: (_doc, ret) => {
+        ret.resumeUrl = cleanResumeUrl(ret.resumeUrl);
+        if (ret.candidateSnapshot) {
+          ret.candidateSnapshot.resumeUrl = cleanResumeUrl(ret.candidateSnapshot.resumeUrl);
+        }
         return ret;
       },
     },

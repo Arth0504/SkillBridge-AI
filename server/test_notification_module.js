@@ -54,7 +54,7 @@ const runNotificationTests = async () => {
       password: 'Password123!',
       isEmailVerified: true,
       profileCompleted: true,
-      resumeUrl: 'https://cloudinary.com/resumes/emily_watson.pdf',
+      resumeUrl: '',
     });
     const candidateToken = generateToken({ id: candidate._id, role: 'candidate' });
     const candidateHeaders = {

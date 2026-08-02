@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Bell, CheckCheck, Trash2, Check, Filter, Sparkles, Briefcase, Calendar, Info } from 'lucide-react';
+import { Bell, CheckCheck, Trash2, Check, Filter, Sparkles, Briefcase, Calendar, Info, Video } from 'lucide-react';
 import { Button, Badge, Loader, EmptyState } from '../../../components/common';
 import { candidateApi, companyApi, adminApi } from '../../../api';
 import { useAuth } from '../../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export const NotificationsPage = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { role } = useAuth();
   const [readFilter, setReadFilter] = useState('ALL');
@@ -147,6 +149,17 @@ export const NotificationsPage = () => {
                     {!notif.isRead && <Badge variant="danger" size="sm">New</Badge>}
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">{notif.message}</p>
+                  {notif.metadata?.roomId && (
+                    <div className="pt-2">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => navigate(`/interview/room/${notif.metadata.roomId}`)}
+                      >
+                        <Video className="w-3.5 h-3.5 mr-1" /> Join Private Interview Room
+                      </Button>
+                    </div>
+                  )}
                   <span className="text-[10px] text-slate-500 block pt-1">
                     {new Date(notif.createdAt || Date.now()).toLocaleString()}
                   </span>

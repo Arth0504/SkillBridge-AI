@@ -23,6 +23,10 @@ import aiResumeRoutes from './routes/aiResume.routes.js';
 import interviewAIRoutes from './routes/interviewAI.routes.js';
 import codingAIRoutes from './routes/codingAI.routes.js';
 import videoInterviewRoutes from './routes/videoInterview.routes.js';
+import interviewRoomRoutes from './routes/interviewRoom.routes.js';
+import companyCalendarRoutes from './routes/companyCalendar.routes.js';
+import offerLetterRoutes from './routes/offerLetter.routes.js';
+import documentRoutes from './routes/document.routes.js';
 
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
@@ -127,6 +131,18 @@ app.use('/api/v1/candidate/ai-coding', checkDbConnection, codingAIRoutes);
 
 // AI Video Interview System Routes
 app.use('/api/v1/candidate/video-interview', checkDbConnection, videoInterviewRoutes);
+
+// Private Video Interview Room System Routes
+app.use('/api/v1/interviews/private', checkDbConnection, interviewRoomRoutes);
+
+// Company Calendar System Routes
+app.use('/api/v1/company/calendar', checkDbConnection, companyCalendarRoutes);
+
+// Offer Letter Generator Routes
+app.use('/api/v1/company/offer-letters', checkDbConnection, offerLetterRoutes);
+
+// Document Repository & Management System Routes
+app.use('/api/v1/documents', checkDbConnection, documentRoutes);
 
 // Admin Monitoring & Telemetry Routes
 app.use('/api/v1/admin', monitoringRoutes);

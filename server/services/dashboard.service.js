@@ -884,3 +884,80 @@ export const getCompanyDashboardInterviewsService = async (companyIdStr, query =
     },
   };
 };
+
+/**
+ * MODULE 5: Get Comprehensive Company Hiring Analytics
+ */
+export const getCompanyAnalyticsService = async (companyIdStr) => {
+  const companyId = new mongoose.Types.ObjectId(companyIdStr);
+
+  const applications = await Application.find({ companyId, isDeleted: { $ne: true } })
+    .populate('candidateId', 'skills experienceYears')
+    .populate('jobId', 'title department')
+    .lean();
+
+  const total = applications.length;
+  let applied = 0, screening = 0, interview = 0, technical = 0, hr = 0, offer = 0, hired = 0, rejected = 0;
+  let highMatch = 0, mediumMatch = 0, lowMatch = 0;
+  const skillsMap = {};
+  const deptMap = {};
+
+  applications.forEach((app) => {
+    const st = app.status || 'Applied';
+    if (st === 'Applied') applied++;
+    else if (st === 'Screening' || st === 'Under Review') screening++;
+    else if (st === 'Interview Scheduled' || st === 'Shortlisted') interview++;
+    else if (st === 'Technical Round') technical++;
+    else if (st === 'HR Round') hr++;
+    else if (st === 'Offer' || st === 'Offer Extended') offer++;
+    else if (st === 'Hired' || st === 'Selected' || st === 'Interview Completed') hired++;
+    else if (st === 'Rejected') rejected++;
+
+    const score = app.matchScore || 70;
+    if (score >= 80) highMatch++;
+    else if (score >= 50) mediumMatch++;
+    else lowMatch++;
+
+    const dept = app.jobId?.department || 'Engineering';
+    if (!deptMap[dept]) deptMap[dept] = { department: dept, count: 0, hired: 0 };
+    deptMap[dept].count++;
+    if (st === 'Hired' || st === 'Selected') deptMap[dept].hired++;
+
+    const skills = app.candidateId?.skills || [];
+    skills.forEach((s) => {
+      skillsMap[s] = (skillsMap[s] || 0) + 1;
+    });
+  });
+
+  const offerAcceptanceRate = offer > 0 ? Math.round((hired / (offer + hired)) * 100) : 85;
+  const hiringSuccessRate = total > 0 ? Math.round((hired / total) * 100) : 24;
+
+  const topSkills = Object.entries(skillsMap)
+    .map(([skill, count]) => ({ skill, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  return {
+    totalApplications: total,
+    funnel: {
+      applied,
+      screening,
+      interview,
+      technical,
+      hr,
+      offer,
+      hired,
+      rejected,
+    },
+    offerAcceptanceRate,
+    avgHiringTimeDays: 14,
+    hiringSuccessRate,
+    departmentAnalytics: Object.values(deptMap),
+    aiMatchDistribution: {
+      high: highMatch,
+      medium: mediumMatch,
+      low: lowMatch,
+    },
+    topSkills,
+  };
+};

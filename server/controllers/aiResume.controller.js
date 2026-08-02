@@ -6,7 +6,45 @@ import {
   getResumeHistoryService,
   getResumeHistoryByIdService,
   deleteResumeHistoryService,
+  parseAndAutoFillResumeService,
+  analyzeATSKeywordsService,
 } from '../services/aiResume.service.js';
+
+/**
+ * Upload & Auto-Fill Candidate Profile from Resume (Module 1)
+ * @route POST /api/v1/candidate/resume/parse-autofill
+ */
+export const parseResumeHandler = asyncHandler(async (req, res, next) => {
+  const file = req.file;
+  if (!file) {
+    return next(new AppError('Please upload a resume PDF/DOCX file.', 400));
+  }
+
+  const result = await parseAndAutoFillResumeService(
+    req.user._id,
+    file.buffer,
+    file.originalname
+  );
+
+  return sendResponse(res, 200, true, 'Resume parsed and profile auto-filled successfully.', result);
+});
+
+/**
+ * ATS Keyword Analysis (Module 2)
+ * @route POST /api/v1/candidate/resume/ats-keywords
+ */
+export const analyzeATSKeywordsHandler = asyncHandler(async (req, res, _next) => {
+  const { resumeText, jobDescription, jobId } = req.body;
+
+  const result = await analyzeATSKeywordsService({
+    candidateIdStr: req.user._id,
+    jobIdStr: jobId || null,
+    resumeText: resumeText || '',
+    jobDescription: jobDescription || '',
+  });
+
+  return sendResponse(res, 200, true, 'ATS Keyword Analysis completed successfully.', { atsAnalysis: result });
+});
 
 /**
  * Upload & Analyze Resume (ATS Score & Job Match)

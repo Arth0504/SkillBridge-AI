@@ -88,3 +88,16 @@ export const deleteCache = async (key) => {
   }
   inMemoryCache.delete(key);
 };
+
+export const closeRedis = async () => {
+  if (redisClient) {
+    try {
+      await redisClient.quit();
+      isConnected = false;
+      logger.info('✅ Redis connection closed.');
+    } catch (err) {
+      logger.warn(`Redis close warning: ${err.message}`);
+    }
+  }
+  inMemoryCache.clear();
+};

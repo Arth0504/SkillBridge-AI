@@ -38,6 +38,17 @@ export const JobPostingPage = () => {
     status: 'open',
   });
 
+  const [isCodingRoundEnabled, setIsCodingRoundEnabled] = useState(true);
+  const [codingLanguages, setCodingLanguages] = useState(['JavaScript', 'Python', 'Java', 'C++', 'C', 'SQL']);
+
+  const ALL_LANGUAGES = ['JavaScript', 'Python', 'Java', 'C++', 'C', 'SQL'];
+
+  const toggleLanguage = (lang) => {
+    setCodingLanguages((prev) =>
+      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
+    );
+  };
+
   // Fetch job details if editing
   const { data: jobResponse, isLoading } = useQuery({
     queryKey: ['company-job-detail', id],
@@ -66,6 +77,10 @@ export const JobPostingPage = () => {
         applicationDeadline: j.applicationDeadline ? j.applicationDeadline.split('T')[0] : '',
         status: j.status || 'open',
       });
+      setIsCodingRoundEnabled(j.isCodingRoundEnabled !== false);
+      if (Array.isArray(j.codingLanguages) && j.codingLanguages.length > 0) {
+        setCodingLanguages(j.codingLanguages);
+      }
     }
   }, [isEditMode, jobResponse]);
 
@@ -92,6 +107,8 @@ export const JobPostingPage = () => {
         openings: Number(form.openings),
         applicationDeadline: form.applicationDeadline || undefined,
         status: targetStatus,
+        isCodingRoundEnabled,
+        codingLanguages: isCodingRoundEnabled ? codingLanguages : [],
       };
 
       if (isEditMode) {
@@ -196,6 +213,44 @@ export const JobPostingPage = () => {
             <Input label="Country" value={form.country} onChange={update('country')} placeholder="United States" />
             <Input type="date" label="Application Deadline" className="col-span-2" value={form.applicationDeadline} onChange={update('applicationDeadline')} />
           </div>
+        </div>
+
+        {/* AI Coding Round & Language Configuration */}
+        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-white">AI Technical Coding Round</h3>
+              <p className="text-xs text-slate-400">Enable algorithmic code assessment for candidate screening.</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isCodingRoundEnabled}
+                onChange={(e) => setIsCodingRoundEnabled(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+            </label>
+          </div>
+
+          {isCodingRoundEnabled && (
+            <div className="space-y-2 pt-2 border-t border-slate-800">
+              <label className="text-xs font-bold text-slate-300 block">Allowed Interview Coding Languages</label>
+              <div className="flex flex-wrap gap-3">
+                {ALL_LANGUAGES.map((lang) => (
+                  <label key={lang} className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-slate-300 cursor-pointer hover:border-brand-500">
+                    <input
+                      type="checkbox"
+                      checked={codingLanguages.includes(lang)}
+                      onChange={() => toggleLanguage(lang)}
+                      className="rounded border-slate-800 text-brand-500 focus:ring-brand-500"
+                    />
+                    <span>{lang}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">

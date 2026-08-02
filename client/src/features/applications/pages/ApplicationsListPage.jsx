@@ -151,11 +151,24 @@ export const ApplicationsListPage = () => {
 
                 {/* Upcoming Interview Alert pill if scheduled */}
                 {app.interviewDate && (
-                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 text-xs text-emerald-400 mt-2">
-                    <Calendar className="w-4 h-4 shrink-0" />
-                    <span>
-                      Interview Scheduled: <strong>{new Date(app.interviewDate).toLocaleString()}</strong>
-                    </span>
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-emerald-400 mt-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 shrink-0" />
+                      <span>
+                        Interview Scheduled: <strong>{new Date(app.interviewDate).toLocaleString()}</strong>
+                      </span>
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="shadow-md shadow-brand-500/20"
+                      onClick={() => {
+                        const rawRoomId = app.interviewRoomId || app.roomId || (app.meetingLink ? app.meetingLink.replace('/interview/room/', '') : app._id);
+                        navigate(`/interview/room/${rawRoomId}`);
+                      }}
+                    >
+                      Join Private Interview
+                    </Button>
                   </div>
                 )}
               </div>

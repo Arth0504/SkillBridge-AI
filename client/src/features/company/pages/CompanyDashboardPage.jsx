@@ -18,6 +18,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Button, Badge, Loader } from '../../../components/common';
+import { Avatar } from '../../../components/common/Avatar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { companyApi } from '../../../api';
@@ -97,9 +98,7 @@ export const CompanyDashboardPage = () => {
 
         {/* Company Quick Profile Pill */}
         <div className="glass-card p-5 rounded-2xl border border-white/10 flex items-center gap-4 shrink-0 bg-white/5 backdrop-blur-md">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 to-purple-600 flex items-center justify-center text-white font-black text-xl shadow-lg">
-            {user?.companyName?.charAt(0) || 'C'}
-          </div>
+          <Avatar src={user?.logoUrl} name={user?.companyName} isSquare size="lg" className="w-14 h-14" />
           <div>
             <h3 className="text-base font-bold text-white">{user?.companyName || 'Company Name'}</h3>
             <p className="text-xs text-slate-400">{user?.email}</p>

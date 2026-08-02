@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/common/Sidebar';
 import { Topbar } from '../components/common/Topbar';
+import { AIHRAssistantWidget } from '../components/common/AIHRAssistantWidget';
 import { motion } from 'framer-motion';
 
 export const CompanyLayout = () => {
@@ -33,6 +34,9 @@ export const CompanyLayout = () => {
           </footer>
         </motion.main>
       </div>
+
+      {/* Floating Recruiter AI HR Assistant Chatbot */}
+      <AIHRAssistantWidget />
     </div>
   );
 };

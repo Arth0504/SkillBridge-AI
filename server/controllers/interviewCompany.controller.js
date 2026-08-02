@@ -14,9 +14,12 @@ import {
  * @route POST /api/v1/company/interviews
  */
 export const createInterviewHandler = asyncHandler(async (req, res, _next) => {
-  const interview = await createInterviewService(req.user._id, req.body);
+  const result = await createInterviewService(req.user._id, req.body);
 
-  return sendResponse(res, 201, true, 'Interview scheduled successfully', { interview });
+  return sendResponse(res, 201, true, 'Interview scheduled successfully', {
+    interview: result.interview || result,
+    roomId: result.roomId || result.interview?.meetingLink?.replace('/interview/room/', '') || '',
+  });
 });
 
 /**
@@ -68,4 +71,15 @@ export const getCompanyInterviewByIdHandler = asyncHandler(async (req, res, _nex
   const interview = await getInterviewByIdService(req.params.id, req.user._id, 'company');
 
   return sendResponse(res, 200, true, 'Interview details retrieved successfully', { interview });
+});
+
+/**
+ * Delete Interview (Company Only - Soft Delete)
+ * @route DELETE /api/v1/company/interviews/:id
+ */
+export const deleteInterviewHandler = asyncHandler(async (req, res, _next) => {
+  const { deleteInterviewService } = await import('../services/interview.service.js');
+  const result = await deleteInterviewService(req.params.id, req.user._id);
+
+  return sendResponse(res, 200, true, 'Interview deleted successfully', result);
 });

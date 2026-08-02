@@ -74,6 +74,30 @@ export const createInterviewService = async (companyIdStr, payload) => {
     interviewType = 'Final';
   }
 
+  // Create SkillBridge AI Private Video Room with secure UUID
+  const cryptoModule = await import('crypto');
+  const roomId = cryptoModule.randomUUID();
+
+  const { InterviewRoom } = await import('../models/interviewRoom.model.js');
+  await InterviewRoom.create({
+    roomId,
+    uuid: roomId,
+    applicationId: application._id,
+    candidateId: candidate._id,
+    companyId: company._id,
+    jobId: job._id,
+    interviewType: interviewType === 'Coding' ? 'Technical' : interviewType,
+    scheduledDate,
+    scheduledAt: scheduledDate,
+    durationMinutes: payload.durationMinutes || 45,
+    duration: payload.durationMinutes || 45,
+    status: 'scheduled',
+    recruiterNotes: payload.notes ? payload.notes.trim() : '',
+    notes: payload.notes ? payload.notes.trim() : '',
+  });
+
+  const internalRoomLink = `/interview/room/${roomId}`;
+
   const interview = await Interview.create({
     applicationId: application._id,
     candidateId: candidate._id,
@@ -86,8 +110,8 @@ export const createInterviewService = async (companyIdStr, payload) => {
     scheduledDate,
     startTime: payload.startTime ? payload.startTime.trim() : '10:00',
     endTime: payload.endTime ? payload.endTime.trim() : '11:00',
-    meetingLink: payload.meetingLink || payload.meetingUrl || '',
-    meetingPlatform: payload.meetingPlatform || 'Google Meet',
+    meetingLink: internalRoomLink,
+    meetingPlatform: 'SkillBridge AI Private Room',
     status: INTERVIEW_STATUS.SCHEDULED,
     interviewerName: payload.interviewerName ? payload.interviewerName.trim() : '',
     interviewerEmail: payload.interviewerEmail ? payload.interviewerEmail.trim() : '',
@@ -95,21 +119,53 @@ export const createInterviewService = async (companyIdStr, payload) => {
     attachments: Array.isArray(payload.attachments) ? payload.attachments : [],
   });
 
-  // Update Application status
+  // Update Application status & link to interview date
   application.status = APPLICATION_STATUS.INTERVIEW_SCHEDULED;
   application.interviewScheduled = true;
   application.interviewDate = scheduledDate;
   application.lastUpdated = new Date();
   await application.save();
 
-  // Trigger Automatic Candidate Notification (Interview Scheduled)
+  // 1. Trigger Candidate Email Invitation
+  const { emailAutomationService } = await import('./emailAutomation.service.js');
+  emailAutomationService.sendInterviewInvitationEmail(
+    candidate.email,
+    candidate.fullName,
+    job.title,
+    new Date(scheduledDate).toLocaleDateString(),
+    interview.startTime,
+    `http://localhost:5173${internalRoomLink}`
+  ).catch((err) => console.error('Auto-Email Error (Interview Scheduled):', err.message));
+
+  // 2. Trigger Real-Time Socket.IO event
+  try {
+    const { getIO } = await import('../sockets/notification.socket.js');
+    const io = getIO();
+    if (io) {
+      io.emit('interview:scheduled', {
+        interviewId: interview._id,
+        applicationId: application._id,
+        candidateId: candidate._id,
+        companyId: company._id,
+        jobId: job._id,
+        roomId,
+        roomUrl: internalRoomLink,
+        scheduledDate,
+        startTime: interview.startTime,
+      });
+    }
+  } catch (err) {
+    console.warn('Socket interview emit warning:', err.message);
+  }
+
+  // 3. Trigger Automatic Candidate Notification (Interview Scheduled)
   createNotificationService({
     receiverId: candidate._id,
     receiverRole: 'candidate',
     senderId: company._id,
     senderRole: 'company',
-    title: 'Interview Scheduled',
-    message: `An interview "${interview.title}" has been scheduled for position "${job.title}".`,
+    title: 'Private Video Interview Scheduled',
+    message: `An interview "${interview.title}" has been scheduled. Join live at ${internalRoomLink}`,
     type: NOTIFICATION_TYPES.INTERVIEW_SCHEDULED,
     priority: 'urgent',
     metadata: {
@@ -119,14 +175,20 @@ export const createInterviewService = async (companyIdStr, payload) => {
       jobTitle: job.title,
       scheduledDate,
       startTime: interview.startTime,
-      meetingLink: interview.meetingLink,
+      meetingLink: internalRoomLink,
+      roomId,
     },
   }).catch((err) => console.error('Auto-Notification Error (Interview Scheduled):', err.message));
 
-  return await Interview.findById(interview._id)
+  const populatedInterview = await Interview.findById(interview._id)
     .populate('candidateId', 'fullName email phone headline resumeUrl')
     .populate('jobId', 'title department status')
     .populate('companyId', 'companyName logoUrl location');
+
+  return {
+    interview: populatedInterview,
+    roomId,
+  };
 };
 
 /**
@@ -143,6 +205,10 @@ export const updateInterviewService = async (interviewId, companyIdStr, payload)
 
   if (!interview) {
     throw new AppError('Interview record not found or access denied.', 404);
+  }
+
+  if (interview.status === INTERVIEW_STATUS.COMPLETED) {
+    throw new AppError('Completed interviews are locked and cannot be edited.', 400);
   }
 
   let isRescheduled = false;
@@ -242,6 +308,27 @@ export const updateInterviewStatusService = async (interviewId, companyIdStr, st
       status: APPLICATION_STATUS.INTERVIEW_COMPLETED,
       lastUpdated: new Date(),
     });
+  }
+
+  // Emit Real-Time Socket Event
+  try {
+    const { getIO, emitNotificationToUser } = await import('../sockets/notification.socket.js');
+    const io = getIO();
+    if (io) {
+      const payload = {
+        interviewId: interview._id,
+        applicationId: interview.applicationId,
+        candidateId: interview.candidateId,
+        companyId: interview.companyId,
+        status,
+        updatedAt: new Date().toISOString(),
+      };
+      io.emit('interview:status_updated', payload);
+      emitNotificationToUser(interview.candidateId, 'candidate', 'interview:status_updated', payload);
+      emitNotificationToUser(interview.companyId, 'company', 'interview:status_updated', payload);
+    }
+  } catch (err) {
+    console.warn('Socket interview status emit error:', err.message);
   }
 
   // Trigger Automatic Candidate Notifications
@@ -425,4 +512,61 @@ export const getInterviewByIdService = async (interviewId, userIdStr, userRole) 
   }
 
   return interview;
+};
+
+/**
+ * 8. Soft Delete Interview (Company Only)
+ */
+export const deleteInterviewService = async (interviewId, companyIdStr) => {
+  const companyId = new mongoose.Types.ObjectId(companyIdStr);
+
+  const interview = await Interview.findOne({
+    _id: interviewId,
+    companyId,
+    isDeleted: false,
+  });
+
+  if (!interview) {
+    throw new AppError('Interview record not found or access denied.', 404);
+  }
+
+  interview.isDeleted = true;
+  interview.deletedAt = new Date();
+  await interview.save();
+
+  // Cancel associated InterviewRoom
+  try {
+    const { InterviewRoom } = await import('../models/interviewRoom.model.js');
+    if (interview.meetingLink) {
+      const roomId = interview.meetingLink.replace('/interview/room/', '');
+      await InterviewRoom.updateOne(
+        { $or: [{ roomId }, { uuid: roomId }] },
+        { $set: { status: 'cancelled' } }
+      );
+    }
+  } catch (err) {
+    console.warn('InterviewRoom cancel warning:', err.message);
+  }
+
+  // Real-Time Socket Event
+  try {
+    const { getIO, emitNotificationToUser } = await import('../sockets/notification.socket.js');
+    const io = getIO();
+    if (io) {
+      const payload = {
+        interviewId: interview._id,
+        applicationId: interview.applicationId,
+        candidateId: interview.candidateId,
+        companyId: interview.companyId,
+        deletedAt: interview.deletedAt,
+      };
+      io.emit('interview:deleted', payload);
+      emitNotificationToUser(interview.candidateId, 'candidate', 'interview:deleted', payload);
+      emitNotificationToUser(interview.companyId, 'company', 'interview:deleted', payload);
+    }
+  } catch (err) {
+    console.warn('Socket interview delete emit error:', err.message);
+  }
+
+  return { success: true, message: 'Interview deleted successfully.', interviewId: interview._id };
 };

@@ -54,7 +54,7 @@ const runCandidateDashboardTests = async () => {
       headline: 'Full Stack Node.js Developer',
       skills: ['Node.js', 'React', 'MongoDB'],
       isEmailVerified: true,
-      resumeUrl: 'https://cloudinary.com/resumes/marcus.pdf',
+      resumeUrl: '',
     });
     const candidate1Token = generateToken({ id: candidate1._id, role: 'candidate' });
     const candidate1Headers = {
@@ -141,8 +141,8 @@ const runCandidateDashboardTests = async () => {
       scheduledDate: new Date(Date.now() + 86400000), // Tomorrow
       startTime: '10:00 AM',
       endTime: '11:00 AM',
-      meetingPlatform: 'Google Meet',
-      meetingLink: 'https://meet.google.com/test-link',
+      meetingPlatform: 'SkillBridge AI Private Room',
+      meetingLink: '/interview/room/4c6e2a5b-bbc5-45ef-bb76-87cdd8f6c812',
       status: INTERVIEW_STATUS.SCHEDULED,
     });
 

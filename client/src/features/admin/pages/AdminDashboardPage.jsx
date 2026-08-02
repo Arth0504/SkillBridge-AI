@@ -42,12 +42,12 @@ export const AdminDashboardPage = () => {
   const memory = telemetry.memory || {};
 
   const overviewStats = [
-    { label: 'Total Platform Users', value: telemetry.totalUsers || '4,890', icon: Users, color: 'text-brand-500', bg: 'bg-brand-500/10' },
-    { label: 'Registered Candidates', value: telemetry.candidatesCount || '3,650', icon: Users, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
-    { label: 'Employer Companies', value: telemetry.companiesCount || '1,240', icon: Building, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { label: 'Active Job Postings', value: telemetry.activeJobsCount || '482', icon: Briefcase, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { label: 'AI Inferences Today', value: telemetry.aiInferencesToday || '12,450', icon: Sparkles, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-    { label: 'ARR Platform Revenue', value: '$240,000', icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Total Platform Users', value: (telemetry.totalUsers ?? ((audit.platformUsers?.candidatesCount || 0) + (audit.platformUsers?.companiesCount || 0))) ?? 0, icon: Users, color: 'text-brand-500', bg: 'bg-brand-500/10' },
+    { label: 'Registered Candidates', value: telemetry.candidatesCount ?? (audit.platformUsers?.candidatesCount || 0), icon: Users, color: 'text-accent-cyan', bg: 'bg-accent-cyan/10' },
+    { label: 'Employer Companies', value: telemetry.companiesCount ?? (audit.platformUsers?.companiesCount || 0), icon: Building, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: 'Active Job Postings', value: telemetry.activeJobsCount ?? 0, icon: Briefcase, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: 'Successful Logins', value: audit.authentication?.totalSuccessfulLogins ?? 0, icon: Sparkles, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { label: 'Failed Logins', value: audit.authentication?.totalFailedLogins ?? 0, icon: AlertTriangle, color: 'text-rose-400', bg: 'bg-rose-500/10' },
   ];
 
   if (isLoadingMetrics) {

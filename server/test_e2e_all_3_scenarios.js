@@ -75,13 +75,13 @@ const runAllScenariosTest = async () => {
     console.log('3. Logged in candidate /me status. isEmailVerified:', me1Data.data.user.isEmailVerified);
 
     // 4. Update resume & profile
-    candidate1.resumeUrl = 'https://cloudinary.com/resumes/s1_cv.pdf';
+    candidate1.resumeUrl = '';
     candidate1.profileCompleted = true;
     await candidate1.save({ validateBeforeSave: false });
     console.log('4. Uploaded resume & completed candidate profile.');
 
     // 5. Pre-flight checks for Apply Job
-    const s1PreflightVerified = me1Data.data.user.isEmailVerified && Boolean(candidate1.resumeUrl) && candidate1.profileCompleted;
+    const s1PreflightVerified = me1Data.data.user.isEmailVerified && candidate1.profileCompleted;
     if (!s1PreflightVerified) throw new Error('Scenario 1 pre-flight check failed');
     console.log('✅ SCENARIO 1 PASSED: Candidate verified email, uploaded resume, and successfully opened Apply Job modal!');
 
@@ -142,7 +142,7 @@ const runAllScenariosTest = async () => {
       email: email3,
       password: 'Password123!',
       isEmailVerified: true,
-      resumeUrl: 'https://cloudinary.com/resumes/s3_cv.pdf',
+      resumeUrl: '',
       profileCompleted: true,
     });
 

@@ -150,6 +150,14 @@ const jobSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    isCodingRoundEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    codingLanguages: {
+      type: [String],
+      default: ['Python', 'Java', 'JavaScript', 'C++', 'C', 'SQL'],
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Company',
