@@ -144,9 +144,25 @@ export const getCandidateApplications = async (candidateId, queryParams = {}) =>
     APPLICATION_STATUS.REJECTED,
   ];
 
+  // Attach matching interview meeting details
+  const { Interview } = await import('../models/interview.model.js');
+  const appIds = rawApplications.map((a) => a._id);
+  const interviews = await Interview.find({ applicationId: { $in: appIds }, isDeleted: false }).lean();
+  const interviewMap = {};
+  interviews.forEach((iv) => {
+    interviewMap[iv.applicationId.toString()] = iv;
+  });
+
   const applications = rawApplications.map((app) => {
     if (!visibleFeedbackStatuses.includes(app.status)) {
       app.feedback = ''; // Hide unreleased feedback
+    }
+    const matchingIv = interviewMap[app._id.toString()];
+    if (matchingIv) {
+      app.interviewDate = matchingIv.scheduledDate;
+      app.meetingLink = matchingIv.meetingLink;
+      app.roomId = matchingIv.meetingLink ? matchingIv.meetingLink.replace('/interview/room/', '') : '';
+      app.interviewRoomId = app.roomId;
     }
     return app;
   });

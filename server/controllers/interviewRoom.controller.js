@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { InterviewRoom } from '../models/interviewRoom.model.js';
 import { Application } from '../models/application.model.js';
@@ -124,12 +125,57 @@ export const getPrivateInterviewRoom = async (req, res, next) => {
     const userRole = req.user.role;
 
     // Search by roomId or uuid
-    const room = await InterviewRoom.findOne({
+    let room = await InterviewRoom.findOne({
       $or: [{ roomId }, { uuid: roomId }],
-    })
-      .populate('candidateId', 'fullName email phone avatarUrl headline experienceYears skills resumeUrl matchScore')
-      .populate('companyId', 'companyName logoUrl location website')
-      .populate('jobId', 'title department employmentType location skills');
+    });
+
+    if (!room) {
+      // Auto-Resolve Fallback: Check if roomId is an Interview or Application MongoDB ID
+      const { Interview } = await import('../models/interview.model.js');
+      let interview = null;
+
+      if (mongoose.Types.ObjectId.isValid(roomId)) {
+        interview = await Interview.findOne({
+          $or: [{ _id: roomId }, { applicationId: roomId }],
+          isDeleted: false,
+        });
+      }
+
+      if (!interview) {
+        interview = await Interview.findOne({
+          meetingLink: { $regex: roomId },
+          isDeleted: false,
+        });
+      }
+
+      if (interview) {
+        const actualRoomId = (interview.meetingLink && interview.meetingLink.startsWith('/interview/room/'))
+          ? interview.meetingLink.replace('/interview/room/', '')
+          : crypto.randomUUID();
+
+        room = await InterviewRoom.findOne({
+          $or: [{ roomId: actualRoomId }, { uuid: actualRoomId }],
+        });
+
+        if (!room) {
+          room = await InterviewRoom.create({
+            roomId: actualRoomId,
+            uuid: actualRoomId,
+            applicationId: interview.applicationId,
+            candidateId: interview.candidateId,
+            companyId: interview.companyId,
+            jobId: interview.jobId,
+            interviewType: interview.interviewType || 'Technical',
+            scheduledDate: interview.scheduledDate || new Date(),
+            scheduledAt: interview.scheduledDate || new Date(),
+            durationMinutes: 45,
+            status: interview.status === 'Completed' ? 'completed' : 'scheduled',
+          });
+          interview.meetingLink = `/interview/room/${actualRoomId}`;
+          await interview.save();
+        }
+      }
+    }
 
     if (!room) {
       return res.status(404).json({
@@ -138,6 +184,12 @@ export const getPrivateInterviewRoom = async (req, res, next) => {
         message: 'Private interview room not found.',
       });
     }
+
+    await room.populate([
+      { path: 'candidateId', select: 'fullName email phone avatarUrl headline experienceYears skills resumeUrl matchScore' },
+      { path: 'companyId', select: 'companyName logoUrl location website' },
+      { path: 'jobId', select: 'title department employmentType location skills' },
+    ]);
 
     // Access Control Validation: Strict check (403 Forbidden)
     const hasAccess = room.hasUserAccess(userId, userRole);
@@ -199,6 +251,7 @@ export const getPrivateInterviewRoom = async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.error('❌ getPrivateInterviewRoom Error:', error);
     next(error);
   }
 };

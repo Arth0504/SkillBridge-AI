@@ -325,8 +325,15 @@ export const CandidateDashboardPage = () => {
                   <span className="text-slate-400 flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5 text-emerald-500" /> {new Date(iv.date || Date.now()).toLocaleDateString()}
                   </span>
-                  <Button variant="primary" size="sm" onClick={() => navigate('/candidate/video-interview')}>
-                    Join Session
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      const rawRoomId = iv.roomId || (iv.meetingLink ? iv.meetingLink.replace('/interview/room/', '') : iv._id);
+                      navigate(`/interview/room/${rawRoomId}`);
+                    }}
+                  >
+                    Join Private Room
                   </Button>
                 </div>
               </div>

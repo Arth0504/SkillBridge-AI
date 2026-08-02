@@ -149,12 +149,15 @@ export const NotificationsPage = () => {
                     {!notif.isRead && <Badge variant="danger" size="sm">New</Badge>}
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">{notif.message}</p>
-                  {notif.metadata?.roomId && (
+                  {(notif.metadata?.roomId || notif.metadata?.meetingLink || notif.metadata?.interviewId) && (
                     <div className="pt-2">
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={() => navigate(`/interview/room/${notif.metadata.roomId}`)}
+                        onClick={() => {
+                          const targetId = notif.metadata?.roomId || (notif.metadata?.meetingLink ? notif.metadata.meetingLink.replace('/interview/room/', '') : notif.metadata?.interviewId);
+                          navigate(`/interview/room/${targetId}`);
+                        }}
                       >
                         <Video className="w-3.5 h-3.5 mr-1" /> Join Private Interview Room
                       </Button>
