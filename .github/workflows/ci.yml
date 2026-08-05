@@ -47,6 +47,7 @@ jobs:
           PORT: 5099
           NODE_ENV: test
           MONGODB_URI_TEST: mongodb://127.0.0.1:27017/skillbridge_test
+          REDIS_URL: redis://127.0.0.1:6379
           JWT_SECRET: super_secret_jwt_access_key_skillbridge_2026
           JWT_REFRESH_SECRET: super_secret_jwt_refresh_key_skillbridge_2026
         run: |
@@ -98,7 +99,6 @@ jobs:
           context: ./server
           file: ./server/Dockerfile
           push: false
-          tags: skillbridge-backend:test
 
       - name: Build FastAPI AI Service Docker Image
         uses: docker/build-push-action@v5
@@ -106,4 +106,3 @@ jobs:
           context: ./ai-service
           file: ./ai-service/Dockerfile
           push: false
-          tags: skillbridge-ai-service:test

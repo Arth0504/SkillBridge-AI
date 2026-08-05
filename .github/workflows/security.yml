@@ -53,7 +53,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: 'javascript'
+          languages: 'javascript-typescript'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -71,7 +71,7 @@ jobs:
           docker build -t skillbridge-backend:scan ./server
 
       - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           image-ref: 'skillbridge-backend:scan'
           format: 'table'
