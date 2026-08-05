@@ -1,6 +1,4 @@
 node_modules/
-.env
-
 client/node_modules/
 server/node_modules/
 
@@ -11,3 +9,8 @@ logs/
 uploads/
 coverage/
 *.log
+
+# Security Protection: Environment Files
+.env
+.env.*
+!.env.example
