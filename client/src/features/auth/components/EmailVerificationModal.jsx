@@ -47,7 +47,7 @@ export const EmailVerificationModal = ({ isOpen, onClose, user, onVerified }) =>
     <Modal isOpen={isOpen} onClose={onClose} title="Email Verification Required" maxWidth="max-w-md">
       <div className="space-y-6 text-center">
         {/* Header Icon */}
-        <div className="w-16 h-16 rounded-3xl bg-brand-500/10 text-brand-500 flex items-center justify-center mx-auto border border-brand-500/20">
+        <div className="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center mx-auto border border-brand-500/20">
           <Mail className="w-8 h-8" />
         </div>
 

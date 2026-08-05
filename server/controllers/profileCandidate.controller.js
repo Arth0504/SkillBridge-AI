@@ -28,8 +28,11 @@ export const updateCandidateProfile = asyncHandler(async (req, res, _next) => {
     'experienceYears',
     'education',
     'experience',
+    'projects',
+    'certifications',
     'socialLinks',
     'resumeUrl',
+    'resumeTemplate',
   ];
 
   const updates = {};

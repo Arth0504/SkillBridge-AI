@@ -15,27 +15,27 @@ export const Button = React.forwardRef(
     ref
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
+      'inline-flex items-center justify-center font-semibold rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:ring-offset-2 dark:focus:ring-offset-[#080B10] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] select-none';
 
     const variants = {
       primary:
-        'bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white shadow-lg shadow-brand-500/25 focus:ring-brand-500',
+        'bg-brand-600 hover:bg-brand-500 text-white shadow-premium dark:bg-brand-500 dark:hover:bg-brand-600 border border-brand-700/10 hover:border-brand-500/25',
       secondary:
-        'bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white focus:ring-slate-500',
+        'bg-slate-100 hover:bg-slate-200/90 text-slate-800 dark:bg-slate-800/70 dark:hover:bg-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/50',
       outline:
-        'border-2 border-slate-300 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 text-slate-800 dark:text-slate-200 focus:ring-brand-500',
+        'border border-slate-300 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-800 dark:text-slate-200',
       danger:
-        'bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-500/25 focus:ring-rose-500',
+        'bg-rose-600 hover:bg-rose-500 text-white shadow-premium border border-rose-700/10 hover:border-rose-500/25',
       success:
-        'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/25 focus:ring-emerald-500',
+        'bg-emerald-600 hover:bg-emerald-500 text-white shadow-premium border border-emerald-700/10 hover:border-emerald-500/25',
       ghost:
-        'hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 focus:ring-slate-500',
+        'hover:bg-slate-100 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300',
     };
 
     const sizes = {
-      sm: 'px-3 py-1.5 text-xs',
-      md: 'px-4 py-2.5 text-sm',
-      lg: 'px-6 py-3 text-base',
+      sm: 'h-8 px-3.5 text-xs gap-1.5',
+      md: 'h-10 px-5 text-sm gap-2',
+      lg: 'h-12 px-7 text-base gap-2.5',
     };
 
     return (
@@ -62,3 +62,4 @@ export const Button = React.forwardRef(
 );
 
 Button.displayName = 'Button';
+

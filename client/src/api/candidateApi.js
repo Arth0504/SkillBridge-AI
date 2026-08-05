@@ -199,38 +199,43 @@ export const candidateApi = {
   },
 
   // AI Video Interview
-  startVideoInterview: async (payload) => {
-    const { data } = await api.post('/candidate/video-interview/start', payload);
+  startVideoInterview: async (payload, config = {}) => {
+    const { data } = await api.post('/candidate/video-interview/start', payload, config);
     return data;
   },
 
-  getVideoInterviewHistory: async () => {
-    const { data } = await api.get('/candidate/video-interview/history');
+  getVideoInterviewHistory: async (params, config = {}) => {
+    const { data } = await api.get('/candidate/video-interview/history', { params, ...config });
     return data;
   },
 
-  getVideoInterviewById: async (id) => {
-    const { data } = await api.get(`/candidate/video-interview/${id}`);
+  getVideoInterviewById: async (id, config = {}) => {
+    const { data } = await api.get(`/candidate/video-interview/${id}`, config);
     return data;
   },
 
-  startVideoSession: async (id) => {
-    const { data } = await api.post(`/candidate/video-interview/${id}/start-session`);
+  startVideoSession: async (id, config = {}) => {
+    const { data } = await api.post(`/candidate/video-interview/${id}/start-session`, {}, config);
     return data;
   },
 
-  submitVideoResponse: async (id, payload) => {
-    const { data } = await api.post(`/candidate/video-interview/${id}/submit-video`, payload);
+  submitVideoResponse: async (id, payload, config = {}) => {
+    const { data } = await api.post(`/candidate/video-interview/${id}/submit-video`, payload, config);
     return data;
   },
 
-  finishVideoInterview: async (id) => {
-    const { data } = await api.post(`/candidate/video-interview/${id}/finish`);
+  finishVideoInterview: async (id, config = {}) => {
+    const { data } = await api.post(`/candidate/video-interview/${id}/finish`, {}, config);
     return data;
   },
 
-  deleteVideoInterview: async (id) => {
-    const { data } = await api.delete(`/candidate/video-interview/history/${id}`);
+  recordVideoIntegrityEvent: async (id, payload, config = {}) => {
+    const { data } = await api.post(`/candidate/video-interview/${id}/integrity-event`, payload, config);
+    return data;
+  },
+
+  deleteVideoInterview: async (id, config = {}) => {
+    const { data } = await api.delete(`/candidate/video-interview/history/${id}`, config);
     return data;
   },
 
@@ -252,6 +257,17 @@ export const candidateApi = {
 
   deleteNotification: async (id) => {
     const { data } = await api.delete(`/candidate/notifications/${id}`);
+    return data;
+  },
+
+  // AI Resume Builder Helpers
+  suggestResumeContent: async (payload) => {
+    const { data } = await api.post('/ai/suggest-content', payload);
+    return data;
+  },
+
+  checkResumeGrammar: async (payload) => {
+    const { data } = await api.post('/ai/check-grammar', payload);
     return data;
   },
 };

@@ -23,6 +23,12 @@ class VideoQuestionRequest(BaseModel):
     jobDescription: Optional[str] = None
     customQuestions: Optional[List[str]] = []
 
+class FollowUpVideoQuestionRequest(BaseModel):
+    lastQuestion: str
+    lastAnswer: str
+    interviewType: Optional[str] = "Technical"
+    previousQuestions: Optional[List[Dict[str, Any]]] = []
+
 class AnalyzeVideoRequest(BaseModel):
     questionText: str
     transcriptText: str
@@ -60,6 +66,20 @@ async def get_video_question_endpoint(
         req.customQuestions
     )
     return question
+
+@router.post("/follow-up")
+async def get_video_followup_endpoint(
+    req: FollowUpVideoQuestionRequest,
+    _: bool = Depends(verify_secret_key)
+):
+    question = ai_video_interview_service.generate_followup_question(
+        req.lastQuestion,
+        req.lastAnswer,
+        req.interviewType or "Technical",
+        req.previousQuestions or []
+    )
+    return question
+
 
 @router.post("/upload")
 async def upload_video_metadata_endpoint(

@@ -109,7 +109,7 @@ export const CompanyCalendarPage = () => {
           {events.map((ev) => (
             <div
               key={ev.id}
-              className="glass-card p-6 rounded-3xl border border-slate-800 space-y-4 hover:border-brand-500/40 transition-all shadow-xl"
+              className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4 hover:border-brand-500/40 transition-all shadow-xl"
             >
               <div className="flex justify-between items-start">
                 <Badge variant={ev.type === 'interview' ? 'purple' : 'emerald'} size="sm">

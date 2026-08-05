@@ -3,11 +3,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '../../../utils/validationSchemas';
 import { Input, Button, Radio } from '../../../components/common';
-import { Mail, Lock, Shield } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-export const LoginForm = () => {
+export const LoginForm = ({ setMascotState = () => {} }) => {
   const [accountType, setAccountType] = useState('candidate');
   const { loginCandidate, loginCompany, loginAdmin } = useAuth();
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ export const LoginForm = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
@@ -32,23 +31,30 @@ export const LoginForm = () => {
 
   const onSubmit = async (data) => {
     setLoading(true);
+    setMascotState('idle');
     try {
       if (accountType === 'candidate') {
         await loginCandidate(data.email, data.password);
-        navigate('/candidate/dashboard');
+        setMascotState('success');
+        setTimeout(() => navigate('/candidate/dashboard'), 500);
       } else if (accountType === 'company') {
         await loginCompany(data.email, data.password);
-        navigate('/company/dashboard');
+        setMascotState('success');
+        setTimeout(() => navigate('/company/dashboard'), 500);
       } else {
         await loginAdmin(data.email, data.password);
-        navigate('/admin/dashboard');
+        setMascotState('success');
+        setTimeout(() => navigate('/admin/dashboard'), 500);
       }
     } catch (err) {
-      // Error handled in AuthContext toast
+      setMascotState('failure');
     } finally {
       setLoading(false);
     }
   };
+
+  const emailProps = register('email');
+  const passwordProps = register('password');
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -71,7 +77,12 @@ export const LoginForm = () => {
         placeholder="you@company.com"
         startIcon={Mail}
         error={errors.email?.message}
-        {...register('email')}
+        {...emailProps}
+        onFocus={() => setMascotState('looking')}
+        onBlur={(e) => {
+          emailProps.onBlur(e);
+          setMascotState('idle');
+        }}
       />
 
       <Input
@@ -80,12 +91,18 @@ export const LoginForm = () => {
         placeholder="••••••••"
         startIcon={Lock}
         error={errors.password?.message}
-        {...register('password')}
+        {...passwordProps}
+        onFocus={() => setMascotState('covering')}
+        onBlur={(e) => {
+          passwordProps.onBlur(e);
+          setMascotState('idle');
+        }}
       />
 
-      <Button type="submit" variant="primary" className="w-full py-3 text-sm font-semibold" isLoading={loading}>
+      <Button type="submit" variant="primary" className="w-full h-11 text-sm font-semibold" isLoading={loading}>
         Sign In to SkillBridge AI
       </Button>
     </form>
   );
 };
+

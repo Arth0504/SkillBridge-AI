@@ -76,7 +76,7 @@ export const PublicCompanyProfilePage = () => {
         </div>
 
         {/* Company Header Card */}
-        <div className="glass-panel p-8 rounded-3xl relative overflow-hidden bg-gradient-to-r from-slate-900 via-brand-950/30 to-slate-900 border border-brand-500/20 shadow-2xl">
+        <div className="glass-panel p-8 rounded-2xl relative overflow-hidden bg-gradient-to-r from-slate-900 via-brand-950/30 to-slate-900 border border-brand-500/20 shadow-2xl">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10 text-center sm:text-left">
             <Avatar
               src={company.logoUrl}

@@ -85,7 +85,7 @@ export const AdminNotificationsPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className={`glass-card p-6 rounded-3xl border flex items-start justify-between gap-4 transition-all ${
+              className={`glass-card p-6 rounded-2xl border flex items-start justify-between gap-4 transition-all ${
                 !item.isRead ? 'border-brand-500/30 bg-brand-500/5' : 'border-slate-800'
               }`}
             >

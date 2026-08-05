@@ -9,7 +9,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const RegisterFields = ({ accountType, setAccountType }) => {
+const RegisterFields = ({ accountType, setAccountType, setMascotState = () => {} }) => {
   const { loginCandidate, loginCompany } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -34,6 +34,7 @@ const RegisterFields = ({ accountType, setAccountType }) => {
 
   const onSubmit = async (data) => {
     setLoading(true);
+    setMascotState('idle');
     try {
       if (accountType === 'candidate') {
         await authApi.registerCandidate({
@@ -43,8 +44,9 @@ const RegisterFields = ({ accountType, setAccountType }) => {
           password: data.password,
         });
         toast.success('Candidate registered successfully! Logging in...');
+        setMascotState('success');
         await loginCandidate(data.email, data.password);
-        navigate('/candidate/dashboard');
+        setTimeout(() => navigate('/candidate/dashboard'), 600);
       } else {
         await authApi.registerCompany({
           companyName: data.companyName,
@@ -53,15 +55,24 @@ const RegisterFields = ({ accountType, setAccountType }) => {
           password: data.password,
         });
         toast.success('Employer company registered successfully! Logging in...');
+        setMascotState('success');
         await loginCompany(data.email, data.password);
-        navigate('/company/dashboard');
+        setTimeout(() => navigate('/company/dashboard'), 600);
       }
     } catch (err) {
+      setMascotState('failure');
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
+
+  const nameProps = register('fullName');
+  const companyProps = register('companyName');
+  const phoneProps = register('phone');
+  const websiteProps = register('website');
+  const emailProps = register('email');
+  const passwordProps = register('password');
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -84,14 +95,24 @@ const RegisterFields = ({ accountType, setAccountType }) => {
             placeholder="John Doe"
             startIcon={User}
             error={errors.fullName?.message}
-            {...register('fullName')}
+            {...nameProps}
+            onFocus={() => setMascotState('looking')}
+            onBlur={(e) => {
+              nameProps.onBlur(e);
+              setMascotState('idle');
+            }}
           />
           <Input
             label="Phone Number"
             placeholder="+1 (555) 000-0000"
             startIcon={Phone}
             error={errors.phone?.message}
-            {...register('phone')}
+            {...phoneProps}
+            onFocus={() => setMascotState('looking')}
+            onBlur={(e) => {
+              phoneProps.onBlur(e);
+              setMascotState('idle');
+            }}
           />
         </>
       ) : (
@@ -101,14 +122,24 @@ const RegisterFields = ({ accountType, setAccountType }) => {
             placeholder="Acme AI Technologies"
             startIcon={Building}
             error={errors.companyName?.message}
-            {...register('companyName')}
+            {...companyProps}
+            onFocus={() => setMascotState('looking')}
+            onBlur={(e) => {
+              companyProps.onBlur(e);
+              setMascotState('idle');
+            }}
           />
           <Input
             label="Company Website"
             placeholder="https://acme.com"
             startIcon={Globe}
             error={errors.website?.message}
-            {...register('website')}
+            {...websiteProps}
+            onFocus={() => setMascotState('looking')}
+            onBlur={(e) => {
+              websiteProps.onBlur(e);
+              setMascotState('idle');
+            }}
           />
         </>
       )}
@@ -119,7 +150,12 @@ const RegisterFields = ({ accountType, setAccountType }) => {
         placeholder="user@domain.com"
         startIcon={Mail}
         error={errors.email?.message}
-        {...register('email')}
+        {...emailProps}
+        onFocus={() => setMascotState('looking')}
+        onBlur={(e) => {
+          emailProps.onBlur(e);
+          setMascotState('idle');
+        }}
       />
 
       <Input
@@ -128,17 +164,23 @@ const RegisterFields = ({ accountType, setAccountType }) => {
         placeholder="••••••••"
         startIcon={Lock}
         error={errors.password?.message}
-        {...register('password')}
+        {...passwordProps}
+        onFocus={() => setMascotState('covering')}
+        onBlur={(e) => {
+          passwordProps.onBlur(e);
+          setMascotState('idle');
+        }}
       />
 
-      <Button type="submit" variant="primary" className="w-full py-3 text-sm font-semibold" isLoading={loading}>
+      <Button type="submit" variant="primary" className="w-full h-11 text-sm font-semibold mt-2" isLoading={loading}>
         {accountType === 'candidate' ? 'Create Candidate Account' : 'Register Employer Account'}
       </Button>
     </form>
   );
 };
 
-export const RegisterForm = () => {
+export const RegisterForm = ({ setMascotState }) => {
   const [accountType, setAccountType] = useState('candidate');
-  return <RegisterFields key={accountType} accountType={accountType} setAccountType={setAccountType} />;
+  return <RegisterFields key={accountType} accountType={accountType} setAccountType={setAccountType} setMascotState={setMascotState} />;
 };
+

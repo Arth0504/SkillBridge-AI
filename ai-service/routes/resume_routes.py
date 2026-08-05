@@ -9,6 +9,10 @@ from models.schemas import (
     JobMatchResult,
     AnalyzeResumeRequest,
     JobMatchRequest,
+    SuggestContentRequest,
+    SuggestContentResponse,
+    CheckGrammarRequest,
+    CheckGrammarResponse,
 )
 from utils.text_extractor import extract_text_from_pdf, extract_text_from_docx, parse_extracted_sections
 from services.gemini_service import gemini_service
@@ -69,3 +73,25 @@ async def match_job_endpoint(
 
     match_result = gemini_service.match_job(request.resumeText, request.jobDescription)
     return JobMatchResult(**match_result)
+
+@router.post("/suggest-content", response_model=SuggestContentResponse)
+async def suggest_content_endpoint(
+    request: SuggestContentRequest,
+    _: bool = Depends(verify_secret_key),
+):
+    if not request.section or not request.context:
+        raise HTTPException(status_code=400, detail="section and context are required.")
+
+    suggestions = gemini_service.suggest_content(request.section, request.context)
+    return SuggestContentResponse(**suggestions)
+
+@router.post("/check-grammar", response_model=CheckGrammarResponse)
+async def check_grammar_endpoint(
+    request: CheckGrammarRequest,
+    _: bool = Depends(verify_secret_key),
+):
+    if not request.text or not request.text.strip():
+        raise HTTPException(status_code=400, detail="text is required.")
+
+    corrections = gemini_service.check_grammar(request.text)
+    return CheckGrammarResponse(**corrections)

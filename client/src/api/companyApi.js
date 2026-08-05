@@ -27,6 +27,11 @@ export const companyApi = {
     return data;
   },
 
+  getCopilotAnalytics: async (params) => {
+    const { data } = await api.get('/company/dashboard/copilot/analytics', { params });
+    return data;
+  },
+
   // Company Profile
   getProfile: async () => {
     const { data } = await api.get('/company/profile');

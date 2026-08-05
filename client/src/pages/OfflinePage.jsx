@@ -5,7 +5,7 @@ import { Button } from '../components/common/Button';
 export const OfflinePage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50 dark:bg-[#0B0F19]">
-      <div className="p-5 rounded-3xl bg-slate-500/10 text-slate-500 mb-6 shadow-inner">
+      <div className="p-5 rounded-2xl bg-slate-500/10 text-slate-500 mb-6 shadow-inner">
         <WifiOff className="w-16 h-16 animate-pulse" />
       </div>
       <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">You are Offline</h2>

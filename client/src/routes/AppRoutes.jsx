@@ -22,6 +22,8 @@ const OfflinePage = lazy(() => import('../pages/OfflinePage').then(m => ({ defau
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('../features/auth/pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
 const VerifyEmailPage = lazy(() => import('../features/auth/pages/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
+const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('../features/auth/pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 
 // Jobs Feature (Lazy Loaded)
 const JobsListPage = lazy(() => import('../features/jobs/pages/JobsListPage').then(m => ({ default: m.JobsListPage })));
@@ -45,6 +47,7 @@ const CompanyInterviewsPage = lazy(() => import('../features/company/pages/Compa
 const CompanyCalendarPage = lazy(() => import('../features/company/pages/CompanyCalendarPage').then(m => ({ default: m.CompanyCalendarPage })));
 const CompanyAnalyticsPage = lazy(() => import('../features/company/pages/CompanyAnalyticsPage').then(m => ({ default: m.CompanyAnalyticsPage })));
 const CompanySettingsPage = lazy(() => import('../features/company/pages/CompanySettingsPage').then(m => ({ default: m.CompanySettingsPage })));
+const RecruiterCopilotPage = lazy(() => import('../features/companyCopilot/pages/RecruiterCopilotPage').then(m => ({ default: m.RecruiterCopilotPage })));
 
 // Admin Features (Lazy Loaded)
 const AdminDashboardPage = lazy(() => import('../features/admin/pages/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
@@ -57,11 +60,15 @@ const AdminNotificationsPage = lazy(() => import('../features/admin/pages/AdminN
 const AdminSettingsPage = lazy(() => import('../features/admin/pages/AdminSettingsPage').then(m => ({ default: m.AdminSettingsPage })));
 const AdminAuditLogsPage = lazy(() => import('../features/admin/pages/AdminAuditLogsPage').then(m => ({ default: m.AdminAuditLogsPage })));
 const AdminRBACPage = lazy(() => import('../features/admin/pages/AdminRBACPage').then(m => ({ default: m.AdminRBACPage })));
+const SuperAdminControlCenterPage = lazy(() => import('../features/admin/pages/SuperAdminControlCenterPage').then(m => ({ default: m.SuperAdminControlCenterPage })));
 
 // Other Feature Pages (Lazy Loaded)
 const ApplicationsListPage = lazy(() => import('../features/applications/pages/ApplicationsListPage').then(m => ({ default: m.ApplicationsListPage })));
 const NotificationsPage = lazy(() => import('../features/notifications/pages/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const ResumeAnalyzerPage = lazy(() => import('../features/resume/pages/ResumeAnalyzerPage').then(m => ({ default: m.ResumeAnalyzerPage })));
+const ResumeBuilderPage = lazy(() => import('../features/resume/pages/ResumeBuilderPage').then(m => ({ default: m.ResumeBuilderPage })));
+const PortfolioBuilderPage = lazy(() => import('../features/portfolio/pages/PortfolioBuilderPage').then(m => ({ default: m.PortfolioBuilderPage })));
+const CareerCopilotPage = lazy(() => import('../features/copilot/pages/CareerCopilotPage').then(m => ({ default: m.CareerCopilotPage })));
 const InterviewPrepPage = lazy(() => import('../features/interview/pages/InterviewPrepPage').then(m => ({ default: m.InterviewPrepPage })));
 const CodingAssessmentPage = lazy(() => import('../features/coding/pages/CodingAssessmentPage').then(m => ({ default: m.CodingAssessmentPage })));
 const VideoInterviewPage = lazy(() => import('../features/videoInterview/pages/VideoInterviewPage').then(m => ({ default: m.VideoInterviewPage })));
@@ -83,6 +90,11 @@ export const AppRoutes = () => {
         {/* Auth Standalone Routes */}
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* Candidate Protected Routes */}
@@ -93,6 +105,9 @@ export const AppRoutes = () => {
             <Route path="/candidate/saved-jobs" element={<SavedJobsPage />} />
             <Route path="/candidate/applications" element={<ApplicationsListPage />} />
             <Route path="/candidate/resume-analyzer" element={<ResumeAnalyzerPage />} />
+            <Route path="/candidate/resume-builder" element={<ResumeBuilderPage />} />
+            <Route path="/candidate/portfolio-builder" element={<PortfolioBuilderPage />} />
+            <Route path="/candidate/ai-career-copilot" element={<CareerCopilotPage />} />
             <Route path="/candidate/ai-interview" element={<InterviewPrepPage />} />
             <Route path="/candidate/ai-coding" element={<CodingAssessmentPage />} />
             <Route path="/candidate/video-interview" element={<VideoInterviewPage />} />
@@ -115,6 +130,7 @@ export const AppRoutes = () => {
             <Route path="/company/analytics" element={<CompanyAnalyticsPage />} />
             <Route path="/company/notifications" element={<NotificationsPage />} />
             <Route path="/company/settings" element={<CompanySettingsPage />} />
+            <Route path="/company/ai-recruiter-copilot" element={<RecruiterCopilotPage />} />
           </Route>
         </Route>
 
@@ -132,6 +148,7 @@ export const AppRoutes = () => {
             <Route path="/admin/audit" element={<AdminAuditLogsPage />} />
             <Route path="/admin/rbac" element={<AdminRBACPage />} />
             <Route path="/admin/metrics" element={<AdminAIMonitoringPage />} />
+            <Route path="/super-admin" element={<SuperAdminControlCenterPage />} />
           </Route>
         </Route>
 

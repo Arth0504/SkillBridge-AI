@@ -19,8 +19,9 @@ import {
   AlertCircle,
   Search,
   ExternalLink,
+  Activity,
 } from 'lucide-react';
-import { Button, Badge, Loader } from '../../../components/common';
+import { Button, Badge, Loader, AnimatedMetricCard, LiveActivityFeed } from '../../../components/common';
 import { Avatar } from '../../../components/common/Avatar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
@@ -83,7 +84,7 @@ export const CandidateDashboardPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-panel p-8 rounded-3xl relative overflow-hidden bg-gradient-to-r from-slate-900 via-brand-950/40 to-slate-900 border border-brand-500/20 shadow-2xl"
+        className="glass-panel p-8 rounded-2xl relative overflow-hidden bg-gradient-to-r from-slate-900 via-brand-950/40 to-slate-900 border border-brand-500/20 shadow-2xl"
       >
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-3 max-w-2xl">
@@ -129,21 +130,14 @@ export const CandidateDashboardPage = () => {
       {/* 2. Analytics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((st, idx) => (
-          <motion.div
+          <AnimatedMetricCard
             key={idx}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.08 }}
-            className="glass-card p-6 rounded-2xl flex items-center justify-between border border-slate-200/80 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-          >
-            <div>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{st.label}</p>
-              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1.5">{st.value}</h3>
-            </div>
-            <div className={`p-3.5 rounded-2xl ${st.bg} ${st.color} shadow-inner`}>
-              <st.icon className="w-6 h-6" />
-            </div>
-          </motion.div>
+            label={st.label}
+            value={st.value}
+            icon={st.icon}
+            color={st.color}
+            bg={st.bg}
+          />
         ))}
       </div>
 
@@ -153,7 +147,7 @@ export const CandidateDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200/80 dark:border-slate-800"
+          className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -195,27 +189,29 @@ export const CandidateDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-4 border border-brand-500/20 bg-gradient-to-b from-brand-900/10 to-transparent"
+          className="glass-panel p-6 rounded-2xl space-y-4 border border-brand-500/20 bg-gradient-to-b from-brand-900/10 to-transparent"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-brand-500" /> ATS Resume Rating
             </h3>
-            <Badge variant="success">92 / 100</Badge>
+            <Badge variant={summary?.resumeScore >= 75 ? 'success' : summary?.resumeScore >= 50 ? 'warning' : 'info'}>
+              {summary?.resumeScore ? `${summary.resumeScore} / 100` : (user?.skills?.length ? `${Math.min(95, 50 + user.skills.length * 4)} / 100` : 'Not Scored')}
+            </Badge>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700 space-y-2">
             <div className="flex justify-between text-xs">
               <span className="text-slate-500 dark:text-slate-400">Keyword Optimization:</span>
-              <span className="font-bold text-emerald-500">High (95%)</span>
+              <span className="font-bold text-emerald-500">{user?.skills?.length >= 5 ? 'High Overlap' : 'Needs Optimization'}</span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-slate-500 dark:text-slate-400">Format & Structure:</span>
-              <span className="font-bold text-emerald-500">ATS Clean</span>
+              <span className="font-bold text-emerald-500">ATS Compatible</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-slate-500 dark:text-slate-400">Impact Metrics:</span>
-              <span className="font-bold text-amber-500">Add 2 Quantified Accomplishments</span>
+              <span className="text-slate-500 dark:text-slate-400">Profile Credentials:</span>
+              <span className="font-bold text-brand-400">{user?.experience?.length ? `${user.experience.length} Experience Record(s)` : 'Add Experience Details'}</span>
             </div>
           </div>
 
@@ -228,7 +224,7 @@ export const CandidateDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200/80 dark:border-slate-800"
+          className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -262,7 +258,7 @@ export const CandidateDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-2 glass-panel p-6 rounded-3xl space-y-4 border border-slate-200/80 dark:border-slate-800"
+          className="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -305,7 +301,7 @@ export const CandidateDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200/80 dark:border-slate-800"
+          className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -345,22 +341,20 @@ export const CandidateDashboardPage = () => {
       {/* 7. AI Job Recommendations & 9. Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recommended Jobs */}
-        <div className="lg:col-span-2 glass-panel p-6 rounded-3xl space-y-4 border border-slate-200/80 dark:border-slate-800">
+        <div className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-brand-500" /> Top AI Job Matches
             </h3>
             <Button variant="ghost" size="sm" onClick={() => navigate('/jobs')}>
-              Explore All <ArrowRight className="w-4 h-4 ml-1" />
+              Explore <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {[
               { title: 'Senior AI Engineer', company: 'Tech Corp AI', location: 'Remote', salary: '$140k - $180k', match: '96%' },
               { title: 'Full Stack React Developer', company: 'Nexus Labs', location: 'New York, NY', salary: '$120k - $150k', match: '94%' },
-              { title: 'Principal MLOps Architect', company: 'DeepScale Systems', location: 'San Francisco, CA', salary: '$180k - $220k', match: '91%' },
-              { title: 'Backend Node.js Engineer', company: 'CloudCore Corp', location: 'Remote', salary: '$130k - $160k', match: '89%' },
             ].map((job, idx) => (
               <div key={idx} className="p-4 rounded-2xl bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between space-y-3 hover:border-brand-500/30 transition-all">
                 <div>
@@ -379,8 +373,18 @@ export const CandidateDashboardPage = () => {
           </div>
         </div>
 
+        {/* Live Activity Feed */}
+        <div className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 text-brand-500" /> My Activity Log
+            </h3>
+          </div>
+          <LiveActivityFeed limit={3} userFilter={{ id: user?._id || user?.id, role: 'candidate' }} />
+        </div>
+
         {/* 9. Quick Action Hub */}
-        <div className="glass-panel p-6 rounded-3xl space-y-4 border border-brand-500/20 bg-slate-900/40">
+        <div className="glass-panel p-6 rounded-2xl space-y-4 border border-brand-500/20 bg-slate-900/40">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-brand-500" /> Quick Career Actions
           </h3>
@@ -400,6 +404,22 @@ export const CandidateDashboardPage = () => {
                 <div>
                   <h4 className="text-xs font-bold text-white">Upload & Score Resume</h4>
                   <p className="text-[10px] text-slate-400">Instant ATS analysis & feedback</p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
+
+            <button
+              onClick={() => navigate('/candidate/resume-builder')}
+              className="w-full p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 flex items-center justify-between text-left transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Create AI Resume</h4>
+                  <p className="text-[10px] text-slate-400">Build resume from premium templates</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />

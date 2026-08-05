@@ -47,7 +47,7 @@ export const AdminRBACPage = () => {
       </div>
 
       {/* RBAC Table */}
-      <div className="glass-panel rounded-3xl overflow-hidden border border-slate-800">
+      <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>

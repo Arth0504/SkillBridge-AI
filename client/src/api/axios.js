@@ -21,13 +21,19 @@ export const setAccessToken = (token) => {
   }
 };
 
-export const getAccessToken = () => accessToken;
+export const getAccessToken = () => {
+  if (!accessToken) {
+    accessToken = localStorage.getItem('accessToken') || null;
+  }
+  return accessToken;
+};
 
 // Request Interceptor: Attach Bearer token
 api.interceptors.request.use(
   (config) => {
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    const token = getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -82,9 +88,14 @@ api.interceptors.response.use(
         ? '/auth/company/refresh-token' 
         : '/auth/candidate/refresh-token';
 
+      const apiBase = import.meta.env.VITE_API_BASE_URL
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/v1`
+        : '/api/v1';
+
       try {
-        const { data } = await axios.post(`/api/v1${refreshEndpoint}`, {}, { withCredentials: true });
-        const newAccessToken = data.data.accessToken;
+        const { data } = await axios.post(`${apiBase}${refreshEndpoint}`, {}, { withCredentials: true });
+        const newAccessToken = data.data?.accessToken || data.accessToken;
+        if (!newAccessToken) throw new Error('No access token returned from refresh endpoint');
         setAccessToken(newAccessToken);
         processQueue(null, newAccessToken);
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;

@@ -105,13 +105,44 @@ const interviewRoomSchema = new mongoose.Schema(
       recordingUrl: { type: String, default: '' },
       startedAt: { type: Date },
     },
+    expiresAt: {
+      type: Date,
+      default: null,
+    },
+    sessionToken: {
+      type: String,
+      default: () => crypto.randomBytes(24).toString('hex'),
+    },
+    integrityLog: [
+      {
+        eventType: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        details: { type: String, default: '' },
+        userRole: { type: String, default: 'candidate' },
+      },
+    ],
+    auditLog: [
+      {
+        eventType: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        details: { type: String, default: '' },
+        userRole: { type: String, default: '' },
+      },
+    ],
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-// Pre-save hook to ensure uuid property mirrors roomId
+// Virtual property for room active state
+interviewRoomSchema.virtual('isActive').get(function () {
+  return this.status === 'scheduled' || this.status === 'live';
+});
+
+// Pre-save hook to ensure uuid, timestamps, and notes properties mirror correctly
 interviewRoomSchema.pre('save', function (next) {
   if (!this.uuid) {
     this.uuid = this.roomId;
@@ -124,6 +155,18 @@ interviewRoomSchema.pre('save', function (next) {
   }
   if (!this.notes && this.recruiterNotes) {
     this.notes = this.recruiterNotes;
+  }
+  if (!this.startTime && this.startedAt) {
+    this.startTime = this.startedAt;
+  }
+  if (!this.startedAt && this.startTime) {
+    this.startedAt = this.startTime;
+  }
+  if (!this.endTime && this.endedAt) {
+    this.endTime = this.endedAt;
+  }
+  if (!this.endedAt && this.endTime) {
+    this.endedAt = this.endTime;
   }
   next();
 });

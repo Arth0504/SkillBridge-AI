@@ -1,49 +1,50 @@
 version: '3.8'
 
 services:
-  # ---------------------------------------------------
-  # 1. MongoDB Database Service
-  # ---------------------------------------------------
+  # 1. MongoDB Database Cluster Service
   mongodb:
     image: mongo:7.0
     container_name: skillbridge-mongodb
     restart: always
-    environment:
-      MONGO_INITDB_DATABASE: skillbridge_ai
     ports:
       - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: skillbridge
     volumes:
-      - mongo-data:/data/db
-    networks:
-      - skillbridge-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - mongo_data:/data/db
 
-  # ---------------------------------------------------
-  # 2. Redis Cache Service
-  # ---------------------------------------------------
+  # 2. Redis Caching & Socket Store Service
   redis:
     image: redis:7-alpine
     container_name: skillbridge-redis
     restart: always
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - skillbridge-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # ---------------------------------------------------
-  # 3. Python FastAPI AI Microservice
-  # ---------------------------------------------------
+  # 3. Node.js Backend Server & Socket.IO
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skillbridge-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: mongodb://mongodb:27017/skillbridge
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: production_jwt_super_secret_key_skillbridge_2026
+      JWT_REFRESH_SECRET: production_refresh_secret_key_skillbridge_2026
+      CLIENT_URL: http://localhost:80
+      AI_SERVICE_URL: http://ai-service:8000
+    depends_on:
+      - mongodb
+      - redis
+      - ai-service
+
+  # 4. FastAPI AI Microservice (Gemini LLM Integration)
   ai-service:
     build:
       context: ./ai-service
@@ -53,56 +54,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      PORT: 8000
       GEMINI_API_KEY: ${GEMINI_API_KEY}
-      SHARED_SECRET_KEY: ${AI_SHARED_SECRET:-skillbridge_secret_ai_key_2026}
-    networks:
-      - skillbridge-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
+      ENVIRONMENT: production
 
-  # ---------------------------------------------------
-  # 4. Node.js Express Backend Service
-  # ---------------------------------------------------
-  backend:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: skillbridge-backend
-    restart: always
-    ports:
-      - "5000:5000"
-    environment:
-      PORT: 5000
-      NODE_ENV: production
-      MONGODB_URI: mongodb://mongodb:27017/skillbridge_ai
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_access_key_skillbridge_2026}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super_secret_jwt_refresh_key_skillbridge_2026}
-      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
-      AI_SERVICE_URL: http://ai-service:8000
-      AI_SHARED_SECRET: ${AI_SHARED_SECRET:-skillbridge_secret_ai_key_2026}
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      ai-service:
-        condition: service_healthy
-    networks:
-      - skillbridge-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-
-  # ---------------------------------------------------
-  # 5. Nginx Reverse Proxy Service
-  # ---------------------------------------------------
+  # 5. Nginx Reverse Proxy Container
   nginx:
     image: nginx:alpine
     container_name: skillbridge-nginx
@@ -111,17 +66,9 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - backend
-    networks:
-      - skillbridge-network
-
-networks:
-  skillbridge-network:
-    driver: bridge
+      - server
 
 volumes:
-  mongo-data:
-  redis-data:
+  mongo_data:

@@ -1,0 +1,285 @@
+/* Resume Templates Styling Presets & Print Overrides */
+
+/* --- Font Configurations --- */
+.font-serif-elegant {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+.font-sans-clean {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+.font-mono-tech {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+.font-modern-outfit {
+  font-family: 'Outfit', 'Segoe UI', Roboto, sans-serif;
+}
+
+/* --- Focus Rings & Custom Scrollbars --- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.8);
+}
+
+/* --- Base Resume Container Styles (A4 Sheet Canvas) --- */
+.resume-preview-sheet {
+  background: white;
+  color: #1e293b;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 24mm 20mm;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  position: relative;
+  line-height: var(--line-height-base, 1.5);
+  font-size: var(--font-size-base, 13px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+/* --- Layout Preset 1: Modern Single Column --- */
+.layout-modern {
+  display: flex;
+  flex-direction: column;
+}
+.layout-modern .resume-header {
+  border-bottom: 2px solid var(--theme-primary, #1e3a8a);
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+.layout-modern .resume-section-title {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--theme-primary, #1e3a8a);
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+}
+
+/* --- Layout Preset 2: Executive Traditional --- */
+.layout-executive {
+  display: flex;
+  flex-direction: column;
+}
+.layout-executive .resume-header {
+  text-align: center;
+  border-bottom: 3px double var(--theme-primary, #1e3a8a);
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+.layout-executive .resume-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--theme-primary, #1e3a8a);
+  border-bottom: 1px solid #94a3b8;
+  padding-bottom: 3px;
+  margin-bottom: 12px;
+}
+
+/* --- Layout Preset 3: Minimalist Clean --- */
+.layout-minimal {
+  display: flex;
+  flex-direction: column;
+}
+.layout-minimal .resume-header {
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+.layout-minimal .resume-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #334155;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+/* --- Layout Preset 4: Creative Accent Bar --- */
+.layout-creative {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.layout-creative::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--theme-primary, #1e3a8a);
+  border-radius: 4px;
+}
+.layout-creative .resume-body-content {
+  padding-left: 20px;
+}
+.layout-creative .resume-section-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--theme-primary, #1e3a8a);
+  margin-bottom: 12px;
+}
+
+/* --- Layout Preset 5: Harvard Academic --- */
+.layout-harvard {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+.layout-harvard .resume-header {
+  text-align: center;
+  border-bottom: 1px solid #000;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+.layout-harvard .resume-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #000;
+  border-bottom: 1px solid #000;
+  padding-bottom: 2px;
+  margin-bottom: 10px;
+}
+
+/* --- Layout Preset 6: Stanford Professional --- */
+.layout-stanford {
+  display: flex;
+  flex-direction: column;
+}
+.layout-stanford .resume-section-title {
+  background: var(--theme-primary, #1e3a8a);
+  color: white !important;
+  padding: 4px 10px;
+  border-radius: var(--border-radius, 4px);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* --- Layout Preset 7: Google Tech --- */
+.layout-google {
+  display: flex;
+  flex-direction: column;
+}
+.layout-google .resume-header {
+  border-left: 4px solid var(--theme-primary, #1e3a8a);
+  padding-left: 15px;
+  margin-bottom: 15px;
+}
+.layout-google .resume-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--theme-primary, #1e3a8a);
+  border-bottom: 2px solid var(--theme-primary, #1e3a8a);
+  padding-bottom: 2px;
+  margin-bottom: 10px;
+}
+
+/* --- Layout Preset 8: Microsoft Enterprise --- */
+.layout-microsoft {
+  display: flex;
+  flex-direction: column;
+}
+.layout-microsoft .resume-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--theme-primary, #1e3a8a);
+  border-bottom: 3px double var(--theme-primary, #1e3a8a);
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+}
+
+/* --- Layout Preset 9: Developer Monospace --- */
+.layout-developer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.layout-developer .resume-header {
+  border: 1px dashed #cbd5e1;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.layout-developer .resume-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  margin-bottom: 10px;
+  border-left: 4px solid var(--theme-primary, #1e3a8a);
+}
+
+/* --- Layout Preset 10: ATS Friendly --- */
+.layout-ats {
+  font-family: Arial, sans-serif;
+  color: #000;
+  line-height: 1.4;
+}
+.layout-ats .resume-header {
+  text-align: center;
+  border-bottom: 1px solid #000;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+.layout-ats .resume-section-title {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #000;
+  border-bottom: 1px solid #000;
+  margin-bottom: 10px;
+  padding-bottom: 2px;
+}
+
+/* --- Mobile Viewport Overrides --- */
+@media (max-width: 640px) {
+  .resume-preview-sheet {
+    width: 100%;
+    min-height: auto;
+    padding: 15mm 10mm;
+    font-size: 11px;
+  }
+}
+
+/* --- Print Stylesheet Configurations --- */
+@media print {
+  html, body {
+    background: white !important;
+    color: black !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .resume-preview-sheet {
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

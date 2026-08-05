@@ -130,7 +130,7 @@ export const AdminJobModerationPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className={`glass-card p-6 rounded-3xl border flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-all ${
+              className={`glass-card p-6 rounded-2xl border flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-all ${
                 j.status === 'flagged' ? 'border-amber-500/40 bg-amber-500/5' : 'border-slate-800'
               }`}
             >

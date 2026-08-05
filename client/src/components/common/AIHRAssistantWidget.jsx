@@ -61,7 +61,7 @@ export const AIHRAssistantWidget = () => {
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
-            className="fixed bottom-20 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] h-[500px] rounded-3xl bg-slate-950 border-2 border-brand-500/40 shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-20 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] h-[500px] rounded-2xl bg-slate-950 border-2 border-brand-500/40 shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center">

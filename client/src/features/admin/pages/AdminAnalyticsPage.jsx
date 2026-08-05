@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { BarChart3, TrendingUp, Users, Building, Briefcase, Award, Sparkles } from 'lucide-react';
-import { Badge, Loader } from '../../../components/common';
+import { Badge, Loader, AnimatedMetricCard } from '../../../components/common';
 import { adminApi } from '../../../api';
 
 export const AdminAnalyticsPage = () => {
@@ -38,26 +38,19 @@ export const AdminAnalyticsPage = () => {
           { label: 'Employer Company Growth', value: '+28% / Mo', icon: Building, color: 'text-purple-500', bg: 'bg-purple-500/10' },
           { label: 'Job Postings Growth', value: '+42% / Mo', icon: Briefcase, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
         ].map((gr, idx) => (
-          <motion.div
+          <AnimatedMetricCard
             key={idx}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.08 }}
-            className="glass-card p-6 rounded-2xl flex items-center justify-between border border-slate-800"
-          >
-            <div>
-              <p className="text-xs font-semibold text-slate-400">{gr.label}</p>
-              <h3 className="text-2xl font-extrabold text-white mt-1.5">{gr.value}</h3>
-            </div>
-            <div className={`p-3.5 rounded-2xl ${gr.bg} ${gr.color}`}>
-              <gr.icon className="w-6 h-6" />
-            </div>
-          </motion.div>
+            label={gr.label}
+            value={gr.value}
+            icon={gr.icon}
+            color={gr.color}
+            bg={gr.bg}
+          />
         ))}
       </div>
 
       {/* Top Demand Skills */}
-      <div className="glass-panel p-8 rounded-3xl space-y-6 border border-slate-800">
+      <div className="glass-panel p-8 rounded-2xl space-y-6 border border-slate-800">
         <h3 className="text-lg font-bold text-white flex items-center gap-2">
           <Award className="w-5 h-5 text-brand-500" /> Top Requested Platform Skills
         </h3>

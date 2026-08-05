@@ -42,7 +42,7 @@ export const Checkbox = React.forwardRef(
                 className
               )}
             >
-              <Check className={cn('w-3.5 h-3.5 stroke-[3] transition-transform duration-150', checked ? 'scale-100' : 'scale-0')} />
+              <Check className={cn('w-3.5 h-3.5 stroke-[3] transition-transform duration-150 scale-0 peer-checked:scale-100', checked && 'scale-100')} />
             </div>
           </div>
           {(label || description) && (

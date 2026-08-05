@@ -40,8 +40,8 @@ export const NavbarLanding = () => {
     <header
       className={`sticky top-0 z-40 w-full transition-all duration-300 ${
         scrolled
-          ? 'glass-panel border-b border-slate-200/80 dark:border-slate-800/80 shadow-md py-3'
-          : 'bg-slate-900/90 backdrop-blur-md border-b border-slate-800 py-4'
+          ? 'glass-panel border-b border-slate-200/80 dark:border-slate-800/80 shadow-md py-3 bg-white/90 dark:bg-dark-bg/90'
+          : 'bg-white/80 dark:bg-[#080B10]/85 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-805/40 py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

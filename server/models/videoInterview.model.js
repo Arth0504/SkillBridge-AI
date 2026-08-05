@@ -78,6 +78,20 @@ const videoResponseSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const integrityEventSchema = new mongoose.Schema(
+  {
+    eventType: {
+      type: String,
+      enum: ['FULLSCREEN_EXIT', 'TAB_SWITCH', 'WINDOW_BLUR', 'CAMERA_OFF', 'MIC_MUTED', 'COPY_PASTE', 'CONTEXT_MENU', 'KEYBOARD_BLOCK'],
+      required: true,
+    },
+    timestamp: { type: Date, default: Date.now },
+    questionIndex: { type: Number, default: 0 },
+    penaltyApplied: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
+
 const videoInterviewSchema = new mongoose.Schema(
   {
     candidateId: {
@@ -99,6 +113,10 @@ const videoInterviewSchema = new mongoose.Schema(
       index: true,
     },
     interviewSessionId: {
+      type: String,
+      default: null,
+    },
+    sessionToken: {
       type: String,
       default: null,
     },
@@ -175,6 +193,22 @@ const videoInterviewSchema = new mongoose.Schema(
       hiringRecommendation: { type: String, default: 'Pending' },
       readyForHire: { type: Boolean, default: false },
     },
+    // Integrity & Proctoring
+    integrityScore: { type: Number, default: 100, min: 0, max: 100 },
+    integrityEvents: { type: [integrityEventSchema], default: [] },
+    warningCount: { type: Number, default: 0 },
+    warnings: [
+      {
+        reason: { type: String },
+        timestamp: { type: Date, default: Date.now },
+        questionIndex: { type: Number, default: 0 },
+        _id: false,
+      },
+    ],
+    autoTerminated: { type: Boolean, default: false },
+    terminationReason: { type: String, default: '' },
+    skippedCount: { type: Number, default: 0 },
+
     isDeleted: {
       type: Boolean,
       default: false,

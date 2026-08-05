@@ -7,6 +7,7 @@ import {
   finishVideoInterviewHandler,
   getCandidateVideoHistoryHandler,
   deleteVideoInterviewHandler,
+  recordIntegrityEventHandler,
 } from '../controllers/videoInterview.controller.js';
 import { protect, restrictTo } from '../middleware/auth.middleware.js';
 import { ROLES } from '../config/constants.js';
@@ -51,6 +52,12 @@ router.post('/:id/submit-video', restrictTo(ROLES.CANDIDATE), submitVideoRespons
  * @desc Finish video interview & generate final executive report
  */
 router.post('/:id/finish', restrictTo(ROLES.CANDIDATE), finishVideoInterviewHandler);
+
+/**
+ * @route POST /api/v1/candidate/video-interview/:id/integrity-event
+ * @desc Record a proctoring violation event (tab switch, fullscreen exit, etc.)
+ */
+router.post('/:id/integrity-event', restrictTo(ROLES.CANDIDATE), recordIntegrityEventHandler);
 
 /**
  * @route DELETE /api/v1/candidate/video-interview/history/:id

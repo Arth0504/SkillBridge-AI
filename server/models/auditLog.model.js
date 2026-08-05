@@ -12,29 +12,31 @@ const auditLogSchema = new mongoose.Schema(
       enum: ['Candidate', 'Company', 'System', 'Unknown'],
       default: 'Unknown',
     },
+    role: {
+      type: String,
+      enum: ['candidate', 'company', 'admin', 'super-admin', 'system', 'unknown'],
+      default: 'unknown',
+      index: true,
+    },
     action: {
       type: String,
       required: true,
-      enum: [
-        'LOGIN_SUCCESS',
-        'LOGIN_FAILED',
-        'ACCOUNT_LOCKED',
-        'PASSWORD_RESET_REQUEST',
-        'PASSWORD_RESET_SUCCESS',
-        'TOKEN_REFRESH',
-        'SESSION_REVOKED',
-        'SECURITY_BREACH_DETECTED',
-        'UNAUTHORIZED_ACCESS_ATTEMPT',
-        'INTERVIEW_SCHEDULED',
-        'APPLICATION_STAGE_CHANGED',
-        'OFFER_LETTER_GENERATED',
-        'DOCUMENT_UPLOADED',
-      ],
+      index: true,
+    },
+    targetCollection: {
+      type: String,
+      default: '',
+      index: true,
+    },
+    targetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
       index: true,
     },
     ipAddress: {
       type: String,
       default: '127.0.0.1',
+      index: true,
     },
     userAgent: {
       type: String,
@@ -45,14 +47,38 @@ const auditLogSchema = new mongoose.Schema(
       os: { type: String, default: 'Unknown' },
       device: { type: String, default: 'Desktop' },
     },
+    country: {
+      type: String,
+      default: 'Unknown',
+      index: true,
+    },
+    city: {
+      type: String,
+      default: 'Unknown',
+      index: true,
+    },
+    requestId: {
+      type: String,
+      default: '',
+      index: true,
+    },
+    beforeData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    afterData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
     status: {
       type: String,
       enum: ['SUCCESS', 'FAILURE', 'WARNING'],
       default: 'SUCCESS',
-    },
-    details: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {},
+      index: true,
     },
   },
   {
@@ -60,7 +86,10 @@ const auditLogSchema = new mongoose.Schema(
   }
 );
 
+// Performance Compound Indexes
 auditLogSchema.index({ userId: 1, createdAt: -1 });
 auditLogSchema.index({ action: 1, createdAt: -1 });
+auditLogSchema.index({ targetCollection: 1, targetId: 1 });
+auditLogSchema.index({ country: 1, city: 1 });
 
 export const AuditLog = mongoose.model('AuditLog', auditLogSchema);

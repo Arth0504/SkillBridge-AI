@@ -7,6 +7,7 @@ import {
   getCompanyDashboardJobPerformanceService,
   getCompanyDashboardInterviewsService,
   getCompanyAnalyticsService,
+  getCompanyCopilotAnalyticsService,
 } from '../services/dashboard.service.js';
 
 /**
@@ -75,4 +76,14 @@ export const getDashboardInterviewsHandler = asyncHandler(async (req, res, _next
     'Interview overview and schedule retrieved successfully',
     interviewData
   );
+});
+
+/**
+ * Get Recruiter Copilot Dynamic Candidates & Funnel Analytics
+ * @route GET /api/v1/company/copilot/analytics
+ */
+export const getCompanyCopilotAnalyticsHandler = asyncHandler(async (req, res, _next) => {
+  const copilotData = await getCompanyCopilotAnalyticsService(req.user._id);
+
+  return sendResponse(res, 200, true, 'Recruiter copilot dynamic analytics retrieved successfully', copilotData);
 });

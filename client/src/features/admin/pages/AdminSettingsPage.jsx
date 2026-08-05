@@ -55,7 +55,7 @@ export const AdminSettingsPage = () => {
       {activeTab === 'general' && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
           {/* Maintenance Mode Box */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex items-center justify-between">
+          <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-2xl ${maintenanceMode ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
                 <AlertOctagon className="w-6 h-6" />
@@ -79,7 +79,7 @@ export const AdminSettingsPage = () => {
             </button>
           </div>
 
-          <div className="glass-panel p-8 rounded-3xl space-y-6">
+          <div className="glass-panel p-8 rounded-2xl space-y-6">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Settings className="w-5 h-5 text-brand-500" /> Platform Defaults
             </h3>
@@ -98,7 +98,7 @@ export const AdminSettingsPage = () => {
 
       {/* Tab 2: AI Configuration */}
       {activeTab === 'ai' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-3xl space-y-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-2xl space-y-6">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-brand-500" /> Gemini AI Engine Controls
           </h3>
@@ -134,7 +134,7 @@ export const AdminSettingsPage = () => {
 
       {/* Tab 3: Security */}
       {activeTab === 'security' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-3xl space-y-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-2xl space-y-6">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <Shield className="w-5 h-5 text-brand-500" /> Security & Rate Limiting
           </h3>
@@ -154,7 +154,7 @@ export const AdminSettingsPage = () => {
 
       {/* Tab 4: Theme */}
       {activeTab === 'theme' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-3xl space-y-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-2xl space-y-6">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             {theme === 'dark' ? <Moon className="w-5 h-5 text-brand-500" /> : <Sun className="w-5 h-5 text-brand-500" />} Theme Preference
           </h3>

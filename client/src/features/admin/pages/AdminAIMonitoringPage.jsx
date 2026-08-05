@@ -43,7 +43,7 @@ export const AdminAIMonitoringPage = () => {
       </div>
 
       {/* AI Service Status Banner */}
-      <div className="glass-panel p-6 rounded-3xl border border-brand-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-brand-950 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="glass-panel p-6 rounded-2xl border border-brand-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-brand-950 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="p-3.5 rounded-2xl bg-brand-500/10 text-brand-400">
             <Cpu className="w-8 h-8" />

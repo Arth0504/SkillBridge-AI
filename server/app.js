@@ -3,6 +3,9 @@ import { configureSecurityMiddlewares } from './middleware/security.middleware.j
 import { notFoundHandler, errorHandler } from './middleware/error.middleware.js';
 import { checkDbConnection } from './middleware/db.middleware.js';
 import { sendResponse } from './utils/sendResponse.js';
+import { contextMiddleware } from './middleware/context.middleware.js';
+import auditLogRoutes from './routes/auditLog.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 
 import authCandidateRoutes from './routes/authCandidate.routes.js';
 import authCompanyRoutes from './routes/authCompany.routes.js';
@@ -65,6 +68,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Request Tracing & Structured HTTP Logger Middleware
 app.use(requestLogger);
+app.use(contextMiddleware);
 
 // Prometheus Metrics Endpoint
 app.get('/metrics', getPrometheusMetricsHandler);
@@ -77,8 +81,10 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 import { getHealthDiagnosticHandler } from './controllers/health.controller.js';
+import healthRoutes from './routes/health.routes.js';
 
 // Production Diagnostic Health Check Endpoints
+app.use('/api/health', healthRoutes);
 app.get('/health', getHealthDiagnosticHandler);
 app.get('/api/v1/health', getHealthDiagnosticHandler);
 
@@ -143,6 +149,12 @@ app.use('/api/v1/company/offer-letters', checkDbConnection, offerLetterRoutes);
 
 // Document Repository & Management System Routes
 app.use('/api/v1/documents', checkDbConnection, documentRoutes);
+
+// Enterprise Audit Logs & Activity Center Routes
+app.use('/api/v1/audit-logs', auditLogRoutes);
+
+// AI Resume Assistant Routes (Gateway to FastAPI)
+app.use('/api/v1/ai', aiRoutes);
 
 // Admin Monitoring & Telemetry Routes
 app.use('/api/v1/admin', monitoringRoutes);

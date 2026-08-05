@@ -8,7 +8,7 @@ export const AdminLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0B0F19]">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-dark-bg">
       <Sidebar
         role="admin"
         isCollapsed={isCollapsed}
@@ -28,8 +28,8 @@ export const AdminLayout = () => {
           <div>
             <Outlet />
           </div>
-          <footer className="mt-8 pt-4 border-t border-slate-200/80 dark:border-slate-800/80 text-center text-xs text-slate-500 dark:text-slate-400">
-            Made with ❤️ by <span className="font-bold text-brand-500">LB Infotech</span> • © 2026 SkillBridge AI. All Rights Reserved.
+          <footer className="mt-8 pt-4 border-t border-slate-200/50 dark:border-slate-800/30 text-center text-xs text-slate-400 dark:text-slate-500">
+            Made with ❤️ by <span className="font-bold text-brand-500/80">LB Infotech</span> • © 2026 SkillBridge AI. All Rights Reserved.
           </footer>
         </motion.main>
       </div>

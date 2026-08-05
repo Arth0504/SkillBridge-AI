@@ -109,7 +109,7 @@ export const JobsListPage = () => {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="glass-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-slate-200/80 dark:border-slate-800/80 hover:shadow-xl transition-all"
+              className="glass-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-slate-200/80 dark:border-slate-800/80 hover:shadow-xl transition-all"
             >
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-3">

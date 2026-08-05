@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Sparkles, HelpCircle } from 'lucide-react';
+import { ChevronDown, HelpCircle } from 'lucide-react';
 import { Badge } from '../../../components/common/Badge';
 
 export const FAQSection = () => {
@@ -30,21 +30,24 @@ export const FAQSection = () => {
   ];
 
   return (
-    <section id="faq" className="py-24 bg-slate-50 dark:bg-[#0B0F19] relative">
+    <section id="faq" className="py-24 bg-slate-50 dark:bg-dark-bg relative overflow-hidden transition-colors duration-300">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <Badge variant="purple" icon={HelpCircle}>
             Got Questions?
           </Badge>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight font-sans leading-[1.1]">
             Frequently Asked Questions
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+          <p className="text-sm sm:text-base text-slate-650 dark:text-slate-400 font-sans">
             Everything you need to know about SkillBridge AI candidate screening and platform security.
           </p>
         </div>
 
-        <div className="space-y-4">
+        {/* FAQ Accordion Grid */}
+        <div className="space-y-4 relative z-10">
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
@@ -53,18 +56,18 @@ export const FAQSection = () => {
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="glass-card rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800/80 transition-all"
+                className="glass-card rounded-3xl overflow-hidden border border-slate-200/60 dark:border-slate-800/60 bg-white/90 dark:bg-dark-card/90 hover:shadow-lg transition-all duration-300"
               >
                 <button
                   onClick={() => setOpenIdx(isOpen ? -1 : idx)}
                   className="w-full p-6 text-left flex justify-between items-center gap-4 focus:outline-none"
                 >
-                  <span className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                  <span className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-sans tracking-tight">
                     {faq.q}
                   </span>
                   <div
-                    className={`p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 transition-transform duration-200 shrink-0 ${
-                      isOpen ? 'rotate-180 bg-brand-500/10 text-brand-500' : ''
+                    className={`p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-550 transition-transform duration-200 shrink-0 ${
+                      isOpen ? 'rotate-180 bg-brand-500/10 text-brand-500 dark:text-brand-400' : ''
                     }`}
                   >
                     <ChevronDown className="w-5 h-5" />
@@ -77,8 +80,8 @@ export const FAQSection = () => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="px-6 pb-6 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-200/50 dark:border-slate-800/50 pt-4"
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      className="px-6 pb-6 text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-200/60 dark:border-slate-800/60 pt-4 font-sans"
                     >
                       {faq.a}
                     </motion.div>
@@ -88,6 +91,7 @@ export const FAQSection = () => {
             );
           })}
         </div>
+        
       </div>
     </section>
   );

@@ -117,14 +117,14 @@ export const SavedJobsPage = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="glass-card p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-xl transition-all"
+                className="glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-xl transition-all"
               >
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">{job.title || 'Engineering Role'}</h3>
                     <Badge variant="purple">Bookmarked</Badge>
                   </div>
-                  <p className="text-xs font-semibold text-brand-600 dark:text-brand-400">
+                  <p className="text-xs font-semibold text-brand-650 dark:text-brand-400">
                     {job.companyName || job.company || 'Tech Company'}
                   </p>
 
@@ -145,15 +145,15 @@ export const SavedJobsPage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-red-500 hover:bg-red-500/10 border-red-500/20"
+                    className="text-rose-500 hover:bg-rose-550/15 border-rose-500/20 dark:text-rose-450 dark:hover:bg-rose-500/5 h-9"
                     onClick={() => removeMutation.mutate(job._id || item.jobId)}
                   >
                     <Trash2 className="w-4 h-4 mr-1" /> Remove
                   </Button>
-                  <Button variant="secondary" size="sm" onClick={() => navigate(`/jobs/${job.slug || job._id}`)}>
+                  <Button variant="secondary" size="sm" onClick={() => navigate(`/jobs/${job.slug || job._id}`)} className="h-9">
                     <ExternalLink className="w-4 h-4 mr-1" /> Details
                   </Button>
-                  <Button variant="primary" size="sm" onClick={() => setSelectedJob(job)}>
+                  <Button variant="primary" size="sm" onClick={() => setSelectedJob(job)} className="h-9">
                     Quick Apply
                   </Button>
                 </div>
@@ -171,9 +171,9 @@ export const SavedJobsPage = () => {
           title={`Quick Apply: ${selectedJob.title}`}
         >
           <div className="space-y-4">
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Submit your verified candidate profile and resume directly to{' '}
-              <strong className="text-white">{selectedJob.companyName || selectedJob.company}</strong>.
+              <strong className="text-slate-850 dark:text-white">{selectedJob.companyName || selectedJob.company}</strong>.
             </p>
             <Textarea
               label="Cover Note / Pitch (Optional)"
@@ -182,7 +182,7 @@ export const SavedJobsPage = () => {
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
             />
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200/60 dark:border-slate-805/40">
               <Button variant="ghost" onClick={() => setSelectedJob(null)}>
                 Cancel
               </Button>
@@ -205,3 +205,4 @@ export const SavedJobsPage = () => {
     </div>
   );
 };
+

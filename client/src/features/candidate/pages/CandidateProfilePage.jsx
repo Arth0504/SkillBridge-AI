@@ -319,7 +319,7 @@ export const CandidateProfilePage = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Tab 1: Personal Info */}
         {activeTab === 'personal' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-3xl space-y-6">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-2xl space-y-6">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <User className="w-5 h-5 text-brand-500" /> Personal Details
             </h3>
@@ -376,7 +376,7 @@ export const CandidateProfilePage = () => {
         {activeTab === 'experience' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
             {/* Work Experience */}
-            <div className="glass-panel p-8 rounded-3xl space-y-6">
+            <div className="glass-panel p-8 rounded-2xl space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Briefcase className="w-5 h-5 text-brand-500" /> Work Experience
@@ -435,7 +435,7 @@ export const CandidateProfilePage = () => {
             </div>
 
             {/* Education History */}
-            <div className="glass-panel p-8 rounded-3xl space-y-6">
+            <div className="glass-panel p-8 rounded-2xl space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <GraduationCap className="w-5 h-5 text-brand-500" /> Education History
@@ -497,7 +497,7 @@ export const CandidateProfilePage = () => {
         {activeTab === 'skills' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
             {/* Skills Tag Management */}
-            <div className="glass-panel p-8 rounded-3xl space-y-6">
+            <div className="glass-panel p-8 rounded-2xl space-y-6">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-brand-500" /> Technical Skills & Stack
               </h3>
@@ -530,7 +530,7 @@ export const CandidateProfilePage = () => {
             </div>
 
             {/* Social & Portfolio Links */}
-            <div className="glass-panel p-8 rounded-3xl space-y-6">
+            <div className="glass-panel p-8 rounded-2xl space-y-6">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Globe className="w-5 h-5 text-brand-500" /> Social Profiles & Links
               </h3>
@@ -565,7 +565,7 @@ export const CandidateProfilePage = () => {
         {activeTab === 'uploads' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Avatar Upload */}
-            <div className="glass-panel p-8 rounded-3xl space-y-6 text-center border border-slate-200/80 dark:border-slate-800">
+            <div className="glass-panel p-8 rounded-2xl space-y-6 text-center border border-slate-200/80 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center justify-center gap-2">
                 <Camera className="w-5 h-5 text-brand-500" /> Profile Avatar
               </h3>
@@ -584,7 +584,7 @@ export const CandidateProfilePage = () => {
             </div>
 
             {/* Resume Upload */}
-            <div className="glass-panel p-8 rounded-3xl space-y-6 text-center border border-slate-200/80 dark:border-slate-800">
+            <div className="glass-panel p-8 rounded-2xl space-y-6 text-center border border-slate-200/80 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center justify-center gap-2">
                 <FileText className="w-5 h-5 text-brand-500" /> ATS Resume Document
               </h3>

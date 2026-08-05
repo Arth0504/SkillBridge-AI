@@ -14,6 +14,8 @@ export const protect = asyncHandler(async (req, _res, next) => {
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.query.token) {
+    token = req.query.token;
   }
 
   if (!token) {
@@ -36,6 +38,12 @@ export const protect = asyncHandler(async (req, _res, next) => {
 
     req.user = user;
     req.role = decoded.role;
+
+    if (req.requestContext) {
+      req.requestContext.userId = user._id || user.id;
+      req.requestContext.role = decoded.role || 'unknown';
+    }
+
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {

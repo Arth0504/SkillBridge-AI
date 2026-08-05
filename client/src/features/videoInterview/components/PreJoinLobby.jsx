@@ -230,7 +230,7 @@ export const PreJoinLobby = ({ candidate, roomInfo, onJoin }) => {
           </div>
 
           {/* Camera Preview Box */}
-          <div className="relative aspect-video rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden flex items-center justify-center">
+          <div className="relative aspect-video rounded-2xl bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden flex items-center justify-center">
             <video
               ref={videoRef}
               autoPlay
@@ -322,7 +322,7 @@ export const PreJoinLobby = ({ candidate, roomInfo, onJoin }) => {
         </div>
 
         {/* RIGHT COLUMN: DIAGNOSTIC AUDIT & JOIN ACTION (5 COLS) */}
-        <div className="lg:col-span-5 bg-slate-900/90 rounded-3xl border border-slate-800 p-6 shadow-2xl space-y-6 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-2xl space-y-6 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">

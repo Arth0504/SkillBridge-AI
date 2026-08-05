@@ -13,6 +13,12 @@ export const adminApi = {
     return data;
   },
 
+  // Enterprise Audit Logs & Activity Center
+  getAuditLogs: async (params) => {
+    const { data } = await api.get('/audit-logs', { params });
+    return data;
+  },
+
   // User Management
   getUsers: async (params) => {
     const { data } = await api.get('/admin/users', { params });

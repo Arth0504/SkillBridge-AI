@@ -6,7 +6,7 @@ import { Button } from '../components/common/Button';
 export const NotFoundPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50 dark:bg-[#0B0F19]">
-      <div className="p-5 rounded-3xl bg-brand-500/10 text-brand-500 mb-6 shadow-inner">
+      <div className="p-5 rounded-2xl bg-brand-500/10 text-brand-500 mb-6 shadow-inner">
         <FileQuestion className="w-16 h-16 animate-bounce" />
       </div>
       <h1 className="text-5xl font-extrabold text-slate-900 dark:text-white mb-2">404</h1>

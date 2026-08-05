@@ -17,12 +17,12 @@ import { FooterLanding } from '../features/landing/components/FooterLanding';
 
 export const LandingPage = () => {
   return (
-    <div className="space-y-12 bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 selection:bg-brand-500 selection:text-white">
+    <div className="bg-slate-50 dark:bg-dark-bg text-slate-900 dark:text-slate-100 selection:bg-brand-500 selection:text-white">
       {/* 1. Announcement Bar */}
       <AnnouncementBar />
 
       {/* Main Content Sections */}
-      <main className="flex-1 space-y-12">
+      <main className="flex-1">
         {/* 3. Hero Section */}
         <HeroSection />
 

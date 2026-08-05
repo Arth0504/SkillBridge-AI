@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { BarChart3, TrendingUp, Users, Eye, Clock, Building, Sparkles, ArrowRight } from 'lucide-react';
-import { Button, Badge, Loader } from '../../../components/common';
+import { Button, Badge, Loader, AnimatedMetricCard } from '../../../components/common';
 import { companyApi } from '../../../api';
 
 export const CompanyAnalyticsPage = () => {
@@ -48,26 +48,19 @@ export const CompanyAnalyticsPage = () => {
           { label: 'Average Time-to-Hire', value: analytics.avgTimeToHire ?? 'N/A', icon: Clock, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
           { label: 'AI Screening Efficiency', value: analytics.aiEfficiency ?? '0%', icon: Sparkles, color: 'text-purple-500', bg: 'bg-purple-500/10' },
         ].map((kpi, idx) => (
-          <motion.div
+          <AnimatedMetricCard
             key={idx}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.08 }}
-            className="glass-card p-6 rounded-2xl flex items-center justify-between border border-slate-200/80 dark:border-slate-800"
-          >
-            <div>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{kpi.label}</p>
-              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1.5">{kpi.value}</h3>
-            </div>
-            <div className={`p-3.5 rounded-2xl ${kpi.bg} ${kpi.color}`}>
-              <kpi.icon className="w-6 h-6" />
-            </div>
-          </motion.div>
+            label={kpi.label}
+            value={kpi.value}
+            icon={kpi.icon}
+            color={kpi.color}
+            bg={kpi.bg}
+          />
         ))}
       </div>
 
       {/* Hiring Funnel Breakdown */}
-      <div className="glass-panel p-8 rounded-3xl space-y-6 border border-slate-200/80 dark:border-slate-800">
+      <div className="glass-panel p-8 rounded-2xl space-y-6 border border-slate-200/80 dark:border-slate-800">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-brand-500" /> Hiring Conversion Funnel
         </h3>
@@ -89,7 +82,7 @@ export const CompanyAnalyticsPage = () => {
       </div>
 
       {/* Job Performance Table */}
-      <div className="glass-panel p-8 rounded-3xl space-y-6 border border-slate-200/80 dark:border-slate-800">
+      <div className="glass-panel p-8 rounded-2xl space-y-6 border border-slate-200/80 dark:border-slate-800">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <Building className="w-5 h-5 text-brand-500" /> Role-Level Performance Breakdown
         </h3>

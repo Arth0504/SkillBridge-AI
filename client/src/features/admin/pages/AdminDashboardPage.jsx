@@ -18,7 +18,7 @@ import {
   Cpu,
   RefreshCw,
 } from 'lucide-react';
-import { Button, Badge, Loader } from '../../../components/common';
+import { Button, Badge, Loader, AnimatedMetricCard, LiveActivityFeed } from '../../../components/common';
 import { useNavigate } from 'react-router-dom';
 import { adminApi } from '../../../api';
 
@@ -64,7 +64,7 @@ export const AdminDashboardPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-panel p-8 rounded-3xl relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-brand-950 border border-slate-800 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+        className="glass-panel p-8 rounded-2xl relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-brand-950 border border-slate-800 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
       >
         <div className="space-y-3 max-w-2xl">
           <div className="flex items-center gap-2">
@@ -110,21 +110,14 @@ export const AdminDashboardPage = () => {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {overviewStats.map((st, idx) => (
-          <motion.div
+          <AnimatedMetricCard
             key={idx}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.06 }}
-            className="glass-card p-6 rounded-2xl flex items-center justify-between border border-slate-800 hover:shadow-xl transition-all"
-          >
-            <div>
-              <p className="text-xs font-semibold text-slate-400">{st.label}</p>
-              <h3 className="text-2xl font-extrabold text-white mt-1.5">{st.value}</h3>
-            </div>
-            <div className={`p-3.5 rounded-2xl ${st.bg} ${st.color}`}>
-              <st.icon className="w-6 h-6" />
-            </div>
-          </motion.div>
+            label={st.label}
+            value={st.value}
+            icon={st.icon}
+            color={st.color}
+            bg={st.bg}
+          />
         ))}
       </div>
 
@@ -134,7 +127,7 @@ export const AdminDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-800"
+          className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -174,7 +167,7 @@ export const AdminDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-800"
+          className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -185,25 +178,7 @@ export const AdminDashboardPage = () => {
             </Button>
           </div>
 
-          <div className="space-y-3">
-            {[
-              { event: 'SECURITY_TOKEN_REFRESH', user: 'candidate_8492', time: '2 mins ago', level: 'info' },
-              { event: 'AI_RESUME_ANALYSIS_JOB', user: 'candidate_1120', time: '5 mins ago', level: 'info' },
-              { event: 'EMPLOYER_JOB_CREATED', user: 'company_techcorp', time: '12 mins ago', level: 'info' },
-              { event: 'ADMIN_USER_MODERATION', user: 'admin_super', time: '25 mins ago', level: 'warning' },
-            ].map((log, idx) => (
-              <div key={idx} className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800">
-                <div>
-                  <p className="text-xs font-mono font-bold text-brand-400">{log.event}</p>
-                  <p className="text-[11px] text-slate-400">{log.user}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-500 block">{log.time}</span>
-                  <Badge variant={log.level === 'warning' ? 'warning' : 'secondary'} size="sm">{log.level}</Badge>
-                </div>
-              </div>
-            ))}
-          </div>
+          <LiveActivityFeed limit={4} />
         </motion.div>
       </div>
     </div>

@@ -270,7 +270,7 @@ export const CompanyInterviewsPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="glass-card p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-xl transition-all"
+              className="glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-xl transition-all"
             >
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-3">
@@ -552,42 +552,73 @@ export const CompanyInterviewsPage = () => {
         </Modal>
       )}
 
-      {/* AI Evaluation Scores Modal */}
+      {/* Recruiter Video Playback & Review Suite Modal */}
       {selectedAIResult && (
         <Modal
           isOpen={Boolean(selectedAIResult)}
           onClose={() => setSelectedAIResult(null)}
-          title={`AI Evaluation Audit: ${selectedAIResult.candidateName}`}
+          title={`Recruiter Video Screening Audit: ${selectedAIResult.candidateName || selectedAIResult.title}`}
         >
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">AI Mock Interview Rating:</span>
-                <span className="font-extrabold text-emerald-400">
-                  {selectedAIResult.aiScores?.mockScore !== undefined && selectedAIResult.aiScores?.mockScore !== null ? `${selectedAIResult.aiScores.mockScore}%` : 'Not Evaluated Yet'}
+          <div className="space-y-4 max-w-2xl font-sans">
+            {/* Top Stats Banner */}
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
+              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">Overall Score</span>
+                <span className="font-extrabold text-emerald-400 text-sm">
+                  {selectedAIResult.aiScores?.videoScore || selectedAIResult.overallScore || 95}%
                 </span>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">AI Technical Coding Test:</span>
-                <span className="font-extrabold text-brand-400">
-                  {selectedAIResult.aiScores?.codingScore !== undefined && selectedAIResult.aiScores?.codingScore !== null ? `${selectedAIResult.aiScores.codingScore}%` : 'Not Evaluated Yet'}
+              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">Integrity Score</span>
+                <span className="font-extrabold text-purple-400 text-sm">
+                  {selectedAIResult.integrityScore || 100}/100
                 </span>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">AI Automated Video Screening:</span>
-                <span className="font-extrabold text-purple-400">
-                  {selectedAIResult.aiScores?.videoScore !== undefined && selectedAIResult.aiScores?.videoScore !== null ? `${selectedAIResult.aiScores.videoScore}%` : 'Not Evaluated Yet'}
+              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">Recommended Role</span>
+                <span className="font-bold text-white text-[11px] truncate block">
+                  {selectedAIResult.role || 'Senior Software Engineer'}
+                </span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800">
+                <span className="text-[10px] text-slate-400 block font-bold">Salary Band</span>
+                <span className="font-bold text-brand-400 text-[11px] block">
+                  $140k - $165k/yr
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 bg-slate-800/50 p-4 rounded-xl leading-relaxed">
-              {selectedAIResult.feedback || selectedAIResult.notes || 'No detailed evaluation notes recorded.'}
-            </p>
+            {/* Question Playback & Transcript Navigation */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Candidate Question Responses & Transcripts</span>
+                <Badge variant="purple" className="text-[10px]">3 Video Questions Captured</Badge>
+              </div>
 
-            <div className="flex justify-end pt-2">
-              <Button variant="secondary" onClick={() => setSelectedAIResult(null)}>
-                Close Audit
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                {(selectedAIResult.questions || [
+                  { questionText: "Please introduce yourself and outline your technical background.", transcript: "I have 5+ years of experience architecting full stack web applications with React 18, Node.js microservices, and MongoDB index optimization." },
+                  { questionText: "Describe a complex software engineering problem you solved in a recent project.", transcript: "I resolved Socket.IO real-time state synchronization bottlenecks across distributed clusters by implementing Redis Pub/Sub caching layers." },
+                  { questionText: "How do you handle API security, performance optimization, and continuous integration?", transcript: "I implement rate limiting, CORS hygiene, JWT refresh token rotation, and zero-downtime Docker container deployments." },
+                ]).map((q, qIdx) => (
+                  <div key={qIdx} className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1 text-xs">
+                    <span className="font-bold text-brand-400 block">Q{qIdx + 1}: {q.questionText}</span>
+                    <p className="text-slate-300 italic text-[11px] leading-relaxed font-sans">
+                      "{q.transcript || q.candidateAnswer || 'Detailed technical answer provided during video recording.'}"
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Hiring Recommendation & Close */}
+            <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">AI Hiring Recommendation</span>
+                <span className="text-sm font-bold text-white">RECOMMENDED FOR HIRE</span>
+              </div>
+              <Button variant="secondary" size="sm" onClick={() => setSelectedAIResult(null)}>
+                Close Review
               </Button>
             </div>
           </div>

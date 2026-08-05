@@ -117,7 +117,7 @@ export const AdminUsersPage = () => {
           description="No candidate or employer user accounts match your search query."
         />
       ) : (
-        <div className="glass-panel rounded-3xl overflow-hidden border border-slate-800">
+        <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>

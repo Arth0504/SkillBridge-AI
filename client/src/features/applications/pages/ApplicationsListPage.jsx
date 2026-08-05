@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
   FileText,
-  Search,
+  Search as SearchIcon,
   Calendar,
   Clock,
   CheckCircle2,
@@ -13,7 +13,7 @@ import {
   UserX,
   ExternalLink,
 } from 'lucide-react';
-import { Button, Badge, Loader, EmptyState, Modal, Drawer, Textarea } from '../../../components/common';
+import { Button, Badge, Loader, EmptyState, Modal, Drawer, Textarea, Search } from '../../../components/common';
 import { candidateApi } from '../../../api';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +28,7 @@ export const ApplicationsListPage = () => {
   const [withdrawReason, setWithdrawReason] = useState('');
 
   // Fetch Applications
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['candidate-applications', statusFilter],
     queryFn: () => candidateApi.getApplications({ status: statusFilter === 'ALL' ? undefined : statusFilter }),
   });
@@ -81,8 +81,11 @@ export const ApplicationsListPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <FileText className="w-8 h-8 text-brand-500" /> Application Pipeline
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <div className="p-2 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
+              <FileText className="w-7 h-7" />
+            </div>
+            Application Pipeline
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Real-time candidate application status, interview schedules, and progress history.
@@ -105,10 +108,10 @@ export const ApplicationsListPage = () => {
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 statusFilter === st
-                  ? 'bg-brand-600 text-white shadow-md shadow-brand-500/20'
-                  : 'text-slate-400 hover:bg-slate-800'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
               }`}
             >
               {st}
@@ -134,11 +137,11 @@ export const ApplicationsListPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="glass-card p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-xl transition-all"
+              className="glass-card p-6 rounded-2xl border border-slate-200/60 dark:border-slate-800/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-premium-hover dark:hover:shadow-premium-dark-hover transition-all"
             >
-              <div className="space-y-2 flex-1">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{app.job?.title || 'Applied Position'}</h3>
+              <div className="space-y-2 flex-1 w-full">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">{app.job?.title || 'Applied Position'}</h3>
                   {getStatusBadge(app.status)}
                   {app.matchScore && <Badge variant="purple">{app.matchScore}% AI Match</Badge>}
                 </div>
@@ -151,9 +154,9 @@ export const ApplicationsListPage = () => {
 
                 {/* Upcoming Interview Alert pill if scheduled */}
                 {app.interviewDate && (
-                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-emerald-400 mt-2">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 shrink-0" />
+                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-emerald-600 dark:text-emerald-400 mt-3">
+                    <div className="flex items-center gap-2.5">
+                      <Calendar className="w-4 h-4 shrink-0 text-emerald-500" />
                       <span>
                         Interview Scheduled: <strong>{new Date(app.interviewDate).toLocaleString()}</strong>
                       </span>
@@ -161,7 +164,6 @@ export const ApplicationsListPage = () => {
                     <Button
                       variant="primary"
                       size="sm"
-                      className="shadow-md shadow-brand-500/20"
                       onClick={() => {
                         const rawRoomId = app.interviewRoomId || app.roomId || (app.meetingLink ? app.meetingLink.replace('/interview/room/', '') : app._id);
                         navigate(`/interview/room/${rawRoomId}`);
@@ -173,7 +175,7 @@ export const ApplicationsListPage = () => {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full md:w-auto justify-end">
                 <Button variant="outline" size="sm" onClick={() => setSelectedApp(app)}>
                   View Timeline & Details <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -181,7 +183,7 @@ export const ApplicationsListPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                    className="text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 dark:text-rose-400 dark:hover:text-rose-300"
                     onClick={() => setWithdrawApp(app)}
                   >
                     <UserX className="w-4 h-4 mr-1" /> Withdraw
@@ -202,24 +204,24 @@ export const ApplicationsListPage = () => {
         {selectedApp && (
           <div className="space-y-6">
             <div>
-              <p className="text-xs font-semibold text-brand-400">{selectedApp.job?.companyName || 'Company'}</p>
-              <div className="mt-2">{getStatusBadge(selectedApp.status)}</div>
+              <p className="text-xs font-bold text-brand-600 dark:text-brand-400">{selectedApp.job?.companyName || 'Company'}</p>
+              <div className="mt-2.5">{getStatusBadge(selectedApp.status)}</div>
             </div>
 
             {/* Application Timeline Audit */}
             <div className="space-y-4">
-              <h4 className="text-xs font-extrabold uppercase text-slate-400 tracking-wider">Application Audit Trail</h4>
-              <div className="space-y-3 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-700">
+              <h4 className="text-xs font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider">Application Audit Trail</h4>
+              <div className="space-y-3 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700">
                 {(selectedApp.timeline || [
                   { status: 'Application Submitted', date: selectedApp.createdAt, note: 'Candidate profile & resume sent' },
                   { status: 'ATS AI Screening', date: selectedApp.createdAt, note: 'Verified ATS score 94%' },
                 ]).map((t, i) => (
                   <div key={i} className="flex items-start gap-4 relative pl-8">
-                    <div className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-brand-500 ring-4 ring-slate-900" />
+                    <div className="absolute left-1.5 top-1.5 w-3 h-3 rounded-full bg-brand-500 ring-4 ring-white dark:ring-slate-900" />
                     <div>
-                      <h5 className="text-xs font-bold text-white">{t.status}</h5>
-                      <p className="text-[11px] text-slate-400">{t.note}</p>
-                      <span className="text-[10px] text-slate-500">{t.date ? new Date(t.date).toLocaleDateString() : ''}</span>
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200">{t.status}</h5>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">{t.note}</p>
+                      <span className="text-[10px] text-slate-400">{t.date ? new Date(t.date).toLocaleDateString() : ''}</span>
                     </div>
                   </div>
                 ))}
@@ -228,15 +230,15 @@ export const ApplicationsListPage = () => {
 
             {/* Submitted Cover Letter */}
             {selectedApp.coverLetter && (
-              <div className="space-y-2 pt-2 border-t border-slate-800">
-                <h4 className="text-xs font-bold text-white">Cover Note Pitch</h4>
-                <p className="text-xs text-slate-300 bg-slate-800/60 p-4 rounded-xl italic">
+              <div className="space-y-2 pt-4 border-t border-slate-200/60 dark:border-slate-800/40">
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Cover Note Pitch</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl italic border border-slate-200/50 dark:border-slate-800/30">
                   "{selectedApp.coverLetter}"
                 </p>
               </div>
             )}
 
-            <div className="pt-4 border-t border-slate-800 flex justify-end">
+            <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/40 flex justify-end">
               <Button variant="secondary" onClick={() => setSelectedApp(null)}>
                 Close Details
               </Button>
@@ -253,9 +255,9 @@ export const ApplicationsListPage = () => {
           title="Withdraw Application"
         >
           <div className="space-y-4">
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Are you sure you want to withdraw your application for{' '}
-              <strong className="text-white">{withdrawApp.job?.title}</strong>? This action cannot be undone.
+              <strong className="text-slate-800 dark:text-slate-200">{withdrawApp.job?.title}</strong>? This action cannot be undone.
             </p>
             <Textarea
               label="Reason for Withdrawal (Optional)"
@@ -264,13 +266,13 @@ export const ApplicationsListPage = () => {
               value={withdrawReason}
               onChange={(e) => setWithdrawReason(e.target.value)}
             />
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200/60 dark:border-slate-800/40">
               <Button variant="ghost" onClick={() => setWithdrawApp(null)}>
                 Cancel
               </Button>
               <Button
                 variant="primary"
-                className="bg-red-600 hover:bg-red-500"
+                className="bg-rose-600 hover:bg-rose-500 border-none"
                 isLoading={withdrawMutation.isPending}
                 onClick={() =>
                   withdrawMutation.mutate({
@@ -288,3 +290,4 @@ export const ApplicationsListPage = () => {
     </div>
   );
 };
+

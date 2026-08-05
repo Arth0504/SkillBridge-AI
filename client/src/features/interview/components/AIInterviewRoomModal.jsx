@@ -282,7 +282,7 @@ export const AIInterviewRoomModal = ({ isOpen, onClose, user, targetDomain = 'ME
       {/* 3. Completed Interview Summary */}
       {step === 'completed' && (
         <div className="space-y-6 text-center">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto text-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto text-2xl">
             <Award className="w-8 h-8" />
           </div>
           <div className="space-y-1">

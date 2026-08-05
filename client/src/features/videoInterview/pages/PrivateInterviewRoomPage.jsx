@@ -84,11 +84,167 @@ export const PrivateInterviewRoomPage = () => {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportData, setReportData] = useState(null);
 
+  // Enterprise Security & Proctoring State
+  const [integrityScore, setIntegrityScore] = useState(100);
+  const [redirectCountdown, setRedirectCountdown] = useState(null);
+
   // WebRTC Stream & PeerConnection Refs
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnectionRef = useRef(null);
   const localStreamRef = useRef(null);
+  const screenStreamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const pendingCandidatesRef = useRef([]);
+  const timerIntervalRef = useRef(null);
+  const isCleanedUpRef = useRef(false);
+
+  // Perfect Negotiation State Flags
+  const makingOfferRef = useRef(false);
+  const ignoreOfferRef = useRef(false);
+  const isSettingRemoteAnswerPendingRef = useRef(false);
+
+  const drainPendingCandidates = async () => {
+    const pc = peerConnectionRef.current;
+    if (!pc || !pc.remoteDescription || !pc.remoteDescription.type) return;
+    while (pendingCandidatesRef.current.length > 0) {
+      const candidate = pendingCandidatesRef.current.shift();
+      try {
+        await pc.addIceCandidate(candidate);
+      } catch (err) {
+        console.warn('[WebRTC Perfect Negotiation] Queued ICE candidate error:', err);
+      }
+    }
+  };
+
+  const cleanupRoomSession = () => {
+    if (isCleanedUpRef.current) return;
+    isCleanedUpRef.current = true;
+
+    // 1. Socket Listeners & Cleanup
+    if (socket) {
+      socket.off('connect');
+      socket.off('room:user-joined');
+      socket.off('signal:offer');
+      socket.off('signal:answer');
+      socket.off('signal:ice-candidate');
+      socket.off('code:sync');
+      socket.off('room:chat');
+      socket.off('room:end');
+    }
+
+    // 2. Stop MediaRecorder
+    if (mediaRecorderRef.current) {
+      try {
+        if (mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+        }
+      } catch (err) {}
+      mediaRecorderRef.current = null;
+    }
+
+    // 3. Stop Local Stream Tracks & Release Webcam / Microphone Hardware
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => {
+        try {
+          track.enabled = false;
+          track.stop();
+        } catch (err) {}
+      });
+      localStreamRef.current = null;
+    }
+
+    // 4. Stop Screen Sharing Stream Tracks
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach((track) => {
+        try {
+          track.enabled = false;
+          track.stop();
+        } catch (err) {}
+      });
+      screenStreamRef.current = null;
+    }
+
+    // 5. Release Video Elements
+    if (localVideoRef.current) {
+      if (localVideoRef.current.srcObject) {
+        const stream = localVideoRef.current.srcObject;
+        if (stream.getTracks) {
+          stream.getTracks().forEach((t) => {
+            try { t.enabled = false; t.stop(); } catch (e) {}
+          });
+        }
+        localVideoRef.current.srcObject = null;
+      }
+    }
+
+    if (remoteVideoRef.current) {
+      if (remoteVideoRef.current.srcObject) {
+        const stream = remoteVideoRef.current.srcObject;
+        if (stream.getTracks) {
+          stream.getTracks().forEach((t) => {
+            try { t.enabled = false; t.stop(); } catch (e) {}
+          });
+        }
+        remoteVideoRef.current.srcObject = null;
+      }
+    }
+
+    // 6. Close WebRTC PeerConnection & Senders/Receivers
+    if (peerConnectionRef.current) {
+      try {
+        peerConnectionRef.current.getSenders().forEach((sender) => {
+          if (sender.track) {
+            try { sender.track.enabled = false; sender.track.stop(); } catch (e) {}
+          }
+        });
+        peerConnectionRef.current.getReceivers().forEach((receiver) => {
+          if (receiver.track) {
+            try { receiver.track.enabled = false; receiver.track.stop(); } catch (e) {}
+          }
+        });
+        peerConnectionRef.current.close();
+      } catch (err) {}
+      peerConnectionRef.current = null;
+    }
+
+    // 7. Speech & Audio Release
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+      recognitionRef.current = null;
+    }
+
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+    }
+
+    if (audioContextRef.current) {
+      try { audioContextRef.current.close(); } catch (e) {}
+      audioContextRef.current = null;
+    }
+
+    // 8. Timers & Intervals
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    const handleUnload = () => {
+      cleanupRoomSession();
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('unload', handleUnload);
+      cleanupRoomSession();
+    };
+  }, []);
 
   const [isRemoteConnected, setIsRemoteConnected] = useState(false);
   const [connectionStateText, setConnectionStateText] = useState('Connecting...');
@@ -121,11 +277,103 @@ export const PrivateInterviewRoomPage = () => {
   // Sync Timer
   useEffect(() => {
     if (showLobby || isReadOnly) return;
-    const timer = setInterval(() => {
+    timerIntervalRef.current = setInterval(() => {
       setElapsedSeconds((prev) => prev + 1);
     }, 1000);
-    return () => clearInterval(timer);
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
   }, [showLobby, isReadOnly]);
+
+  // Handle Redirect Countdown on Session Conclusion
+  useEffect(() => {
+    if (redirectCountdown === null) return;
+    if (redirectCountdown <= 0) {
+      cleanupRoomSession();
+      navigate(currentUserRole === 'company' ? '/company/applications' : '/candidate/dashboard');
+      return;
+    }
+    const timer = setInterval(() => {
+      setRedirectCountdown((prev) => (prev !== null ? prev - 1 : null));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [redirectCountdown, navigate, currentUserRole]);
+
+  // Proctoring / Anti-Cheating Violation Logger Helper
+  const logProctoringViolation = useCallback(
+    (eventType, details) => {
+      if (showLobby || isReadOnly) return;
+      setIntegrityScore((prev) => Math.max(0, prev - 10));
+      toast.error(`⚠️ Integrity Warning: ${details}`, { id: `violation-${eventType}` });
+      if (socket && roomId) {
+        socket.emit('record:integrity-event', { roomId, eventType, details });
+      }
+    },
+    [socket, roomId, showLobby, isReadOnly]
+  );
+
+  // Anti-Cheating & Event Listener Registrations
+  useEffect(() => {
+    if (showLobby || isReadOnly) return;
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        logProctoringViolation('FULLSCREEN_EXIT', 'Participant exited fullscreen mode.');
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        logProctoringViolation('TAB_SWITCH', 'Tab switched or window hidden.');
+      }
+    };
+
+    const handleWindowBlur = () => {
+      logProctoringViolation('WINDOW_BLUR', 'Focus lost from interview workspace.');
+    };
+
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+      logProctoringViolation('RIGHT_CLICK', 'Context menu access blocked.');
+    };
+
+    const handleCopyPaste = (e) => {
+      e.preventDefault();
+      logProctoringViolation('CLIPBOARD_ACCESS', `${e.type.toUpperCase()} attempt blocked.`);
+    };
+
+    const handleKeyDown = (e) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'u')
+      ) {
+        e.preventDefault();
+        logProctoringViolation('DEVTOOLS_ATTEMPT', 'Developer tools keyboard shortcut blocked.');
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('copy', handleCopyPaste);
+    document.addEventListener('paste', handleCopyPaste);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('copy', handleCopyPaste);
+      document.removeEventListener('paste', handleCopyPaste);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showLobby, isReadOnly, logProctoringViolation]);
 
   // Sync Existing Room Data into Local State
   useEffect(() => {
@@ -150,11 +398,27 @@ export const PrivateInterviewRoomPage = () => {
     }
   }, [roomInfo]);
 
-  // Initialize PeerConnection
+  // Initialize PeerConnection with Perfect Negotiation Pattern
   const createPeerConnection = () => {
     if (peerConnectionRef.current) return peerConnectionRef.current;
 
     const pc = new RTCPeerConnection(RTC_CONFIG);
+
+    pc.onnegotiationneeded = async () => {
+      try {
+        makingOfferRef.current = true;
+        const offer = await pc.createOffer();
+        if (pc.signalingState !== 'stable') return;
+        await pc.setLocalDescription(offer);
+        if (socket) {
+          socket.emit('signal:offer', { roomId, sdp: pc.localDescription });
+        }
+      } catch (err) {
+        console.error('[WebRTC Perfect Negotiation] NegotiationNeeded Error:', err);
+      } finally {
+        makingOfferRef.current = false;
+      }
+    };
 
     pc.onicecandidate = (event) => {
       if (event.candidate && socket) {
@@ -173,6 +437,7 @@ export const PrivateInterviewRoomPage = () => {
     };
 
     pc.onconnectionstatechange = () => {
+      console.log(`[WebRTC] PeerConnection state: ${pc.connectionState} | Signaling state: ${pc.signalingState}`);
       switch (pc.connectionState) {
         case 'connected':
           setIsRemoteConnected(true);
@@ -186,10 +451,11 @@ export const PrivateInterviewRoomPage = () => {
           break;
         case 'failed':
           setConnectionStateText('Poor Network / Retrying');
+          console.log('[WebRTC] Connection failed. Triggering ICE restart...');
           try {
             pc.restartIce();
           } catch (e) {
-            console.warn('ICE restart exception:', e);
+            console.warn('[WebRTC] ICE restart exception:', e);
           }
           break;
         default:
@@ -232,6 +498,12 @@ export const PrivateInterviewRoomPage = () => {
   // Toggle Screen Share
   const handleToggleScreenShare = async () => {
     if (isScreenSharing) {
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((t) => {
+          try { t.enabled = false; t.stop(); } catch (e) {}
+        });
+        screenStreamRef.current = null;
+      }
       if (localStreamRef.current && peerConnectionRef.current) {
         const webcamTrack = localStreamRef.current.getVideoTracks()[0];
         const sender = peerConnectionRef.current.getSenders().find((s) => s.track?.kind === 'video');
@@ -245,6 +517,7 @@ export const PrivateInterviewRoomPage = () => {
 
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      screenStreamRef.current = screenStream;
       const screenTrack = screenStream.getVideoTracks()[0];
 
       if (peerConnectionRef.current) {
@@ -255,6 +528,12 @@ export const PrivateInterviewRoomPage = () => {
       }
 
       screenTrack.onended = async () => {
+        if (screenStreamRef.current) {
+          screenStreamRef.current.getTracks().forEach((t) => {
+            try { t.enabled = false; t.stop(); } catch (e) {}
+          });
+          screenStreamRef.current = null;
+        }
         if (localStreamRef.current && peerConnectionRef.current) {
           const webcamTrack = localStreamRef.current.getVideoTracks()[0];
           const sender = peerConnectionRef.current.getSenders().find((s) => s.track?.kind === 'video');
@@ -284,13 +563,21 @@ export const PrivateInterviewRoomPage = () => {
     }
   };
 
-  // WebRTC Signaling & Socket Integration
+  // WebRTC Signaling & Socket Integration with Perfect Negotiation Pattern
   useEffect(() => {
     if (!socket || !roomId || !roomData || showLobby) return;
 
+    const polite = currentUserRole === 'candidate';
     const name = currentUserRole === 'company' ? (company?.companyName || 'Recruiter') : (candidate?.fullName || 'Candidate');
 
     socket.emit('room:join', { roomId, name });
+
+    socket.on('connect', () => {
+      console.log('🔌 [Socket.IO] Signaling socket re-connected.');
+      if (!showLobby && roomId) {
+        socket.emit('room:join', { roomId, name });
+      }
+    });
 
     socket.on('room:user-joined', async (user) => {
       toast.success(`${user.name || 'Participant'} joined the interview room.`);
@@ -303,42 +590,83 @@ export const PrivateInterviewRoomPage = () => {
 
       try {
         const pc = createPeerConnection();
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit('signal:offer', { roomId, sdp: offer });
+        if (pc.signalingState === 'stable') {
+          makingOfferRef.current = true;
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit('signal:offer', { roomId, sdp: pc.localDescription });
+        }
       } catch (err) {
-        console.error('WebRTC Offer Error:', err);
+        console.error('[WebRTC Perfect Negotiation] User joined offer error:', err);
+      } finally {
+        makingOfferRef.current = false;
       }
     });
 
     socket.on('signal:offer', async (data) => {
       try {
         const pc = createPeerConnection();
-        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit('signal:answer', { roomId, sdp: answer });
+        const offer = data.sdp;
+        const offerCollision = (offer.type === 'offer') &&
+          (makingOfferRef.current || pc.signalingState !== 'stable');
+
+        ignoreOfferRef.current = !polite && offerCollision;
+        if (ignoreOfferRef.current) {
+          console.log('[WebRTC Perfect Negotiation] Impolite peer ignoring glare offer.');
+          return;
+        }
+
+        if (offerCollision && polite) {
+          console.log('[WebRTC Perfect Negotiation] Polite peer rolling back for incoming offer glare.');
+          try {
+            await pc.setLocalDescription({ type: 'rollback' });
+          } catch (rbErr) {
+            console.warn('[WebRTC Perfect Negotiation] Rollback exception:', rbErr);
+          }
+        }
+
+        isSettingRemoteAnswerPendingRef.current = (offer.type === 'answer');
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        isSettingRemoteAnswerPendingRef.current = false;
+        await drainPendingCandidates();
+
+        if (offer.type === 'offer') {
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit('signal:answer', { roomId, sdp: pc.localDescription });
+        }
       } catch (err) {
-        console.error('WebRTC Answer Error:', err);
+        console.error('[WebRTC Perfect Negotiation] Signal offer processing error:', err);
       }
     });
 
     socket.on('signal:answer', async (data) => {
       try {
         const pc = peerConnectionRef.current;
-        if (pc && pc.signalingState !== 'stable') {
+        if (!pc) return;
+        if (pc.signalingState === 'have-local-offer') {
+          isSettingRemoteAnswerPendingRef.current = true;
           await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+          isSettingRemoteAnswerPendingRef.current = false;
+          await drainPendingCandidates();
+        } else {
+          console.warn(`[WebRTC Perfect Negotiation] Skipping duplicate/unexpected answer in signalingState: ${pc.signalingState}`);
         }
       } catch (err) {
-        console.error('WebRTC Answer Exception:', err);
+        console.error('[WebRTC Perfect Negotiation] Answer exception:', err);
       }
     });
 
     socket.on('signal:ice-candidate', async (data) => {
       try {
         const pc = peerConnectionRef.current;
-        if (pc && data.candidate) {
-          await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+        if (data.candidate) {
+          const candidateObj = new RTCIceCandidate(data.candidate);
+          if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+            await pc.addIceCandidate(candidateObj).catch((e) => console.warn('[WebRTC] addIceCandidate error:', e));
+          } else {
+            pendingCandidatesRef.current.push(candidateObj);
+          }
         }
       } catch (err) {
         console.error('WebRTC ICE Error:', err);
@@ -357,8 +685,9 @@ export const PrivateInterviewRoomPage = () => {
     });
 
     socket.on('room:end', () => {
+      cleanupRoomSession();
       toast.error('The interview room session has been concluded.');
-      navigate(currentUserRole === 'company' ? '/company/applications' : '/candidate/dashboard');
+      setRedirectCountdown(3);
     });
 
     return () => {
@@ -383,6 +712,7 @@ export const PrivateInterviewRoomPage = () => {
   const endMutation = useMutation({
     mutationFn: () => interviewRoomApi.endRoomSession(roomId),
     onSuccess: async () => {
+      cleanupRoomSession();
       toast.success('Interview concluded successfully.');
       if (socket) socket.emit('room:end', { roomId });
       try {
@@ -390,7 +720,7 @@ export const PrivateInterviewRoomPage = () => {
         setReportData(report.data);
         setReportModalOpen(true);
       } catch (e) {
-        navigate(currentUserRole === 'company' ? '/company/applications' : '/candidate/dashboard');
+        setRedirectCountdown(3);
       }
     },
   });
@@ -456,7 +786,7 @@ export const PrivateInterviewRoomPage = () => {
   if (error?.response?.status === 403) {
     return (
       <div className="min-h-screen bg-[#07090E] flex items-center justify-center p-6">
-        <div className="glass-panel p-8 rounded-3xl max-w-md w-full text-center space-y-4 border border-rose-500/30 shadow-2xl">
+        <div className="glass-panel p-8 rounded-2xl max-w-md w-full text-center space-y-4 border border-rose-500/30 shadow-2xl">
           <div className="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
             <AlertTriangle className="w-8 h-8" />
           </div>
@@ -476,7 +806,7 @@ export const PrivateInterviewRoomPage = () => {
   if (error?.response?.status === 410 || roomInfo?.status === 'expired') {
     return (
       <div className="min-h-screen bg-[#07090E] flex items-center justify-center p-6">
-        <div className="glass-panel p-8 rounded-3xl max-w-md w-full text-center space-y-4 border border-amber-500/30 shadow-2xl">
+        <div className="glass-panel p-8 rounded-2xl max-w-md w-full text-center space-y-4 border border-amber-500/30 shadow-2xl">
           <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto">
             <Clock className="w-8 h-8" />
           </div>
@@ -539,6 +869,13 @@ export const PrivateInterviewRoomPage = () => {
           <div className="flex items-center gap-1 text-slate-400 font-medium">
             <Signal className={`w-3.5 h-3.5 ${isRemoteConnected ? 'text-emerald-400' : 'text-amber-400 animate-pulse'}`} /> {connectionStateText}
           </div>
+          <span className="text-slate-600">|</span>
+          <div className="flex items-center gap-1 font-bold">
+            <ShieldCheck className={`w-3.5 h-3.5 ${integrityScore === 100 ? 'text-emerald-400' : integrityScore > 70 ? 'text-amber-400' : 'text-rose-400 animate-pulse'}`} />
+            <span className={integrityScore === 100 ? 'text-emerald-400' : integrityScore > 70 ? 'text-amber-400' : 'text-rose-400'}>
+              Integrity: {integrityScore}/100
+            </span>
+          </div>
         </div>
 
         {/* Right Header Actions */}
@@ -550,7 +887,10 @@ export const PrivateInterviewRoomPage = () => {
             variant="danger"
             size="sm"
             isLoading={endMutation.isPending}
-            onClick={() => endMutation.mutate()}
+            onClick={() => {
+              cleanupRoomSession();
+              endMutation.mutate();
+            }}
           >
             <PhoneOff className="w-4 h-4 mr-1.5" /> End Interview
           </Button>
@@ -560,9 +900,9 @@ export const PrivateInterviewRoomPage = () => {
       {/* 2. MAIN INTERVIEW WORKSPACE GRID */}
       <main className="flex-1 grid grid-cols-12 gap-4 p-4 overflow-hidden relative">
         {/* VIDEO & MEDIA STREAMS STAGE (8 Cols) */}
-        <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
+        <div className="col-span-12 lg:col-span-8 flex flex-col relative">
           {/* Main Video Box */}
-          <div className="relative flex-1 bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden flex items-center justify-center shadow-2xl">
+          <div className="relative flex-1 bg-slate-950 rounded-2xl border border-slate-800/60 overflow-hidden flex items-center justify-center shadow-premium-dark">
             <video
               ref={remoteVideoRef}
               autoPlay
@@ -573,15 +913,15 @@ export const PrivateInterviewRoomPage = () => {
             {/* Remote Avatar Connecting State */}
             {!isRemoteConnected && (
               <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950 p-6 text-center space-y-4">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-brand-600 to-purple-600 flex items-center justify-center text-white text-3xl font-extrabold shadow-2xl border-4 border-slate-800">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-brand-600 to-purple-600 flex items-center justify-center text-white text-3xl font-extrabold shadow-2xl border-4 border-slate-800 animate-pulse-slow">
                   {currentUserRole === 'company' ? (candidate?.fullName?.[0] || 'C') : (company?.companyName?.[0] || 'R')}
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-white">
-                    {currentUserRole === 'company' ? (candidate?.fullName || 'Candidate Candidate') : (company?.companyName || 'Lead Tech Recruiter')}
+                    {currentUserRole === 'company' ? (candidate?.fullName || 'Candidate') : (company?.companyName || 'Interviewer')}
                   </h3>
-                  <p className="text-xs text-slate-400 font-medium">
-                    {currentUserRole === 'company' ? (candidate?.headline || 'Senior Applicant') : 'Enterprise Interviewer'}
+                  <p className="text-xs text-slate-400 font-medium mt-1">
+                    {currentUserRole === 'company' ? (candidate?.headline || 'Tech Applicant') : 'Interviewer'}
                   </p>
                 </div>
 
@@ -590,15 +930,15 @@ export const PrivateInterviewRoomPage = () => {
                 </Badge>
 
                 {isHandRaised && (
-                  <Badge variant="amber" className="animate-bounce">
+                  <Badge variant="warning" className="animate-bounce">
                     <Hand className="w-3.5 h-3.5 mr-1" /> Hand Raised
                   </Badge>
                 )}
               </div>
             )}
 
-            {/* Local Video Picture-in-Picture Box */}
-            <div className="absolute bottom-4 right-4 w-44 aspect-video rounded-2xl bg-slate-900 border-2 border-brand-500/50 shadow-2xl overflow-hidden">
+            {/* Local Video Picture-in-Picture Box (Moved higher to avoid overlaying controls) */}
+            <div className="absolute bottom-20 right-4 w-44 aspect-video rounded-2xl bg-slate-900 border border-slate-700/50 shadow-2xl overflow-hidden z-20">
               <video
                 ref={localVideoRef}
                 autoPlay
@@ -615,97 +955,99 @@ export const PrivateInterviewRoomPage = () => {
                 You ({currentUserRole})
               </div>
             </div>
-          </div>
 
-          {/* 3. FLOATING BOTTOM MEDIA CONTROLS BAR (GOOGLE MEET STYLE) */}
-          <div className="h-16 px-6 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setMicOn(!micOn)}
-                className={`p-3 rounded-xl transition-all ${
-                  micOn ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-rose-600 text-white'
-                }`}
-                title="Toggle Microphone"
-              >
-                {micOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={() => setCameraOn(!cameraOn)}
-                className={`p-3 rounded-xl transition-all ${
-                  cameraOn ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-rose-600 text-white'
-                }`}
-                title="Toggle Camera"
-              >
-                {cameraOn ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={handleToggleScreenShare}
-                className={`p-3 rounded-xl transition-all ${
-                  isScreenSharing ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-                title="Share Screen"
-              >
-                <Monitor className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setIsHandRaised(!isHandRaised)}
-                className={`p-3 rounded-xl transition-all ${
-                  isHandRaised ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-                title="Raise Hand"
-              >
-                <Hand className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleToggleFullscreen}
-                className="p-3 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all"
-                title="Fullscreen Toggle"
-              >
-                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  activeTab === 'chat' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                <MessageSquare className="w-3.5 h-3.5" /> Chat ({chatMessages.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('code')}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  activeTab === 'code' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                <Code2 className="w-3.5 h-3.5" /> Live Code
-              </button>
-              <button
-                onClick={() => setActiveTab('whiteboard')}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  activeTab === 'whiteboard' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                <Palette className="w-3.5 h-3.5" /> Whiteboard
-              </button>
-              {currentUserRole === 'company' && (
+            {/* FLOATING MEDIA CONTROLS BAR */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 px-6 py-2.5 rounded-full bg-slate-900/90 border border-slate-800/80 backdrop-blur-md shadow-2xl flex flex-wrap items-center gap-3.5 max-w-[95%]">
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setActiveTab('notes')}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    activeTab === 'notes' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
+                  onClick={() => setMicOn(!micOn)}
+                  className={`p-2.5 rounded-full transition-all ${
+                    micOn ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-rose-600 text-white'
+                  }`}
+                  title="Toggle Microphone"
+                >
+                  {micOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => setCameraOn(!cameraOn)}
+                  className={`p-2.5 rounded-full transition-all ${
+                    cameraOn ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-rose-600 text-white'
+                  }`}
+                  title="Toggle Camera"
+                >
+                  {cameraOn ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={handleToggleScreenShare}
+                  className={`p-2.5 rounded-full transition-all ${
+                    isScreenSharing ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                  title="Share Screen"
+                >
+                  <Monitor className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsHandRaised(!isHandRaised)}
+                  className={`p-2.5 rounded-full transition-all ${
+                    isHandRaised ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                  title="Raise Hand"
+                >
+                  <Hand className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleToggleFullscreen}
+                  className="p-2.5 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all"
+                  title="Fullscreen Toggle"
+                >
+                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </button>
+              </div>
+
+              <div className="h-6 w-[1px] bg-slate-800 hidden sm:block" />
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('chat')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'chat' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
                   }`}
                 >
-                  <FileText className="w-3.5 h-3.5" /> Recruiter Panel
+                  <MessageSquare className="w-3.5 h-3.5" /> Chat ({chatMessages.length})
                 </button>
-              )}
+                <button
+                  onClick={() => setActiveTab('code')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'code' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Code2 className="w-3.5 h-3.5" /> Code
+                </button>
+                <button
+                  onClick={() => setActiveTab('whiteboard')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'whiteboard' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Palette className="w-3.5 h-3.5" /> Board
+                </button>
+                {currentUserRole === 'company' && (
+                  <button
+                    onClick={() => setActiveTab('notes')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      activeTab === 'notes' ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" /> Recruiter
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* 4. INTERACTIVE PANELS (RIGHT 4 COLS) */}
-        <div className="col-span-12 lg:col-span-4 flex flex-col bg-slate-900/90 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+        <div className="col-span-12 lg:col-span-4 flex flex-col bg-slate-900/90 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
           {/* Panel Header */}
           <div className="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
             <span className="text-xs font-extrabold text-white uppercase tracking-wider">

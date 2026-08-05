@@ -2,6 +2,11 @@ import http from 'http';
 import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { logger } from './utils/logger.js';
+
+import mongoose from 'mongoose';
+import { realtimeMongoosePlugin } from './utils/realtime.js';
+mongoose.plugin(realtimeMongoosePlugin);
+
 import app from './app.js';
 import { initSocketServer } from './sockets/notification.socket.js';
 import { initRedis } from './config/redis.js';

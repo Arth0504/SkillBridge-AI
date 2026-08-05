@@ -25,6 +25,8 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      setAccessToken(token);
+
       if (storedRole === 'admin') {
         setUser({
           _id: 'admin-1',

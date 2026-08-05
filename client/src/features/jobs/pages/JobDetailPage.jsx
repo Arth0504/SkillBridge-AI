@@ -132,7 +132,7 @@ export const JobDetailPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-panel p-8 rounded-3xl space-y-6"
+        className="glass-panel p-8 rounded-2xl space-y-6"
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200/80 dark:border-slate-800/80 pb-6">
           <div className="space-y-2">

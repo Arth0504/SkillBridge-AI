@@ -19,6 +19,7 @@ import {
   Activity,
   Lock,
   BarChart3,
+  Globe,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -29,10 +30,13 @@ export const Sidebar = ({ role = 'candidate', isCollapsed, onToggle }) => {
       { label: 'Saved Jobs', icon: Briefcase, path: '/candidate/saved-jobs' },
       { label: 'Applications', icon: FileText, path: '/candidate/applications' },
       { label: 'AI Resume Analyzer', icon: Sparkles, path: '/candidate/resume-analyzer' },
+      { label: 'AI Resume Builder', icon: FileText, path: '/candidate/resume-builder' },
+      { label: 'AI Portfolio Builder', icon: Globe, path: '/candidate/portfolio-builder' },
+      { label: 'AI Career Copilot', icon: Sparkles, path: '/candidate/ai-career-copilot' },
       { label: 'AI Mock Interview', icon: MessageSquare, path: '/candidate/ai-interview' },
       { label: 'AI Coding Assessment', icon: Code2, path: '/candidate/ai-coding' },
       { label: 'AI Video Interview', icon: Video, path: '/candidate/video-interview' },
-      {label: 'Notifications', icon: Bell, path: '/candidate/notifications' },
+      { label: 'Notifications', icon: Bell, path: '/candidate/notifications' },
       { label: 'Profile', icon: User, path: '/candidate/profile' },
       { label: 'Settings', icon: Settings, path: '/candidate/settings' },
     ],
@@ -46,6 +50,7 @@ export const Sidebar = ({ role = 'candidate', isCollapsed, onToggle }) => {
       { label: 'Notifications', icon: Bell, path: '/company/notifications' },
       { label: 'Company Profile', icon: User, path: '/company/profile' },
       { label: 'Settings', icon: Settings, path: '/company/settings' },
+      { label: 'AI Recruiter Copilot', icon: Sparkles, path: '/company/ai-recruiter-copilot' },
     ],
     admin: [
       { label: 'System Overview', icon: LayoutDashboard, path: '/admin/dashboard' },
@@ -58,6 +63,7 @@ export const Sidebar = ({ role = 'candidate', isCollapsed, onToggle }) => {
       { label: 'Platform Settings', icon: Settings, path: '/admin/settings' },
       { label: 'Security Audit Logs', icon: ShieldAlert, path: '/admin/audit' },
       { label: 'Role & RBAC Matrix', icon: Lock, path: '/admin/rbac' },
+      { label: 'Super Admin Center', icon: ShieldAlert, path: '/super-admin' },
     ],
   };
 
@@ -95,17 +101,17 @@ export const Sidebar = ({ role = 'candidate', isCollapsed, onToggle }) => {
         </div>
 
         {/* Nav Links Container */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1.5 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {navItems.map((item, idx) => (
             <NavLink
               key={idx}
               to={item.path}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200',
+                  'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 border-l-2',
                   isActive
-                    ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-md shadow-brand-500/20 font-bold'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-brand-50/70 dark:bg-[#1A1F2C] text-brand-600 dark:text-brand-400 border-brand-500 font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-[#121A2A]/40 hover:text-slate-900 dark:hover:text-white border-transparent'
                 )
               }
               title={isCollapsed ? item.label : undefined}

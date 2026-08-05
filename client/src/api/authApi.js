@@ -56,4 +56,25 @@ export const authApi = {
     const { data } = await api.post(API_ENDPOINTS.AUTH.COMPANY_RESEND_VERIFICATION, { email });
     return data;
   },
+
+  forgotPasswordCandidate: async (email) => {
+    const { data } = await api.post('/auth/candidate/forgot-password', { email });
+    return data;
+  },
+
+  resetPasswordCandidate: async (token, password) => {
+    const { data } = await api.post(`/auth/candidate/reset-password/${token}`, { password });
+    return data;
+  },
+
+  forgotPasswordCompany: async (email) => {
+    const { data } = await api.post('/auth/company/forgot-password', { email });
+    return data;
+  },
+
+  resetPasswordCompany: async (token, password) => {
+    const { data } = await api.post(`/auth/company/reset-password/${token}`, { password });
+    return data;
+  },
 };
+

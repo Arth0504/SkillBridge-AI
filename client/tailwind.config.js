@@ -6,9 +6,9 @@ export default {
     extend: {
       colors: {
         dark: {
-          bg: '#0B0F19',
-          card: '#111827',
-          border: '#1F2937',
+          bg: '#080B10',
+          card: '#0F1622',
+          border: '#1E293B',
           hover: '#1E293B',
         },
         brand: {
@@ -27,17 +27,24 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      boxShadow: {
+        'premium': '0 8px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02)',
+        'premium-hover': '0 12px 40px rgba(0, 0, 0, 0.06), 0 1px 5px rgba(0, 0, 0, 0.03)',
+        'premium-dark': '0 8px 30px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15)',
+        'premium-dark-hover': '0 12px 40px rgba(0, 0, 0, 0.45), 0 1px 5px rgba(0, 0, 0, 0.25)',
+      },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
       },
       keyframes: {
         glow: {
-          '0%': { boxShadow: '0 0 15px rgba(99, 102, 241, 0.3)' },
-          '100%': { boxShadow: '0 0 30px rgba(99, 102, 241, 0.7)' },
+          '0%': { boxShadow: '0 0 15px rgba(99, 102, 241, 0.15)' },
+          '100%': { boxShadow: '0 0 30px rgba(99, 102, 241, 0.45)' },
         },
       },
     },
   },
   plugins: [],
 };
+

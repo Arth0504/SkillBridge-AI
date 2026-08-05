@@ -5,6 +5,7 @@ import {
   getDashboardRecentApplicationsHandler,
   getDashboardJobPerformanceHandler,
   getDashboardInterviewsHandler,
+  getCompanyCopilotAnalyticsHandler,
 } from '../controllers/dashboardCompany.controller.js';
 import { validateDashboardQuery } from '../validations/dashboard.validation.js';
 import { protect, restrictTo } from '../middleware/auth.middleware.js';
@@ -45,5 +46,11 @@ router.get('/job-performance', validateDashboardQuery, getDashboardJobPerformanc
  * @desc Interview schedule overview & details
  */
 router.get('/interviews', validateDashboardQuery, getDashboardInterviewsHandler);
+
+/**
+ * @route GET /api/v1/company/dashboard/copilot/analytics
+ * @desc Dynamic Recruiter Copilot candidates & funnel analytics
+ */
+router.get('/copilot/analytics', getCompanyCopilotAnalyticsHandler);
 
 export default router;

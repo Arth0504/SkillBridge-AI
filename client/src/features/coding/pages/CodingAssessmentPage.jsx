@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Code2, Sparkles, Play, CheckCircle2, History, Award, ArrowRight, Terminal } from 'lucide-react';
-import { Button, Badge, Loader, Textarea } from '../../../components/common';
+import { Code2, Sparkles, Play, CheckCircle2, History, Terminal } from 'lucide-react';
+import { Button, Badge, Textarea } from '../../../components/common';
 import { candidateApi } from '../../../api';
 import toast from 'react-hot-toast';
 
@@ -87,8 +87,11 @@ export const CodingAssessmentPage = () => {
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-          <Code2 className="w-8 h-8 text-brand-500" /> AI Technical Coding Environment
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+          <div className="p-2 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400">
+            <Code2 className="w-7 h-7" />
+          </div>
+          AI Technical Coding Environment
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
           Solve real-time algorithm & data structure challenges evaluated by Gemini AI test runners.
@@ -96,23 +99,23 @@ export const CodingAssessmentPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-800/40 pb-2">
         <button
           onClick={() => setActiveTab('assessments')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'assessments'
-              ? 'bg-brand-600 text-white shadow-md shadow-brand-500/20'
-              : 'text-slate-400 hover:bg-slate-800'
+              ? 'bg-brand-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-[#121A2A]/40'
           }`}
         >
-          <Code2 className="w-4 h-4" /> Available Coding Challenges
+          Available Coding Challenges
         </button>
         <button
           onClick={() => setActiveTab('history')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'history'
-              ? 'bg-brand-600 text-white shadow-md shadow-brand-500/20'
-              : 'text-slate-400 hover:bg-slate-800'
+              ? 'bg-brand-600 text-white shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-[#121A2A]/40'
           }`}
         >
           <History className="w-4 h-4" /> Score History ({history.length})
@@ -138,7 +141,7 @@ export const CodingAssessmentPage = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="glass-card p-6 rounded-3xl border border-slate-800 flex flex-col justify-between space-y-4 hover:border-brand-500/30 transition-all"
+                  className="glass-card p-6 rounded-2xl border border-slate-200/60 dark:border-slate-800/40 flex flex-col justify-between space-y-4 hover:shadow-premium-hover dark:hover:shadow-premium-dark-hover transition-all duration-300"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -147,14 +150,14 @@ export const CodingAssessmentPage = () => {
                         {chal.diff}
                       </Badge>
                     </div>
-                    <h3 className="text-base font-bold text-white mt-1">{chal.title}</h3>
-                    <p className="text-xs text-slate-400">{chal.category} • Expected Time: {chal.time}</p>
+                    <h3 className="text-base font-bold text-slate-850 dark:text-white mt-1">{chal.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{chal.category} • Expected Time: {chal.time}</p>
                   </div>
 
                   <Button
                     variant="primary"
                     size="sm"
-                    className="w-full justify-center"
+                    className="w-full justify-center h-10"
                     isLoading={startMutation.isPending}
                     onClick={() => handleStart(chal.lang, chal.diff)}
                   >
@@ -166,7 +169,7 @@ export const CodingAssessmentPage = () => {
           ) : (
             /* Active Coding Workspace */
             <div className="space-y-6">
-              <div className="glass-panel p-6 rounded-3xl flex justify-between items-center border border-slate-800">
+              <div className="glass-panel p-6 rounded-2xl flex justify-between items-center border border-slate-200/60 dark:border-slate-800/40">
                 <div>
                   <Badge variant="purple">{language}</Badge>
                   <Badge variant="warning" className="ml-2">{difficulty}</Badge>
@@ -179,33 +182,33 @@ export const CodingAssessmentPage = () => {
               {/* Challenge Description & Editor */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left: Problem Prompt */}
-                <div className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-800">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <div className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/60 dark:border-slate-800/40">
+                  <h3 className="text-sm font-bold text-slate-850 dark:text-slate-200 flex items-center gap-2">
                     <Terminal className="w-5 h-5 text-brand-500" /> Challenge Prompt
                   </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-slate-650 dark:text-slate-300 leading-relaxed">
                     {activeAssessment.problemStatement ||
                       'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution.'}
                   </p>
 
-                  <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 font-mono text-xs text-brand-400 space-y-2">
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 font-mono text-[11px] text-slate-700 dark:text-brand-400 space-y-2">
                     <p>Input: nums = [2,7,11,15], target = 9</p>
                     <p>Output: [0,1]</p>
                   </div>
                 </div>
 
                 {/* Right: Code Editor & Submission */}
-                <div className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-800">
-                  <h3 className="text-base font-bold text-white">Solution Code ({language})</h3>
+                <div className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/60 dark:border-slate-800/40">
+                  <h3 className="text-sm font-bold text-slate-850 dark:text-white">Solution Code ({language})</h3>
                   <Textarea
                     rows={12}
-                    className="font-mono text-xs bg-slate-950 text-emerald-400 p-4 rounded-2xl border-slate-800"
+                    className="font-mono text-xs bg-slate-950 text-emerald-400 p-4 rounded-xl border border-slate-800 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500"
                     value={codeSolution}
                     onChange={(e) => setCodeSolution(e.target.value)}
                   />
 
                   <div className="flex justify-end pt-2">
-                    <Button variant="primary" isLoading={submitMutation.isPending} onClick={handleSubmitCode}>
+                    <Button variant="primary" isLoading={submitMutation.isPending} onClick={handleSubmitCode} className="h-10">
                       <Play className="w-4 h-4 mr-1.5" /> Submit & Run Code
                     </Button>
                   </div>
@@ -214,14 +217,14 @@ export const CodingAssessmentPage = () => {
 
               {/* AI Test Evaluation Results */}
               {activeAssessment.lastResult && (
-                <div className="glass-panel p-6 rounded-3xl border border-emerald-500/30 bg-emerald-500/5 space-y-3">
+                <div className="glass-panel p-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4" /> Gemini AI Code Execution Report
                     </h4>
                     <Badge variant="success">Test Score: {activeAssessment.lastResult.score || 100}%</Badge>
                   </div>
-                  <p className="text-xs text-slate-300 font-mono bg-slate-900 p-4 rounded-xl">
+                  <p className="text-xs text-slate-700 dark:text-slate-300 font-mono bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200/50 dark:border-slate-800/45">
                     {activeAssessment.lastResult.feedback || 'All test cases passed cleanly! Time Complexity: O(N), Space Complexity: O(N).'}
                   </p>
                 </div>
@@ -235,13 +238,13 @@ export const CodingAssessmentPage = () => {
       {activeTab === 'history' && (
         <div className="space-y-4">
           {history.length === 0 ? (
-            <p className="text-xs text-slate-400 italic">No coding test attempts logged yet.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 italic">No coding test attempts logged yet.</p>
           ) : (
             history.map((item, idx) => (
-              <div key={item._id || idx} className="glass-card p-6 rounded-3xl border border-slate-800 flex justify-between items-center">
+              <div key={item._id || idx} className="glass-card p-6 rounded-2xl border border-slate-200/60 dark:border-slate-800/40 flex justify-between items-center hover:shadow-premium-hover dark:hover:shadow-premium-dark-hover transition-all duration-300 font-sans">
                 <div>
-                  <h4 className="text-sm font-bold text-white">{item.language || 'Coding Challenge'}</h4>
-                  <p className="text-xs text-slate-400">Tested on {new Date(item.createdAt || Date.now()).toLocaleDateString()}</p>
+                  <h4 className="text-sm font-bold text-slate-850 dark:text-white">{item.language || 'Coding Challenge'}</h4>
+                  <p className="text-xs text-slate-400 mt-1">Tested on {new Date(item.createdAt || Date.now()).toLocaleDateString()}</p>
                 </div>
                 <Badge variant="success">Score: {item.score || 95}%</Badge>
               </div>
@@ -252,3 +255,4 @@ export const CodingAssessmentPage = () => {
     </div>
   );
 };
+

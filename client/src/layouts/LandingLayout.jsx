@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 export const LandingLayout = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-[#0B0F19]">
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-dark-bg">
       <NavbarLanding />
       <motion.main
         initial={{ opacity: 0, y: 10 }}

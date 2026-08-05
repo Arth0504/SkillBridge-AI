@@ -1,0 +1,164 @@
+/* Enterprise Portfolio Builder Templates & Device Frames */
+
+/* --- Base Portfolio Canvas Sheet --- */
+.portfolio-canvas {
+  width: 100%;
+  min-height: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+/* --- Device View Frame Presets --- */
+.device-frame-desktop {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+.device-frame-tablet {
+  width: 768px;
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: 20px;
+  border: 10px solid #1e293b;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+}
+
+.device-frame-mobile {
+  width: 375px;
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: 36px;
+  border: 12px solid #0f172a;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+}
+
+/* --- Template Preset 1: Developer Terminal --- */
+.template-developer {
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: 'JetBrains Mono', monospace;
+}
+.template-developer .portfolio-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+}
+.template-developer .accent-text {
+  color: #58a6ff;
+}
+
+/* --- Template Preset 2: Software Engineer --- */
+.template-software-engineer {
+  background: #0f172a;
+  color: #f8fafc;
+  font-family: 'Inter', sans-serif;
+}
+.template-software-engineer .portfolio-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+/* --- Template Preset 3: Full Stack Gradient --- */
+.template-fullstack {
+  background: #090d16;
+  color: #f1f5f9;
+  font-family: 'Outfit', sans-serif;
+}
+.template-fullstack .portfolio-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* --- Template Preset 4: Designer Showcase --- */
+.template-designer {
+  background: #09090b;
+  color: #fafafa;
+  font-family: 'Outfit', sans-serif;
+}
+.template-designer .portfolio-card {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 16px;
+}
+
+/* --- Template Preset 5: Minimal --- */
+.template-minimal {
+  background: #ffffff;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
+}
+.template-minimal .portfolio-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+/* --- Template Preset 6: Creative --- */
+.template-creative {
+  background: #111827;
+  color: #f9fafb;
+  font-family: 'Outfit', sans-serif;
+}
+.template-creative .portfolio-card {
+  background: #1f2937;
+  border: 1px solid #374151;
+}
+
+/* --- Template Preset 7: Startup SaaS --- */
+.template-startup {
+  background: #030712;
+  color: #f3f4f6;
+  font-family: 'Inter', sans-serif;
+}
+.template-startup .portfolio-card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+}
+
+/* --- Template Preset 8: Corporate --- */
+.template-corporate {
+  background: #0b1329;
+  color: #e2e8f0;
+  font-family: 'Roboto', sans-serif;
+}
+.template-corporate .portfolio-card {
+  background: #132247;
+  border: 1px solid #1e3a8a;
+}
+
+/* --- Template Preset 9: Glassmorphism --- */
+.template-glassmorphism {
+  background: radial-gradient(circle at top left, #1e1b4b, #0f172a, #030712);
+  color: #f8fafc;
+  font-family: 'Outfit', sans-serif;
+}
+.template-glassmorphism .portfolio-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* --- Template Preset 10: Dark Neon Cyber --- */
+.template-dark-neon {
+  background: #05050a;
+  color: #00f0ff;
+  font-family: 'JetBrains Mono', monospace;
+}
+.template-dark-neon .portfolio-card {
+  background: #0a0a14;
+  border: 1px solid #00f0ff;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+.template-dark-neon h1, .template-dark-neon h2, .template-dark-neon h3 {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+/* --- Particle background helper --- */
+.particle-bg {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
+}

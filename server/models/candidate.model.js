@@ -96,6 +96,11 @@ const candidateSchema = new mongoose.Schema(
       portfolio: { type: String, default: '' },
       twitter: { type: String, default: '' },
     },
+    resumeTemplate: {
+      layout: { type: String, default: 'modern' },
+      colorTheme: { type: String, default: 'navy' },
+      font: { type: String, default: 'sans' },
+    },
     profileCompleted: {
       type: Boolean,
       default: false,

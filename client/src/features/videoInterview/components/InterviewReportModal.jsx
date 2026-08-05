@@ -55,7 +55,7 @@ export const InterviewReportModal = ({ isOpen, onClose, reportData }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Private Interview Summary Report">
       <div className="space-y-6">
         {/* Candidate & Job Banner */}
-        <div className="p-4 rounded-3xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center font-black text-white text-lg shadow-lg">
               {candidate.fullName?.[0] || 'C'}

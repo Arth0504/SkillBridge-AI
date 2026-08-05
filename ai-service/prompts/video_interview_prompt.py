@@ -2,25 +2,34 @@ def get_video_question_prompt(
     interview_type: str,
     candidate_skills: list = None,
     job_description: str = None,
-    custom_questions: list = None
+    custom_questions: list = None,
+    previous_questions: list = None
 ) -> str:
-    skills_str = ", ".join(candidate_skills) if candidate_skills else "Software Engineering and Leadership"
+    skills_str = ", ".join(candidate_skills) if candidate_skills else "Software Engineering and Architecture"
     custom_str = "\n".join([f"- Custom Question: {q}" for q in (custom_questions or [])])
+    prev_str = "\n".join([f"- [Already Asked] Q{idx+1}: {q.get('questionText')}" for idx, q in enumerate(previous_questions or [])])
     jd_str = f"\nTarget Job Context: {job_description}" if job_description else ""
 
     return f"""
 You are an Executive Talent Acquisition Lead constructing an asynchronous video interview question set (HireVue style).
-Generate a compelling video interview question for a {interview_type} candidate.
+Generate a compelling, unique video interview question for a {interview_type} candidate.
 
 Candidate Core Skills: {skills_str}
 {jd_str}
 {custom_str if custom_str else ""}
 
+SESSION ALREADY ASKED QUESTIONS (STRICTLY DO NOT REPEAT ANY):
+{prev_str if prev_str else "None yet"}
+
+CRITICAL RULES:
+1. DUPLICATE PREVENTION: Never ask any question identical or similar to those listed under ALREADY ASKED QUESTIONS.
+2. TOPIC DIVERSITY: Rotate across technical depth, system architecture, team collaboration, and problem-solving framework.
+
 Output ONLY a raw valid JSON object. Do NOT wrap in markdown code blocks.
 
 Return JSON with exact keys:
 {{
-  "questionText": "<the video interview question statement>",
+  "questionText": "<the unique video interview question statement>",
   "category": "<HR | Technical | Behavioral | Managerial | Custom>",
   "timeLimitSeconds": <recommended response time limit in seconds, e.g. 120>,
   "expectedKeyPoints": [<3-5 key points candidate should address in their video response>],

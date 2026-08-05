@@ -7,9 +7,9 @@ import { logger } from '../utils/logger.js';
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000';
 const SHARED_SECRET = process.env.AI_SHARED_SECRET || 'skillbridge_secret_ai_key_2026';
-const TIMEOUT_MS = 15000;
+const TIMEOUT_MS = 3000;
 
-const postToAIService = async (endpoint, data, retries = 2) => {
+const postToAIService = async (endpoint, data, retries = 1) => {
   const url = `${AI_SERVICE_URL}${endpoint}`;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
@@ -260,13 +260,82 @@ export const submitAnswerService = async ({ sessionId, candidateIdStr, answerTex
       logger.info(`FastAPI AI question generator offline (${err.message}).`);
     }
 
+    const alreadyAskedTexts = session.questions.map((q) => (q.questionText || '').toLowerCase().trim());
+
+    if (nextQ && nextQ.questionText) {
+      const qNorm = nextQ.questionText.toLowerCase().trim();
+      const isDup = alreadyAskedTexts.some((asked) => asked && (asked.includes(qNorm.slice(0, 25)) || qNorm.includes(asked.slice(0, 25))));
+      if (isDup) {
+        nextQ = null;
+      }
+    }
+
     if (!nextQ) {
-      nextQ = {
-        questionText: `Follow-up (${nextDifficulty}): How would you optimize the performance and handle error cases in the solution you described?`,
-        category: 'Technical',
-        difficulty: nextDifficulty,
-        expectedKeyPoints: ['Error handling', 'Performance optimization', 'Monitoring'],
-      };
+      const BACKEND_QUESTION_BANK = [
+        {
+          topic: "React State & Debugging",
+          questionText: "How did you debug your most challenging React state management or memory leak issue, and how did you measure performance improvements?",
+          category: "Technical",
+          expectedKeyPoints: ["React DevTools Profiler", "Memory heap snapshots", "Referential equality fixes", "Render profiling metrics"]
+        },
+        {
+          topic: "JavaScript Event Loop & Concurrency",
+          questionText: "Can you explain how asynchronous non-blocking event loops work in Node.js, and how you prevent event loop starvation under high concurrency?",
+          category: "Technical",
+          expectedKeyPoints: ["Event loop phases", "libuv thread pool", "process.nextTick vs setImmediate", "Avoiding heavy CPU blocking work"]
+        },
+        {
+          topic: "MongoDB Indexing & Query Tuning",
+          questionText: "How do you approach database index optimization in MongoDB when handling high volume query patterns using the ESR (Equality, Sort, Range) rule?",
+          category: "Technical",
+          expectedKeyPoints: ["Compound indexes", "ESR rule", "explain('executionStats')", "Covered queries"]
+        },
+        {
+          topic: "Express Security & Middleware Architecture",
+          questionText: "What strategies do you implement to secure REST API endpoints in Express against CORS misconfigurations, CSRF, XSS, and SQL/NoSQL injection?",
+          category: "Technical",
+          expectedKeyPoints: ["HttpOnly SameSite cookies", "CSP headers", "Input validation and sanitization", "CORS origin whitelisting"]
+        },
+        {
+          topic: "System Design & Distributed Messaging",
+          questionText: "How would you design a real-time notification system handling millions of concurrent users with web sockets and message queues?",
+          category: "System Design",
+          expectedKeyPoints: ["Socket.IO with Redis Pub/Sub", "Kafka/RabbitMQ queue ingestion", "Horizontal scaling", "Heartbeat monitoring"]
+        },
+        {
+          topic: "Behavioral Incident Triage",
+          questionText: "Describe a scenario where a critical production feature broke under peak traffic. How did you debug, hotfix, and prevent future recurrences?",
+          category: "Behavioral",
+          expectedKeyPoints: ["Incident triage & log analysis", "Hotfix vs rollback strategy", "Blameless post-mortem", "Automated regression tests"]
+        },
+        {
+          topic: "Project Architecture & Trade-offs",
+          questionText: "Tell me about the most technically ambitious project you built recently. What was the core architectural challenge and what trade-offs did you make?",
+          category: "Technical",
+          expectedKeyPoints: ["Clear system overview", "Explicit architectural trade-offs", "Quantifiable metrics", "Lessons learned"]
+        }
+      ];
+
+      const uniquePoolItem = BACKEND_QUESTION_BANK.find((item) => {
+        const itemTextNorm = item.questionText.toLowerCase().trim();
+        return !alreadyAskedTexts.some((asked) => asked && (asked.includes(itemTextNorm.slice(0, 25)) || itemTextNorm.includes(asked.slice(0, 25))));
+      });
+
+      if (uniquePoolItem) {
+        nextQ = {
+          questionText: uniquePoolItem.questionText,
+          category: uniquePoolItem.category,
+          difficulty: nextDifficulty,
+          expectedKeyPoints: uniquePoolItem.expectedKeyPoints,
+        };
+      } else {
+        nextQ = {
+          questionText: `Follow-up (${nextDifficulty}): How do you handle continuous integration, automated testing, and software quality assurance when shipping production code?`,
+          category: 'Technical',
+          difficulty: nextDifficulty,
+          expectedKeyPoints: ['Automated testing', 'CI/CD pipeline', 'Quality metrics'],
+        };
+      }
     }
 
     const nextQDiff = sanitizeInterviewConfig(nextQ.difficulty, null).difficulty;

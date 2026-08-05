@@ -9,6 +9,8 @@ import { generateRefreshToken } from '../utils/generateRefreshToken.js';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
 import { logger } from '../utils/logger.js';
+import { ipLocation } from '../utils/geo.js';
+import { requestContextStore } from '../middleware/context.middleware.js';
 
 /**
  * Log Security Audit Event
@@ -23,16 +25,25 @@ export const logSecurityEvent = async ({
   details = {},
 }) => {
   try {
-    const deviceInfo = parseUserAgent(userAgent);
+    const context = requestContextStore.getStore();
+    const finalIp = context?.ipAddress || ipAddress;
+    const finalUserAgent = context?.userAgent || userAgent;
+    const deviceInfo = parseUserAgent(finalUserAgent);
+    const { country, city } = ipLocation(finalIp);
+
     await AuditLog.create({
-      userId,
-      userModel,
+      userId: context?.userId || userId,
+      userModel: context?.userId ? (context.role === 'company' ? 'Company' : 'Candidate') : userModel,
+      role: context?.role || (userModel === 'Company' ? 'company' : userModel === 'Candidate' ? 'candidate' : 'unknown'),
       action,
-      ipAddress,
-      userAgent,
+      ipAddress: finalIp,
+      userAgent: finalUserAgent,
       deviceInfo,
+      country,
+      city,
+      requestId: context?.requestId || '',
       status,
-      details,
+      metadata: details,
     });
   } catch (err) {
     logger.warn(`Failed to write audit log [${action}]: ${err.message}`);

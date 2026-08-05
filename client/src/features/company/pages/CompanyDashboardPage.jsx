@@ -17,7 +17,7 @@ import {
   Activity,
   ChevronRight,
 } from 'lucide-react';
-import { Button, Badge, Loader } from '../../../components/common';
+import { Button, Badge, Loader, AnimatedMetricCard, LiveActivityFeed } from '../../../components/common';
 import { Avatar } from '../../../components/common/Avatar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
@@ -68,7 +68,7 @@ export const CompanyDashboardPage = () => {
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-panel p-8 rounded-3xl relative overflow-hidden bg-gradient-to-r from-slate-900 via-brand-950/40 to-slate-900 border border-brand-500/20 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+        className="glass-panel p-8 rounded-2xl relative overflow-hidden bg-gradient-to-r from-slate-900 via-brand-950/40 to-slate-900 border border-brand-500/20 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
       >
         <div className="space-y-3 max-w-2xl">
           <div className="flex items-center gap-2">
@@ -115,21 +115,14 @@ export const CompanyDashboardPage = () => {
       {/* 2. Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((st, idx) => (
-          <motion.div
+          <AnimatedMetricCard
             key={idx}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.08 }}
-            className="glass-card p-6 rounded-2xl flex items-center justify-between border border-slate-200/80 dark:border-slate-800 hover:shadow-xl transition-all hover:-translate-y-1"
-          >
-            <div>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{st.label}</p>
-              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1.5">{st.value}</h3>
-            </div>
-            <div className={`p-3.5 rounded-2xl ${st.bg} ${st.color} shadow-inner`}>
-              <st.icon className="w-6 h-6" />
-            </div>
-          </motion.div>
+            label={st.label}
+            value={st.value}
+            icon={st.icon}
+            color={st.color}
+            bg={st.bg}
+          />
         ))}
       </div>
 
@@ -139,7 +132,7 @@ export const CompanyDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-6 border border-slate-200/80 dark:border-slate-800"
+          className="glass-panel p-6 rounded-2xl space-y-6 border border-slate-200/80 dark:border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -175,7 +168,7 @@ export const CompanyDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-2 glass-panel p-6 rounded-3xl space-y-4 border border-slate-200/80 dark:border-slate-800"
+          className="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -220,7 +213,7 @@ export const CompanyDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200/80 dark:border-slate-800"
+          className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -258,28 +251,15 @@ export const CompanyDashboardPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200/80 dark:border-slate-800"
+          className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-200/80 dark:border-slate-800"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Activity className="w-5 h-5 text-brand-500" /> Recent Candidate Activity
+              <Activity className="w-5 h-5 text-brand-500" /> Real-time Activity Feed
             </h3>
           </div>
 
-          <div className="space-y-3">
-            {recentApps.map((act, idx) => (
-              <div key={idx} className="p-4 rounded-2xl bg-slate-100/60 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">{act.candidateName}</h4>
-                    {act.matchScore && <Badge variant="purple">{act.matchScore}% Match</Badge>}
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{act.role} • {act.createdAt}</p>
-                </div>
-                <Badge variant="info">{act.status}</Badge>
-              </div>
-            ))}
-          </div>
+          <LiveActivityFeed limit={4} userFilter={{ id: user?._id || user?.id, role: 'company' }} />
         </motion.div>
       </div>
     </div>

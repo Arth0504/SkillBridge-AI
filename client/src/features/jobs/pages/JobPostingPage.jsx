@@ -150,7 +150,7 @@ export const JobPostingPage = () => {
         </Button>
       </div>
 
-      <form onSubmit={(e) => submit(e, 'open')} className="glass-panel p-6 sm:p-8 rounded-3xl space-y-6">
+      <form onSubmit={(e) => submit(e, 'open')} className="glass-panel p-6 sm:p-8 rounded-2xl space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input required label="Job Title *" value={form.title} onChange={update('title')} placeholder="e.g. Senior AI Platform Engineer" />
           <Input label="Department" value={form.department} onChange={update('department')} placeholder="e.g. Core AI Engineering" />

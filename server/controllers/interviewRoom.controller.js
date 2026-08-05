@@ -202,31 +202,22 @@ export const getPrivateInterviewRoom = async (req, res, next) => {
       });
     }
 
-    // Check for Expiration (410 Gone)
-    const scheduledTime = new Date(room.scheduledDate || room.scheduledAt || room.createdAt).getTime();
-    const durationMs = (room.durationMinutes || room.duration || 45) * 60 * 1000;
-    const expirationBufferMs = 120 * 60 * 1000; // 2 hours window
-    const isPastExpiration = Date.now() > scheduledTime + durationMs + expirationBufferMs;
-
-    if (room.status === 'expired' || (room.status === 'scheduled' && isPastExpiration)) {
-      if (room.status !== 'expired') {
-        room.status = 'expired';
-        await room.save();
-      }
+    // Check for Expiration / Cancellation (410 Gone)
+    if (room.status === 'expired' || room.status === 'cancelled') {
       return res.status(410).json({
         success: false,
         statusCode: 410,
         error: 'Gone',
         isExpired: true,
-        message: '410 Gone: This private interview room session link has expired.',
+        message: `410 Gone: This private interview room session link has been ${room.status}.`,
       });
     }
 
     // Handle Completed Interview Read-Only Mode
     const isReadOnly = room.status === 'completed';
 
-    // Update status to 'live' if transitioning from 'scheduled'
-    if (room.status === 'scheduled' && !isPastExpiration) {
+    // Transition status to 'live' when Company or Candidate joins a scheduled room
+    if (room.status === 'scheduled') {
       room.status = 'live';
       room.startTime = room.startTime || new Date();
       room.startedAt = room.startedAt || new Date();

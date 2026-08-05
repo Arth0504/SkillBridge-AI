@@ -129,7 +129,7 @@ export const CompanyProfilePage = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Company Header Card with Logo & View Public Profile */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-3xl space-y-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-8 rounded-2xl space-y-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-800 pb-6">
             <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left flex-1">
               <Avatar src={profile.logoUrl} name={profile.companyName} size="xl" isSquare className="w-24 h-24 rounded-2xl shrink-0" />

@@ -22,3 +22,6 @@ export * from './Badge';
 export * from './EmptyState';
 export * from './ErrorState';
 export * from './ErrorBoundary';
+export * from './AnimatedCounter';
+export * from './AnimatedMetricCard';
+export * from './LiveActivityFeed';

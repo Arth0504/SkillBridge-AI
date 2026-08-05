@@ -52,3 +52,23 @@ class AnalyzeResumeRequest(BaseModel):
 class JobMatchRequest(BaseModel):
     resumeText: str
     jobDescription: str
+
+class SuggestContentRequest(BaseModel):
+    section: str
+    context: str
+
+class SuggestContentResponse(BaseModel):
+    suggestions: List[str] = []
+    suggestedText: str = ""
+
+class CheckGrammarRequest(BaseModel):
+    text: str
+
+class CorrectionItem(BaseModel):
+    original: str
+    correction: str
+    explanation: str
+
+class CheckGrammarResponse(BaseModel):
+    corrections: List[CorrectionItem] = []
+    correctedText: str = ""

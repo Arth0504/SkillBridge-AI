@@ -113,7 +113,7 @@ export const OfferLetterGeneratorModal = ({ isOpen, onClose, application }) => {
         ) : (
           <div className="space-y-6 print:m-0 print:p-0">
             {/* Printable Offer Document Card */}
-            <div id="printable-offer" className="p-8 rounded-3xl bg-slate-950 border-2 border-brand-500/30 text-white space-y-6 shadow-2xl">
+            <div id="printable-offer" className="p-8 rounded-2xl bg-slate-950 border-2 border-brand-500/30 text-white space-y-6 shadow-2xl">
               <div className="flex justify-between items-center border-b border-slate-800 pb-6">
                 <div>
                   <h1 className="text-2xl font-black tracking-tight text-white">{generatedOffer.companyName}</h1>
