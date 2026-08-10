@@ -151,6 +151,11 @@ const interviewSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    isDemo: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,

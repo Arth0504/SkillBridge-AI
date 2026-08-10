@@ -52,15 +52,54 @@ export const globalLimiter = rateLimit({
 });
 
 /**
- * XSS Input Sanitization Middleware (Strips dangerous script tags & malicious HTML from strings)
+ * AI Services Endpoint Rate Limiter (30 requests / 15 minutes in prod)
+ */
+export const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 30 : 10000,
+  skip: () => process.env.NODE_ENV !== 'production',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many requests to AI endpoints. Please wait 15 minutes.',
+    data: null,
+    errors: ['AI rate limit exceeded'],
+  },
+});
+
+/**
+ * File & Resume Upload Rate Limiter (20 uploads / 15 minutes in prod)
+ */
+export const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 20 : 10000,
+  skip: () => process.env.NODE_ENV !== 'production',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'File upload rate limit reached. Please try again in 15 minutes.',
+    data: null,
+    errors: ['Upload rate limit exceeded'],
+  },
+});
+
+/**
+ * XSS Input Sanitization Middleware (Strips dangerous script tags, handlers & malicious HTML from strings)
  */
 export const sanitizeInputs = (req, _res, next) => {
   const sanitizeValue = (val) => {
     if (typeof val === 'string') {
       return val
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
         .replace(/javascript:/gi, '')
-        .replace(/onerror\s*=/gi, '');
+        .replace(/onerror\s*=/gi, '')
+        .replace(/onload\s*=/gi, '')
+        .replace(/onclick\s*=/gi, '')
+        .replace(/onmouseover\s*=/gi, '')
+        .replace(/eval\s*\(/gi, '');
     }
     if (val !== null && typeof val === 'object') {
       for (const key of Object.keys(val)) {
@@ -93,6 +132,14 @@ export const configureSecurityMiddlewares = (app) => {
           upgradeInsecureRequests: [],
         },
       },
+      hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+      },
+      referrerPolicy: {
+        policy: 'strict-origin-when-cross-origin',
+      },
       crossOriginEmbedderPolicy: false,
       frameguard: { action: 'deny' },
       xssFilter: true,
@@ -101,7 +148,7 @@ export const configureSecurityMiddlewares = (app) => {
   );
 
   // 2. Hardened Cross-Origin Resource Sharing (CORS)
-  const allowedOrigins = [env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'];
+  const allowedOrigins = [env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean);
   app.use(
     cors({
       origin: (origin, callback) => {

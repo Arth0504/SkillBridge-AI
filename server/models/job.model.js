@@ -163,6 +163,11 @@ const jobSchema = new mongoose.Schema(
       ref: 'Company',
       required: [true, 'Creator company ID is required'],
     },
+    isDemo: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,

@@ -8,18 +8,17 @@ export const notFoundHandler = (req, _res, next) => {
 };
 
 const handleCastErrorDB = (err) => {
-  const message = `Invalid ${err.path}: ${err.value}.`;
+  const message = `Invalid request parameter: ${err.path || 'id'}.`;
   return new AppError(message, 400);
 };
 
-const handleDuplicateFieldsDB = (err) => {
-  const value = err.errmsg ? err.errmsg.match(/(["'])(\\?.)*?\1/)?.[0] : 'field value';
-  const message = `Duplicate field value: ${value}. Please use another value!`;
-  return new AppError(message, 400);
+const handleDuplicateFieldsDB = (_err) => {
+  const message = 'A record with this information already exists. Please use another value.';
+  return new AppError(message, 409);
 };
 
 const handleValidationErrorDB = (err) => {
-  const errors = Object.values(err.errors).map((el) => el.message);
+  const errors = err.errors ? Object.values(err.errors).map((el) => el.message) : ['Invalid input'];
   const message = `Invalid input data. ${errors.join('. ')}`;
   return new AppError(message, 400);
 };

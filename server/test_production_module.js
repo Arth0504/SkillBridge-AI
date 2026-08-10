@@ -66,8 +66,8 @@ const runProductionTests = async () => {
       healthRes.status === 200 &&
       healthData.success === true &&
       healthData.data.status !== undefined &&
-      healthData.data.services.mongodb.status === 'connected' &&
-      healthData.data.backend.memoryUsageMB !== undefined
+      (healthData.data.services.database.status === 'Healthy' || healthData.data.services.database.status === 'connected') &&
+      healthData.data.system.memoryUsedMB !== undefined
     ) {
       console.log('✅ TEST 2 PASSED: Health diagnostic endpoint verified.');
     } else {

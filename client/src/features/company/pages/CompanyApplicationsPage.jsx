@@ -106,6 +106,19 @@ export const CompanyApplicationsPage = () => {
     },
   });
 
+  const onboardMutation = useMutation({
+    mutationFn: (appId) => companyApi.onboardEmployee({ applicationId: appId }),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Candidate auto-onboarded to HRMS!');
+      queryClient.invalidateQueries({ queryKey: ['company-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['company-employees'] });
+      navigate('/company/employees');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Auto onboarding failed.');
+    },
+  });
+
   const handleSaveNotes = () => {
     if (!selectedApp) return;
     feedbackMutation.mutate({ id: selectedApp._id, feedback: feedbackNote });
@@ -459,7 +472,6 @@ export const CompanyApplicationsPage = () => {
           ))}
         </div>
       )}
-
       {/* Candidate Profile Drawer */}
       <Drawer
         isOpen={Boolean(selectedApp)}
@@ -468,10 +480,27 @@ export const CompanyApplicationsPage = () => {
       >
         {selectedApp && (
           <div className="space-y-6">
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-              <h4 className="text-sm font-bold text-white">{selectedApp.candidate?.fullName}</h4>
-              <p className="text-xs text-slate-400">{selectedApp.candidate?.email}</p>
-              <Badge variant="purple">Stage: {selectedApp.status}</Badge>
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h4 className="text-sm font-bold text-white">{selectedApp.candidate?.fullName}</h4>
+                  <p className="text-xs text-slate-400">{selectedApp.candidate?.email}</p>
+                </div>
+                <Badge variant="purple">Stage: {selectedApp.status}</Badge>
+              </div>
+
+              {/* Auto Onboard to HRMS Action Button */}
+              <div className="pt-2 border-t border-slate-800">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full justify-center"
+                  isLoading={onboardMutation.isPending}
+                  onClick={() => onboardMutation.mutate(selectedApp._id)}
+                >
+                  <Sparkles className="w-4 h-4 mr-2 text-brand-400" /> Auto Onboard to HRMS
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">

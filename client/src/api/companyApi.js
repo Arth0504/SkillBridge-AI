@@ -32,6 +32,16 @@ export const companyApi = {
     return data;
   },
 
+  seedDemoAnalytics: async () => {
+    const { data } = await api.post('/company/dashboard/seed-demo');
+    return data;
+  },
+
+  clearDemoAnalytics: async () => {
+    const { data } = await api.delete('/company/dashboard/seed-demo');
+    return data;
+  },
+
   // Company Profile
   getProfile: async () => {
     const { data } = await api.get('/company/profile');
@@ -173,6 +183,27 @@ export const companyApi = {
 
   deleteNotification: async (id) => {
     const { data } = await api.delete(`/company/notifications/${id}`);
+    return data;
+  },
+
+  // Enterprise HRMS Employee Auto-Onboarding
+  onboardEmployee: async (payload) => {
+    const { data } = await api.post('/company/employees/onboard', payload);
+    return data;
+  },
+
+  getEmployees: async (params) => {
+    const { data } = await api.get('/company/employees', { params });
+    return data;
+  },
+
+  getEmployeeById: async (id) => {
+    const { data } = await api.get(`/company/employees/${id}`);
+    return data;
+  },
+
+  updateEmployeeHRFields: async (id, payload) => {
+    const { data } = await api.patch(`/company/employees/${id}`, payload);
     return data;
   },
 };

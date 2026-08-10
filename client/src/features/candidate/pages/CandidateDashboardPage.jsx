@@ -310,30 +310,36 @@ export const CandidateDashboardPage = () => {
           </div>
 
           <div className="space-y-3">
-            {interviews.map((iv, idx) => (
-              <div key={idx} className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
-                <div className="flex justify-between items-start">
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">{iv.title || 'Technical Interview'}</h4>
-                  <Badge variant="success" size="sm">{iv.type || 'Live Session'}</Badge>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">{iv.companyName || 'SkillBridge Client'}</p>
-                <div className="flex items-center justify-between pt-1 border-t border-emerald-500/10 text-xs">
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-emerald-500" /> {new Date(iv.date || Date.now()).toLocaleDateString()}
-                  </span>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      const rawRoomId = iv.roomId || (iv.meetingLink ? iv.meetingLink.replace('/interview/room/', '') : iv._id);
-                      navigate(`/interview/room/${rawRoomId}`);
-                    }}
-                  >
-                    Join Private Room
-                  </Button>
-                </div>
-              </div>
-            ))}
+            {interviews.filter((iv) => (iv.status || '').toLowerCase() !== 'completed' && (iv.status || '').toLowerCase() !== 'cancelled').length === 0 ? (
+              <p className="text-xs text-slate-400 italic text-center py-6">No upcoming interview sessions scheduled.</p>
+            ) : (
+              interviews
+                .filter((iv) => (iv.status || '').toLowerCase() !== 'completed' && (iv.status || '').toLowerCase() !== 'cancelled')
+                .map((iv, idx) => (
+                  <div key={idx} className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">{iv.title || 'Technical Interview'}</h4>
+                      <Badge variant="success" size="sm">{iv.type || 'Live Session'}</Badge>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{iv.companyName || 'SkillBridge Client'}</p>
+                    <div className="flex items-center justify-between pt-1 border-t border-emerald-500/10 text-xs">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-500" /> {new Date(iv.date || Date.now()).toLocaleDateString()}
+                      </span>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => {
+                          const rawRoomId = iv.roomId || (iv.meetingLink ? iv.meetingLink.replace('/interview/room/', '') : iv._id);
+                          navigate(`/interview/room/${rawRoomId}`);
+                        }}
+                      >
+                        Join Private Room
+                      </Button>
+                    </div>
+                  </div>
+                ))
+            )}
           </div>
         </motion.div>
       </div>

@@ -1,0 +1,10 @@
+# Docker Build Exclude Rules for Node.js Server
+node_modules/
+.env*
+!.env.example
+coverage/
+logs/
+uploads/
+.git/
+*.log
+.DS_Store

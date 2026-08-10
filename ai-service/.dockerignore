@@ -1,0 +1,11 @@
+# Docker Build Exclude Rules for Python FastAPI AI Microservice
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env*
+!.env.example
+logs/
+.git/
+.DS_Store

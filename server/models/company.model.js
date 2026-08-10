@@ -72,6 +72,11 @@ const companySchema = new mongoose.Schema(
       default: [],
       select: false,
     },
+    isDemo: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -123,7 +128,7 @@ companySchema.methods.incFailedLoginAttempts = async function () {
 
   const updates = { $inc: { failedLoginAttempts: 1 } };
   if (this.failedLoginAttempts + 1 >= 5 && !this.isLocked()) {
-    updates.$set = { lockUntil: new Date(Date.now() + 15 * 60 * 1000) };
+    updates.$set = { lockUntil: new Date(Date.now() + 30 * 60 * 1000) }; // 30 min lock
   }
 
   return await this.updateOne(updates);

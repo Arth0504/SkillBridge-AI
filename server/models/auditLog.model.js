@@ -80,16 +80,22 @@ const auditLogSchema = new mongoose.Schema(
       default: 'SUCCESS',
       index: true,
     },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Performance Compound Indexes
+// Performance Compound Indexes & 2-Year Automatic TTL Retention
 auditLogSchema.index({ userId: 1, createdAt: -1 });
 auditLogSchema.index({ action: 1, createdAt: -1 });
 auditLogSchema.index({ targetCollection: 1, targetId: 1 });
 auditLogSchema.index({ country: 1, city: 1 });
+auditLogSchema.index({ createdAt: 1 }, { expires: '730d' }); // Automatically retain audit logs for 2 years (730 days)
 
 export const AuditLog = mongoose.model('AuditLog', auditLogSchema);

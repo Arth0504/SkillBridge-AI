@@ -145,6 +145,11 @@ const applicationSchema = new mongoose.Schema(
     deletedAt: {
       type: Date,
     },
+    isDemo: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,

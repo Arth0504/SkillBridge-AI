@@ -84,6 +84,7 @@ const interviewRoomSchema = new mongoose.Schema(
       communication: { type: Number, default: 0 },
       confidence: { type: Number, default: 0 },
       problemSolving: { type: Number, default: 0 },
+      coding: { type: Number, default: 0 },
       overallScore: { type: Number, default: 0 },
       recommendation: {
         type: String,
@@ -91,6 +92,11 @@ const interviewRoomSchema = new mongoose.Schema(
         default: '',
       },
     },
+    hrRating: { type: Number, default: 0 },
+    hrFeedback: { type: String, default: '' },
+    completedAt: { type: Date },
+    interviewDuration: { type: Number, default: 0 },
+    candidateVisible: { type: Boolean, default: true },
     chatMessages: [
       {
         senderId: String,
@@ -129,6 +135,11 @@ const interviewRoomSchema = new mongoose.Schema(
         userRole: { type: String, default: '' },
       },
     ],
+    isDemo: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -802,17 +802,18 @@ export const PrivateInterviewRoomPage = () => {
     );
   }
 
-  // 410 Expired Interview Screen
-  if (error?.response?.status === 410 || roomInfo?.status === 'expired') {
+  // 410 Expired / Completed / Cancelled Interview Screen
+  if (error?.response?.status === 410 || roomInfo?.status === 'expired' || (isReadOnly && error?.response?.status === 410)) {
+    const errorMessage = error?.response?.data?.message || `This private interview room session has been ${roomInfo?.status || 'concluded'}. Rejoining is disabled.`;
     return (
       <div className="min-h-screen bg-[#07090E] flex items-center justify-center p-6">
         <div className="glass-panel p-8 rounded-2xl max-w-md w-full text-center space-y-4 border border-amber-500/30 shadow-2xl">
           <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto">
             <Clock className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-black text-white">410 Session Expired</h2>
-          <p className="text-xs text-slate-400">
-            This private interview room link has expired or reached its scheduled duration.
+          <h2 className="text-2xl font-black text-white">410 Session Ended</h2>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            {errorMessage}
           </p>
           <Button variant="primary" size="md" className="w-full justify-center" onClick={() => navigate('/')}>
             Return to Dashboard

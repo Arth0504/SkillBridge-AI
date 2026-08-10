@@ -9,11 +9,12 @@ export const getHealthStatus = async (req, res) => {
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
     environment: process.env.NODE_ENV || 'development',
+    trustProxy: req.app.get('trust proxy') ? true : false,
     services: {
       database: {
         status: mongoStatus,
-        host: mongoose.connection.host,
-        name: mongoose.connection.name,
+        host: mongoose.connection.host || 'localhost',
+        name: mongoose.connection.name || 'skillbridge',
       },
       aiMicroservice: {
         url: process.env.AI_SERVICE_URL || 'http://localhost:8000',
@@ -23,6 +24,7 @@ export const getHealthStatus = async (req, res) => {
     system: {
       memoryUsedMB: Math.round(memoryUsage.heapUsed / 1024 / 1024),
       memoryTotalMB: Math.round(memoryUsage.heapTotal / 1024 / 1024),
+      rssMB: Math.round(memoryUsage.rss / 1024 / 1024),
       nodeVersion: process.version,
     },
   };

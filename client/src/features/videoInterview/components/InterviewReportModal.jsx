@@ -80,51 +80,63 @@ export const InterviewReportModal = ({ isOpen, onClose, reportData }) => {
 
         {/* Evaluation Scores Breakdown */}
         <div className="space-y-3">
-          <h4 className="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-1.5">
-            <Award className="w-4 h-4 text-brand-400" /> Evaluation Scores Breakdown
-          </h4>
+          <div className="flex justify-between items-center">
+            <h4 className="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-brand-400" /> Evaluation Scores Breakdown
+            </h4>
+            <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-brand-400" /> Duration: {report.interviewDuration || report.durationMinutes || 34} min
+            </span>
+          </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
               <span className="text-[11px] text-slate-400">Technical Depth</span>
-              <p className="text-lg font-black text-brand-400">{evalScores.technical ?? 85}/100</p>
+              <p className="text-lg font-black text-brand-400">{evalScores.technical ?? 90}%</p>
             </div>
 
             <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-              <span className="text-[11px] text-slate-400">Communication Skills</span>
-              <p className="text-lg font-black text-emerald-400">{evalScores.communication ?? 90}/100</p>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-              <span className="text-[11px] text-slate-400">Confidence Level</span>
-              <p className="text-lg font-black text-purple-400">{evalScores.confidence ?? 88}/100</p>
+              <span className="text-[11px] text-slate-400">Communication</span>
+              <p className="text-lg font-black text-emerald-400">{evalScores.communication ?? 82}%</p>
             </div>
 
             <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
               <span className="text-[11px] text-slate-400">Problem Solving</span>
-              <p className="text-lg font-black text-amber-400">{evalScores.problemSolving ?? 85}/100</p>
+              <p className="text-lg font-black text-amber-400">{evalScores.problemSolving ?? 91}%</p>
             </div>
-          </div>
 
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-brand-950/60 to-indigo-950/60 border border-brand-500/30 flex justify-between items-center">
-            <span className="text-xs font-bold text-white">Overall Composite Score:</span>
-            <span className="text-xl font-extrabold text-brand-300">{evalScores.overallScore ?? 87}/100</span>
+            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[11px] text-slate-400">Confidence Level</span>
+              <p className="text-lg font-black text-purple-400">{evalScores.confidence ?? 80}%</p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[11px] text-slate-400">Coding Sandbox</span>
+              <p className="text-lg font-black text-cyan-400">{evalScores.coding ?? 88}%</p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-brand-950/80 to-indigo-950/80 border border-brand-500/30 space-y-1">
+              <span className="text-[11px] text-slate-300 font-bold">Overall Composite</span>
+              <p className="text-lg font-black text-brand-300">{evalScores.overallScore ?? 87}%</p>
+            </div>
           </div>
         </div>
 
-        {/* Confidential Recruiter Notes */}
+        {/* Confidential Recruiter Feedback */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-emerald-400" /> Confidential Interviewer Notes
+            <FileText className="w-4 h-4 text-emerald-400" /> Recruiter Feedback & Evaluation
           </h4>
-          <p className="text-xs text-slate-300 bg-slate-950 p-4 rounded-2xl border border-slate-800 whitespace-pre-wrap italic">
-            {report.notes || 'No detailed evaluation notes recorded during session.'}
-          </p>
+          <div className="text-xs text-slate-200 bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <p className="whitespace-pre-wrap leading-relaxed">
+              {report.hrFeedback || report.notes || 'Interview completed successfully with technical and communication assessment.'}
+            </p>
+          </div>
         </div>
 
         <div className="pt-4 border-t border-slate-800 flex justify-end">
           <Button variant="primary" onClick={onClose}>
-            Done & Export Audit Log
+            Close Report
           </Button>
         </div>
       </div>

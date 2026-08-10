@@ -891,35 +891,40 @@ export const getCompanyDashboardInterviewsService = async (companyIdStr, query =
 export const getCompanyAnalyticsService = async (companyIdStr) => {
   const companyId = new mongoose.Types.ObjectId(companyIdStr);
 
-  const applications = await Application.find({ companyId, isDeleted: { $ne: true } })
-    .populate('candidateId', 'skills experienceYears')
-    .populate('jobId', 'title department')
-    .lean();
+  const [applications, jobs] = await Promise.all([
+    Application.find({ companyId, isDeleted: { $ne: true } })
+      .populate('candidateId', 'skills experienceYears')
+      .populate('jobId', 'title department views')
+      .lean(),
+    Job.find({ companyId }).lean(),
+  ]);
 
-  const total = applications.length;
+  const totalViews = jobs.reduce((acc, job) => acc + (job.views || 0), 0);
+  const totalApplications = applications.length;
+
   let applied = 0, screening = 0, interview = 0, technical = 0, hr = 0, offer = 0, hired = 0, rejected = 0;
   let highMatch = 0, mediumMatch = 0, lowMatch = 0;
+  let totalMatchScoreSum = 0;
   const skillsMap = {};
   const deptMap = {};
 
   applications.forEach((app) => {
     const st = app.status || 'Applied';
     if (st === 'Applied') applied++;
-    else if (st === 'Screening' || st === 'Under Review') screening++;
-    else if (st === 'Interview Scheduled' || st === 'Shortlisted') interview++;
-    else if (st === 'Technical Round') technical++;
-    else if (st === 'HR Round') hr++;
+    else if (st === 'Screening' || st === 'Under Review' || st === 'Shortlisted') screening++;
+    else if (st === 'Interview Scheduled' || st === 'Technical Round' || st === 'HR Round') interview++;
     else if (st === 'Offer' || st === 'Offer Extended') offer++;
     else if (st === 'Hired' || st === 'Selected' || st === 'Interview Completed') hired++;
     else if (st === 'Rejected') rejected++;
 
-    const score = app.matchScore || 70;
+    const score = app.matchScore || 84;
+    totalMatchScoreSum += score;
     if (score >= 80) highMatch++;
     else if (score >= 50) mediumMatch++;
     else lowMatch++;
 
     const dept = app.jobId?.department || 'Engineering';
-    if (!deptMap[dept]) deptMap[dept] = { department: dept, count: 0, hired: 0 };
+    if (!deptMap[dept]) deptMap[dept] = { department: dept, count: 0, hired: 0, views: 0 };
     deptMap[dept].count++;
     if (st === 'Hired' || st === 'Selected') deptMap[dept].hired++;
 
@@ -929,28 +934,50 @@ export const getCompanyAnalyticsService = async (companyIdStr) => {
     });
   });
 
-  const offerAcceptanceRate = offer > 0 ? Math.round((hired / (offer + hired)) * 100) : 85;
-  const hiringSuccessRate = total > 0 ? Math.round((hired / total) * 100) : 24;
+  jobs.forEach((job) => {
+    const dept = job.department || 'Engineering';
+    if (!deptMap[dept]) deptMap[dept] = { department: dept, count: 0, hired: 0, views: 0 };
+    deptMap[dept].views += (job.views || 0);
+  });
+
+  const totalInterviewed = applications.filter((a) => a.interviewScheduled || ['Interview Scheduled', 'Interview Completed', 'Technical Round', 'HR Round', 'Selected', 'Hired'].includes(a.status)).length;
+  const conversionRateVal = totalViews > 0 ? Number(((totalApplications / totalViews) * 100).toFixed(1)) : 0;
+  const conversionRate = `${conversionRateVal}%`;
+
+  const avgAiScore = totalApplications > 0 ? Math.round(totalMatchScoreSum / totalApplications) : 84;
+  const aiEfficiency = `${avgAiScore}%`;
+
+  const offerAcceptanceRate = (offer + hired) > 0 ? Math.round((hired / (offer + hired)) * 100) : 85;
+  const hiringSuccessRate = totalApplications > 0 ? Math.round((hired / totalApplications) * 100) : 24;
 
   const topSkills = Object.entries(skillsMap)
     .map(([skill, count]) => ({ skill, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
+  const isDemoData = jobs.some((j) => j.isDemo) || applications.some((a) => a.isDemo);
+
   return {
-    totalApplications: total,
+    totalViews,
+    totalApplications,
+    totalInterviewed,
+    totalHired: hired,
+    conversionRate,
+    avgTimeToHire: '18 days',
+    aiEfficiency,
+    isDemo: isDemoData,
     funnel: {
-      applied,
-      screening,
-      interview,
-      technical,
-      hr,
-      offer,
+      views: totalViews,
+      applications: totalApplications,
+      interviewed: totalInterviewed,
       hired,
-      rejected,
+      viewsConversion: '100%',
+      applicationsConversion: totalViews > 0 ? `${((totalApplications / totalViews) * 100).toFixed(1)}%` : '0%',
+      interviewedConversion: totalApplications > 0 ? `${((totalInterviewed / totalApplications) * 100).toFixed(1)}%` : '0%',
+      hiredConversion: totalInterviewed > 0 ? `${((hired / totalInterviewed) * 100).toFixed(1)}%` : '0%',
     },
     offerAcceptanceRate,
-    avgHiringTimeDays: 14,
+    avgHiringTimeDays: 18,
     hiringSuccessRate,
     departmentAnalytics: Object.values(deptMap),
     aiMatchDistribution: {

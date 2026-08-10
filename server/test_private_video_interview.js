@@ -205,6 +205,20 @@ const runQA = async () => {
     }
     logPass('Interview session ended successfully (status: completed)');
 
+    // 7.1. TEST: Rejoining Completed Room Rejection (410 Gone for Candidate & Recruiter)
+    const { req: completedCandReq, res: completedCandRes, getResponse: getCompletedCandResp } = mockReqRes({ params: { roomId: createdRoomId } }, candUser);
+    await getPrivateInterviewRoom(completedCandReq, completedCandRes, (err) => { throw err; });
+    if (getCompletedCandResp().statusCode !== 410) {
+      logFail(`Expected 410 Gone when candidate re-joins completed room, got ${getCompletedCandResp().statusCode}`);
+    }
+
+    const { req: completedRecReq, res: completedRecRes, getResponse: getCompletedRecResp } = mockReqRes({ params: { roomId: createdRoomId } }, companyUser);
+    await getPrivateInterviewRoom(completedRecReq, completedRecRes, (err) => { throw err; });
+    if (getCompletedRecResp().statusCode !== 410) {
+      logFail(`Expected 410 Gone when recruiter re-joins completed room, got ${getCompletedRecResp().statusCode}`);
+    }
+    logPass('Re-joining completed interview room returned 410 Gone for candidate and recruiter');
+
     // 8. TEST: Fetch Post-Interview Structured Report
     const { req: repReq, res: repRes, getResponse: getRepResp } = mockReqRes({ params: { roomId: createdRoomId } }, companyUser);
     await getInterviewReport(repReq, repRes, (err) => { throw err; });

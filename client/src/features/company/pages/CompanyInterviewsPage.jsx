@@ -264,52 +264,62 @@ export const CompanyInterviewsPage = () => {
         />
       ) : (
         <div className="space-y-4">
-          {interviews.map((iv, idx) => (
-            <motion.div
-              key={iv._id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className="glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-xl transition-all"
-            >
-              <div className="space-y-2 flex-1">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{iv.candidateName}</h3>
-                  {getStatusBadge(iv.status)}
-                  <Badge variant="purple">{iv.type}</Badge>
-                </div>
-                <p className="text-xs font-semibold text-brand-400">{iv.title || iv.role}</p>
+          {interviews.map((iv, idx) => {
+            const statusNorm = String(iv.status || '').trim().toLowerCase();
+            const isCompleted = statusNorm === 'completed';
+            const isCancelled = statusNorm === 'cancelled';
+            const isExpired = statusNorm === 'expired' || Boolean(iv.isExpired);
+            const isScheduled = statusNorm === 'scheduled' || statusNorm === 'live' || statusNorm === 'rescheduled';
+            const canJoin = isScheduled && !isCompleted && !isCancelled && !isExpired;
 
-                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-emerald-400" /> {new Date(iv.date || Date.now()).toLocaleString()}
-                  </span>
-                </div>
-
-                {/* AI Screening Scores Summary Pill */}
-                {iv.aiScores && (
-                  <div className="flex items-center gap-3 pt-2">
-                    <span className="text-[11px] text-slate-400">AI Evaluation Scores:</span>
-                    <Badge variant="success" size="sm">Mock: {iv.aiScores.mockScore}%</Badge>
-                    <Badge variant="info" size="sm">Coding: {iv.aiScores.codingScore}%</Badge>
-                    <Badge variant="purple" size="sm">Video: {iv.aiScores.videoScore}%</Badge>
+            return (
+              <motion.div
+                key={iv._id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="glass-card p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-xl transition-all"
+              >
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{iv.candidateName}</h3>
+                    {getStatusBadge(iv.status)}
+                    <Badge variant="purple">{iv.type}</Badge>
                   </div>
-                )}
-              </div>
+                  <p className="text-xs font-semibold text-brand-400">{iv.title || iv.role}</p>
 
-              {/* Status Actions & AI Results Trigger */}
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="shadow-md shadow-brand-500/20"
-                  onClick={() => {
-                    const rawRoomId = iv.roomId || (iv.meetingLink ? iv.meetingLink.replace('/interview/room/', '') : iv._id);
-                    navigate(`/interview/room/${rawRoomId}`);
-                  }}
-                >
-                  <Video className="w-4 h-4 mr-1.5" /> Join Private Interview
-                </Button>
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-400" /> {new Date(iv.date || Date.now()).toLocaleString()}
+                    </span>
+                  </div>
+
+                  {/* AI Screening Scores Summary Pill */}
+                  {iv.aiScores && (
+                    <div className="flex items-center gap-3 pt-2">
+                      <span className="text-[11px] text-slate-400">AI Evaluation Scores:</span>
+                      <Badge variant="success" size="sm">Mock: {iv.aiScores.mockScore}%</Badge>
+                      <Badge variant="info" size="sm">Coding: {iv.aiScores.codingScore}%</Badge>
+                      <Badge variant="purple" size="sm">Video: {iv.aiScores.videoScore}%</Badge>
+                    </div>
+                  )}
+                </div>
+
+                {/* Status Actions & AI Results Trigger */}
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  {canJoin && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="shadow-md shadow-brand-500/20"
+                      onClick={() => {
+                        const rawRoomId = iv.roomId || (iv.meetingLink ? iv.meetingLink.replace('/interview/room/', '') : iv._id);
+                        navigate(`/interview/room/${rawRoomId}`);
+                      }}
+                    >
+                      <Video className="w-4 h-4 mr-1.5" /> Join Private Interview
+                    </Button>
+                  )}
 
                 <Button
                   variant="secondary"
@@ -383,7 +393,8 @@ export const CompanyInterviewsPage = () => {
                 </button>
               </div>
             </motion.div>
-          ))}
+          );
+        })}
         </div>
       )}
 

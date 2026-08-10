@@ -1,0 +1,17 @@
+# Docker Build Exclude Rules for SkillBridge AI Root
+node_modules/
+.env*
+!.env.example
+coverage/
+logs/
+uploads/
+.git/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+client/dist/
+server/dist/
+server/public/
+*.log
+.DS_Store

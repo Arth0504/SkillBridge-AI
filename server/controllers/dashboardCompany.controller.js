@@ -87,3 +87,25 @@ export const getCompanyCopilotAnalyticsHandler = asyncHandler(async (req, res, _
 
   return sendResponse(res, 200, true, 'Recruiter copilot dynamic analytics retrieved successfully', copilotData);
 });
+
+/**
+ * Seed Employer Hiring Analytics Demo Data
+ * @route POST /api/v1/company/dashboard/seed-demo
+ */
+export const seedDemoAnalyticsHandler = asyncHandler(async (req, res, _next) => {
+  const { seedDemoAnalytics } = await import('../scripts/seedDemoAnalytics.js');
+  const result = await seedDemoAnalytics(req.user._id);
+
+  return sendResponse(res, 201, true, 'Realistic Hiring Analytics demo data seeded successfully', result);
+});
+
+/**
+ * Clear Employer Hiring Analytics Demo Data
+ * @route DELETE /api/v1/company/dashboard/seed-demo
+ */
+export const clearDemoAnalyticsHandler = asyncHandler(async (_req, res, _next) => {
+  const { clearDemoAnalytics } = await import('../scripts/seedDemoAnalytics.js');
+  const result = await clearDemoAnalytics();
+
+  return sendResponse(res, 200, true, 'Demo analytics data cleared successfully', result);
+});

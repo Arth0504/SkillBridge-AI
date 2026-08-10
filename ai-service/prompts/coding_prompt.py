@@ -6,7 +6,7 @@ def get_coding_question_prompt(
     job_description: str = None
 ) -> str:
     prev_str = "\n".join([f"- Q: {q.get('questionText')}" for q in (previous_questions or [])])
-    jd_str = f"\nTarget Job Context: {job_description}" if job_description else ""
+    jd_str = f"\nTarg et Job Context: {job_description}" if job_description else ""
 
     return f"""
 You are a Principal Software Engineer and Technical Assessment Specialist.

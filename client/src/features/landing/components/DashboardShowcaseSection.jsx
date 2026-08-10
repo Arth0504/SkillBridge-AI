@@ -226,7 +226,7 @@ export const DashboardShowcaseSection = () => {
                         <h4 className="text-lg font-black text-brand-400">92.4k Requests</h4>
                       </div>
                       <div className="p-3.5 rounded-xl bg-slate-800/50 border border-slate-800 space-y-1.5">
-                        <span className="text-slate-400 text-[10px]">Users Registered</span>
+                        <span className="text-slate-400 text-[10px]  ">Users Registered</span>
                         <h4 className="text-lg font-black">12.5k Total</h4>
                       </div>
                     </div>

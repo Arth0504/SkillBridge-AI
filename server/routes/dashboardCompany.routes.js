@@ -6,6 +6,8 @@ import {
   getDashboardJobPerformanceHandler,
   getDashboardInterviewsHandler,
   getCompanyCopilotAnalyticsHandler,
+  seedDemoAnalyticsHandler,
+  clearDemoAnalyticsHandler,
 } from '../controllers/dashboardCompany.controller.js';
 import { validateDashboardQuery } from '../validations/dashboard.validation.js';
 import { protect, restrictTo } from '../middleware/auth.middleware.js';
@@ -52,5 +54,17 @@ router.get('/interviews', validateDashboardQuery, getDashboardInterviewsHandler)
  * @desc Dynamic Recruiter Copilot candidates & funnel analytics
  */
 router.get('/copilot/analytics', getCompanyCopilotAnalyticsHandler);
+
+/**
+ * @route POST /api/v1/company/dashboard/seed-demo
+ * @desc Seed realistic demo analytics dataset
+ */
+router.post('/seed-demo', seedDemoAnalyticsHandler);
+
+/**
+ * @route DELETE /api/v1/company/dashboard/seed-demo
+ * @desc Clear demo analytics dataset (isDemo: true)
+ */
+router.delete('/seed-demo', clearDemoAnalyticsHandler);
 
 export default router;

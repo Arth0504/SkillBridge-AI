@@ -310,6 +310,24 @@ export const updateInterviewStatusService = async (interviewId, companyIdStr, st
     });
   }
 
+  // Sync status with InterviewRoom
+  try {
+    const { InterviewRoom } = await import('../models/interviewRoom.model.js');
+    const roomId = interview.meetingLink ? interview.meetingLink.replace('/interview/room/', '') : null;
+    const roomFilter = roomId
+      ? { $or: [{ roomId }, { uuid: roomId }] }
+      : { applicationId: interview.applicationId };
+
+    const roomStatus = status.toLowerCase() === 'completed' ? 'completed'
+      : status.toLowerCase() === 'cancelled' ? 'cancelled'
+      : status.toLowerCase() === 'scheduled' ? 'scheduled'
+      : status.toLowerCase();
+
+    await InterviewRoom.updateMany(roomFilter, { $set: { status: roomStatus } });
+  } catch (err) {
+    console.warn('InterviewRoom status sync warning:', err.message);
+  }
+
   // Emit Real-Time Socket Event
   try {
     const { getIO, emitNotificationToUser } = await import('../sockets/notification.socket.js');

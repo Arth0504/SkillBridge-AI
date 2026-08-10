@@ -89,3 +89,21 @@ export const clearAuthCookies = (res) => {
   res.clearCookie('accessToken', options);
   res.clearCookie('refreshToken', options);
 };
+
+/**
+ * Validate standard 24-character hexadecimal MongoDB ObjectId
+ */
+export const isValidObjectId = (id) => {
+  if (!id || typeof id !== 'string') return false;
+  return /^[0-9a-fA-F]{24}$/.test(id);
+};
+
+/**
+ * Sanitize query parameters to prevent NoSQL operator injection
+ */
+export const sanitizeQueryParam = (param) => {
+  if (typeof param === 'string') {
+    return param.replace(/^\$/, '');
+  }
+  return param;
+};

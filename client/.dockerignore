@@ -1,0 +1,8 @@
+# Docker Build Exclude Rules for React Client
+node_modules/
+dist/
+.env*
+!.env.example
+logs/
+.git/
+.DS_Store

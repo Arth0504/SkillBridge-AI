@@ -29,12 +29,17 @@ import videoInterviewRoutes from './routes/videoInterview.routes.js';
 import interviewRoomRoutes from './routes/interviewRoom.routes.js';
 import companyCalendarRoutes from './routes/companyCalendar.routes.js';
 import offerLetterRoutes from './routes/offerLetter.routes.js';
+import employeeRoutes from './routes/employee.routes.js';
+import adminControlRoutes from './routes/adminControl.routes.js';
 import documentRoutes from './routes/document.routes.js';
 
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
 
 const app = express();
+
+// Trust Proxy Configuration for Production Reverse Proxies (Render, Railway, Nginx, Cloudflare)
+app.set('trust proxy', 1);
 
 // Custom Lightweight Cookie Parser
 app.use((req, _res, next) => {
@@ -147,6 +152,9 @@ app.use('/api/v1/company/calendar', checkDbConnection, companyCalendarRoutes);
 // Offer Letter Generator Routes
 app.use('/api/v1/company/offer-letters', checkDbConnection, offerLetterRoutes);
 
+// Enterprise HRMS Employee Auto-Onboarding Routes
+app.use('/api/v1/company/employees', checkDbConnection, employeeRoutes);
+
 // Document Repository & Management System Routes
 app.use('/api/v1/documents', checkDbConnection, documentRoutes);
 
@@ -157,6 +165,7 @@ app.use('/api/v1/audit-logs', auditLogRoutes);
 app.use('/api/v1/ai', aiRoutes);
 
 // Admin Monitoring & Telemetry Routes
+app.use('/api/v1/admin/control', checkDbConnection, adminControlRoutes);
 app.use('/api/v1/admin', monitoringRoutes);
 
 // Handle Unmatched 404 Routes

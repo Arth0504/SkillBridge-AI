@@ -43,6 +43,7 @@ const CompanyDashboardPage = lazy(() => import('../features/company/pages/Compan
 const CompanyProfilePage = lazy(() => import('../features/company/pages/CompanyProfilePage').then(m => ({ default: m.CompanyProfilePage })));
 const PublicCompanyProfilePage = lazy(() => import('../features/company/pages/PublicCompanyProfilePage').then(m => ({ default: m.PublicCompanyProfilePage })));
 const CompanyApplicationsPage = lazy(() => import('../features/company/pages/CompanyApplicationsPage').then(m => ({ default: m.CompanyApplicationsPage })));
+const CompanyEmployeesPage = lazy(() => import('../features/company/pages/CompanyEmployeesPage').then(m => ({ default: m.CompanyEmployeesPage })));
 const CompanyInterviewsPage = lazy(() => import('../features/company/pages/CompanyInterviewsPage').then(m => ({ default: m.CompanyInterviewsPage })));
 const CompanyCalendarPage = lazy(() => import('../features/company/pages/CompanyCalendarPage').then(m => ({ default: m.CompanyCalendarPage })));
 const CompanyAnalyticsPage = lazy(() => import('../features/company/pages/CompanyAnalyticsPage').then(m => ({ default: m.CompanyAnalyticsPage })));
@@ -125,6 +126,7 @@ export const AppRoutes = () => {
             <Route path="/company/jobs/new" element={<JobPostingPage />} />
             <Route path="/company/jobs/edit/:id" element={<JobPostingPage />} />
             <Route path="/company/applications" element={<CompanyApplicationsPage />} />
+            <Route path="/company/employees" element={<CompanyEmployeesPage />} />
             <Route path="/company/interviews" element={<CompanyInterviewsPage />} />
             <Route path="/company/calendar" element={<CompanyCalendarPage />} />
             <Route path="/company/analytics" element={<CompanyAnalyticsPage />} />
