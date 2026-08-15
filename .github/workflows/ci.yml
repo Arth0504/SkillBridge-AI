@@ -46,6 +46,7 @@ jobs:
         env:
           PORT: 5099
           NODE_ENV: test
+          MONGODB_URI: mongodb://127.0.0.1:27017/skillbridge_test
           MONGODB_URI_TEST: mongodb://127.0.0.1:27017/skillbridge_test
           REDIS_URL: redis://127.0.0.1:6379
           JWT_SECRET: super_secret_jwt_access_key_skillbridge_2026

@@ -42,6 +42,7 @@ jobs:
           MONGODB_URI: mongodb://127.0.0.1:27017/skillbridge_test
           MONGODB_URI_TEST: mongodb://127.0.0.1:27017/skillbridge_test
           JWT_SECRET: test_jwt_secret
+          JWT_REFRESH_SECRET: test_jwt_refresh_secret
 
       - name: Install Client Dependencies & Build Production Bundle
         run: |
