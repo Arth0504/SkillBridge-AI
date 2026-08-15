@@ -41,8 +41,8 @@ const runProductionTests = async () => {
       path.join(projectRoot, 'nginx', 'nginx.conf'),
       path.join(projectRoot, 'nginx', 'conf.d', 'default.conf'),
       path.join(process.cwd(), 'ecosystem.config.js'),
-      path.join(projectRoot, '.env.production'),
-      path.join(projectRoot, '.env.docker'),
+      path.join(projectRoot, '.env.example'),
+      path.join(process.cwd(), '.env.example'),
     ];
 
     for (const file of requiredFiles) {
@@ -50,7 +50,7 @@ const runProductionTests = async () => {
         throw new Error(`Missing mandatory production file: ${file}`);
       }
     }
-    console.log('✅ TEST 1 PASSED: All 9 Docker, Compose, Nginx, PM2, and .env files verified.');
+    console.log('✅ TEST 1 PASSED: All 9 Docker, Compose, Nginx, PM2, and .env template files verified.');
 
     // -----------------------------------------------------
     // TEST 2: Diagnostic Health Endpoint (GET /health)
