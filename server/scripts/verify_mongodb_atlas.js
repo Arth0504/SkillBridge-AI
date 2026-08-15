@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
+import dns from 'dns';
+
+// Configure DNS fallback for MongoDB Atlas SRV lookup
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (err) {}
 
 // Load environment variables from server/.env
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
