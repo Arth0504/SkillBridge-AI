@@ -12,6 +12,14 @@ import { Notification } from '../models/notification.model.js';
 import { SavedJob } from '../models/savedJob.model.js';
 import { ResumeAnalysis } from '../models/resumeAnalysis.model.js';
 import { InterviewSession } from '../models/interviewSession.model.js';
+import { AuditLog } from '../models/auditLog.model.js';
+import { CodingAssessment } from '../models/codingAssessment.model.js';
+import { Document } from '../models/document.model.js';
+import { Employee } from '../models/employee.model.js';
+import { InterviewRoom } from '../models/interviewRoom.model.js';
+import { OfferLetter } from '../models/offerLetter.model.js';
+import { Session } from '../models/session.model.js';
+import { VideoInterview } from '../models/videoInterview.model.js';
 
 // Configure DNS fallback to ensure MongoDB Atlas SRV resolution works across all network adapters
 try {
@@ -38,6 +46,14 @@ export const initCollectionsAndIndexes = async () => {
       SavedJob,
       ResumeAnalysis,
       InterviewSession,
+      AuditLog,
+      CodingAssessment,
+      Document,
+      Employee,
+      InterviewRoom,
+      OfferLetter,
+      Session,
+      VideoInterview,
     ];
 
     for (const model of models) {
@@ -77,7 +93,7 @@ export const connectDB = async () => {
 
     if (error.message.includes('authentication failed') || error.message.includes('bad auth')) {
       logger.warn(
-        '⚠️ Database Authentication Failed: Bad auth credentials or invalid database name in server/.env MONGODB_URI.'
+        '⚠️ Database Authentication Failed: Bad auth credentials or invalid database name in MONGODB_URI.'
       );
     }
 
