@@ -80,7 +80,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build & Push Node.js Backend Production Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./server
           file: ./server/Dockerfile
@@ -91,7 +91,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & Push FastAPI AI Service Production Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./ai-service
           file: ./ai-service/Dockerfile
