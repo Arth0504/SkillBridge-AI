@@ -35,8 +35,8 @@ jobs:
       - name: Audit Python Dependencies
         run: |
           cd ai-service
-          pip install pip-audit
-          pip-audit -r requirements.txt || true
+          python -m pip install --upgrade pip pip-audit
+          python -m pip_audit -r requirements.txt || true
 
   codeql-analysis:
     name: CodeQL Static Application Security Testing (SAST)
@@ -77,5 +77,5 @@ jobs:
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
-          vuln-type: 'os,library'
+          pkg-types: 'os,library'
           severity: 'CRITICAL,HIGH'
