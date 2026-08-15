@@ -9,7 +9,7 @@ export const getHealthStatus = async (req, res) => {
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
     environment: process.env.NODE_ENV || 'development',
-    trustProxy: req.app.get('trust proxy') ? true : false,
+    trustProxy: req?.app?.get ? Boolean(req.app.get('trust proxy')) : false,
     services: {
       database: {
         status: mongoStatus,
