@@ -26,6 +26,39 @@ import { Button, Badge, Loader, EmptyState, Drawer, Input, Textarea } from '../.
 import { companyApi } from '../../../api';
 import toast from 'react-hot-toast';
 
+const parseOfficeLocation = (loc) => {
+  if (!loc) return { city: '', state: '', country: '', address: '', formatted: 'Headquarters' };
+  if (typeof loc === 'object' && loc !== null) {
+    const city = loc.city || '';
+    const state = loc.state || '';
+    const country = loc.country || '';
+    const address = loc.address || '';
+    const parts = [city, state, country].filter(Boolean);
+    const formatted = parts.length > 0 ? parts.join(', ') : (address || 'Headquarters');
+    return { city, state, country, address, formatted };
+  }
+  if (typeof loc === 'string') {
+    const trimmed = loc.trim();
+    if (trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return parseOfficeLocation(parsed);
+      } catch (e) {
+        // Fallthrough
+      }
+    }
+    const parts = trimmed.split(',').map((p) => p.trim());
+    return {
+      city: parts[0] || '',
+      state: parts[1] || '',
+      country: parts[2] || '',
+      address: '',
+      formatted: trimmed || 'Headquarters',
+    };
+  }
+  return { city: '', state: '', country: '', address: '', formatted: String(loc) };
+};
+
 export const CompanyEmployeesPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -40,7 +73,9 @@ export const CompanyEmployeesPage = () => {
     designation: 'Software Engineer',
     reportingManager: 'Engineering Director',
     shift: 'General Shift (9 AM - 6 PM)',
-    officeLocation: 'Headquarters',
+    city: 'Ahmedabad',
+    state: 'Gujarat',
+    country: 'India',
     employmentType: 'Full-Time',
     probationPeriod: '90 Days',
     employeeStatus: 'Onboarding',
@@ -57,10 +92,15 @@ export const CompanyEmployeesPage = () => {
   // Update HR Fields Mutation
   const updateHRMutation = useMutation({
     mutationFn: ({ id, payload }) => companyApi.updateEmployeeHRFields(id, payload),
-    onSuccess: () => {
+    onSuccess: (res, { payload }) => {
       toast.success('HR fields updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['company-employees'] });
-      setSelectedEmployee(null);
+      const updatedEmp = res?.data?.employee;
+      if (updatedEmp) {
+        setSelectedEmployee(updatedEmp);
+      } else {
+        setSelectedEmployee((prev) => (prev ? { ...prev, ...payload } : null));
+      }
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to update HR fields.');
@@ -69,14 +109,17 @@ export const CompanyEmployeesPage = () => {
 
   const handleOpenDrawer = (emp) => {
     setSelectedEmployee(emp);
+    const loc = parseOfficeLocation(emp.officeLocation);
     setHrForm({
-      salary: emp.salary || 120000,
+      salary: emp.salary ?? 120000,
       currency: emp.currency || 'USD',
       department: emp.department || 'Engineering',
       designation: emp.designation || 'Software Engineer',
       reportingManager: emp.reportingManager || 'Engineering Director',
       shift: emp.shift || 'General Shift (9 AM - 6 PM)',
-      officeLocation: emp.officeLocation || 'Headquarters',
+      city: loc.city,
+      state: loc.state,
+      country: loc.country,
       employmentType: emp.employmentType || 'Full-Time',
       probationPeriod: emp.probationPeriod || '90 Days',
       employeeStatus: emp.employeeStatus || 'Onboarding',
@@ -86,9 +129,42 @@ export const CompanyEmployeesPage = () => {
   const handleSaveHRFields = (e) => {
     e.preventDefault();
     if (!selectedEmployee) return;
+
+    const numSalary = Number(hrForm.salary);
+    if (isNaN(numSalary) || numSalary < 0) {
+      toast.error('Please enter a valid numeric salary.');
+      return;
+    }
+
+    if (!hrForm.department || !hrForm.department.trim()) {
+      toast.error('Department is required.');
+      return;
+    }
+
+    if (!hrForm.designation || !hrForm.designation.trim()) {
+      toast.error('Designation is required.');
+      return;
+    }
+
+    const locParts = [hrForm.city.trim(), hrForm.state.trim(), hrForm.country.trim()].filter(Boolean);
+    const formattedOfficeLocation = locParts.length > 0 ? locParts.join(', ') : 'Headquarters';
+
+    const payload = {
+      salary: numSalary,
+      currency: hrForm.currency,
+      department: hrForm.department.trim(),
+      designation: hrForm.designation.trim(),
+      reportingManager: hrForm.reportingManager.trim(),
+      shift: hrForm.shift.trim(),
+      officeLocation: formattedOfficeLocation,
+      employmentType: hrForm.employmentType,
+      probationPeriod: hrForm.probationPeriod.trim(),
+      employeeStatus: hrForm.employeeStatus,
+    };
+
     updateHRMutation.mutate({
       id: selectedEmployee._id,
-      payload: hrForm,
+      payload,
     });
   };
 
@@ -348,9 +424,12 @@ export const CompanyEmployeesPage = () => {
                   <label className="text-[11px] font-bold text-slate-300 block mb-1">Annual Salary ({hrForm.currency})</label>
                   <input
                     type="number"
+                    min="0"
+                    step="500"
                     value={hrForm.salary}
-                    onChange={(e) => setHrForm({ ...hrForm, salary: Number(e.target.value) })}
+                    onChange={(e) => setHrForm({ ...hrForm, salary: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
+                    required
                   />
                 </div>
 
@@ -361,6 +440,7 @@ export const CompanyEmployeesPage = () => {
                     value={hrForm.department}
                     onChange={(e) => setHrForm({ ...hrForm, department: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
+                    required
                   />
                 </div>
 
@@ -371,6 +451,7 @@ export const CompanyEmployeesPage = () => {
                     value={hrForm.designation}
                     onChange={(e) => setHrForm({ ...hrForm, designation: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
+                    required
                   />
                 </div>
 
@@ -390,16 +471,6 @@ export const CompanyEmployeesPage = () => {
                     type="text"
                     value={hrForm.shift}
                     onChange={(e) => setHrForm({ ...hrForm, shift: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-slate-300 block mb-1">Office Location</label>
-                  <input
-                    type="text"
-                    value={hrForm.officeLocation}
-                    onChange={(e) => setHrForm({ ...hrForm, officeLocation: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
                   />
                 </div>
@@ -426,6 +497,45 @@ export const CompanyEmployeesPage = () => {
                     onChange={(e) => setHrForm({ ...hrForm, probationPeriod: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
                   />
+                </div>
+              </div>
+
+              {/* Editable Office Location Sub-Section (City, State, Country) */}
+              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3 mt-3">
+                <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block">
+                  Office Location Details
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-400 block mb-1">City</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Ahmedabad"
+                      value={hrForm.city}
+                      onChange={(e) => setHrForm({ ...hrForm, city: e.target.value })}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-400 block mb-1">State</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Gujarat"
+                      value={hrForm.state}
+                      onChange={(e) => setHrForm({ ...hrForm, state: e.target.value })}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold text-slate-400 block mb-1">Country</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. India"
+                      value={hrForm.country}
+                      onChange={(e) => setHrForm({ ...hrForm, country: e.target.value })}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
                 </div>
               </div>
 

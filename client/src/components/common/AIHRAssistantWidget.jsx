@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Bot, Send, X, Sparkles, User, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bot, Send, X, Sparkles, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../api/axios';
 
@@ -13,6 +13,29 @@ export const AIHRAssistantWidget = () => {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Drag tracking & viewport constraints to prevent accidental triggers & off-screen dragging
+  const isDraggingRef = useRef(false);
+  const [constraints, setConstraints] = useState({
+    left: -window.innerWidth + 120,
+    right: 0,
+    top: -window.innerHeight + 120,
+    bottom: 0,
+  });
+
+  useEffect(() => {
+    const updateConstraints = () => {
+      setConstraints({
+        left: -window.innerWidth + 120,
+        right: 0,
+        top: -window.innerHeight + 120,
+        bottom: 0,
+      });
+    };
+    updateConstraints();
+    window.addEventListener('resize', updateConstraints);
+    return () => window.removeEventListener('resize', updateConstraints);
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -43,16 +66,36 @@ export const AIHRAssistantWidget = () => {
     }
   };
 
+  const handleTriggerClick = () => {
+    if (isDraggingRef.current) return;
+    setIsOpen((prev) => !prev);
+  };
+
   return (
     <>
-      {/* Floating Trigger Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 p-4 rounded-full bg-gradient-to-r from-brand-600 to-purple-600 text-white shadow-2xl hover:scale-110 active:scale-95 transition-all border-2 border-white/20 flex items-center gap-2 group"
+      {/* Draggable Floating Trigger Button */}
+      <motion.button
+        drag
+        dragMomentum={false}
+        dragConstraints={constraints}
+        dragElastic={0.05}
+        onDragStart={() => {
+          isDraggingRef.current = true;
+        }}
+        onDragEnd={() => {
+          setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 150);
+        }}
+        onClick={handleTriggerClick}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-50 p-4 rounded-full bg-gradient-to-r from-brand-600 to-purple-600 text-white shadow-2xl transition-shadow border-2 border-white/20 flex items-center gap-2 group cursor-grab active:cursor-grabbing select-none"
+        title="Click to open or drag to move anywhere"
       >
         <Bot className="w-6 h-6 animate-pulse" />
         <span className="text-xs font-extrabold hidden md:inline">AI HR Assistant</span>
-      </button>
+      </motion.button>
 
       {/* Slide-over Drawer Chatbot */}
       <AnimatePresence>
