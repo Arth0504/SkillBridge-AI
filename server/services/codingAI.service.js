@@ -39,6 +39,79 @@ const postToAIService = async (endpoint, data, retries = 2) => {
   }
 };
 
+const getFallbackQuestionPool = (language, difficulty, index = 0) => {
+  const pool = [
+    {
+      questionText: `Write a function in ${language} to find two numbers in an array that add up to a target sum and return their indices.`,
+      questionType: 'Coding Challenge',
+      language,
+      difficulty,
+      options: [],
+      initialCode: language === 'Python'
+        ? `def solution(nums, target):\n    # Write your O(N) solution here\n    hashmap = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in hashmap:\n            return [hashmap[complement], i]\n        hashmap[num] = i\n    return []`
+        : language === 'Java'
+        ? `import java.util.*;\n\nclass Solution {\n    public int[] solution(int[] nums, int target) {\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int comp = target - nums[i];\n            if (map.containsKey(comp)) return new int[] { map.get(comp), i };\n            map.put(nums[i], i);\n        }\n        return new int[0];\n    }\n}`
+        : language === 'C++'
+        ? `#include <vector>\n#include <unordered_map>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> solution(vector<int>& nums, int target) {\n        unordered_map<int, int> mp;\n        for (int i = 0; i < nums.size(); i++) {\n            int comp = target - nums[i];\n            if (mp.count(comp)) return {mp[comp], i};\n            mp[nums[i]] = i;\n        }\n        return {};\n    }\n};`
+        : language === 'SQL'
+        ? `-- Write SQL query to return candidates with total applications >= 1\nSELECT candidate_id, COUNT(id) as total_applications\nFROM applications\nGROUP BY candidate_id;\n`
+        : `function solution(nums, target) {\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const comp = target - nums[i];\n    if (map.has(comp)) return [map.get(comp), i];\n    map.set(nums[i], i);\n  }\n  return [];\n}`,
+    },
+    {
+      questionText: `Write a function in ${language} that determines if a given string of brackets '()[]{}' is valid and properly balanced.`,
+      questionType: 'Coding Challenge',
+      language,
+      difficulty,
+      options: [],
+      initialCode: language === 'Python'
+        ? `def isValid(s: str) -> bool:\n    # Stack-based valid parentheses solver\n    stack = []\n    mapping = {")": "(", "}": "{", "]": "["}\n    for char in s:\n        if char in mapping:\n            top = stack.pop() if stack else '#'\n            if mapping[char] != top: return False\n        else: stack.append(char)\n    return not stack`
+        : language === 'Java'
+        ? `import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Stack<Character> stack = new Stack<>();\n        for (char c : s.toCharArray()) {\n            if (c == '(') stack.push(')');\n            else if (c == '{') stack.push('}');\n            else if (c == '[') stack.push(']');\n            else if (stack.isEmpty() || stack.pop() != c) return false;\n        }\n        return stack.isEmpty();\n    }\n}`
+        : language === 'SQL'
+        ? `-- Write SQL query to find average test score per department\nSELECT department, AVG(score) as avg_score\nFROM employee_assessments\nGROUP BY department;\n`
+        : `function isValid(s) {\n  const stack = [];\n  const map = { ')': '(', '}': '{', ']': '[' };\n  for (const char of s) {\n    if (char in map) {\n      if (stack.pop() !== map[char]) return false;\n    } else {\n      stack.push(char);\n    }\n  }\n  return stack.length === 0;\n}`,
+    },
+    {
+      questionText: `What is the worst-case time complexity of QuickSort when the pivot chosen is always the smallest or largest element?`,
+      questionType: 'MCQ',
+      language,
+      difficulty,
+      options: ['A) O(N log N)', 'B) O(N^2)', 'C) O(N)', 'D) O(log N)'],
+      initialCode: '',
+    },
+    {
+      questionText: `Write a function in ${language} to find the contiguous subarray within a one-dimensional array of numbers which has the largest sum (Kadane's Algorithm).`,
+      questionType: 'Coding Challenge',
+      language,
+      difficulty,
+      options: [],
+      initialCode: language === 'Python'
+        ? `def maxSubArray(nums):\n    max_so_far = current_max = nums[0]\n    for x in nums[1:]:\n        current_max = max(x, current_max + x)\n        max_so_far = max(max_so_far, current_max)\n    return max_so_far`
+        : language === 'Java'
+        ? `class Solution {\n    public int maxSubArray(int[] nums) {\n        int maxSoFar = nums[0], currMax = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            currMax = Math.max(nums[i], currMax + nums[i]);\n            maxSoFar = Math.max(maxSoFar, currMax);\n        }\n        return maxSoFar;\n    }\n}`
+        : language === 'SQL'
+        ? `-- Write SQL query using RANK() to select top 3 highest scoring candidates per job\nSELECT candidate_id, job_id, score,\n       DENSE_RANK() OVER (PARTITION BY job_id ORDER BY score DESC) as rank_num\nFROM job_applications;\n`
+        : `function maxSubArray(nums) {\n  let maxSoFar = nums[0], currMax = nums[0];\n  for (let i = 1; i < nums.length; i++) {\n    currMax = Math.max(nums[i], currMax + nums[i]);\n    maxSoFar = Math.max(maxSoFar, currMax);\n  }\n  return maxSoFar;\n}`,
+    },
+    {
+      questionText: `Write a function in ${language} to merge two sorted arrays nums1 and nums2 into a single sorted array.`,
+      questionType: 'Coding Challenge',
+      language,
+      difficulty,
+      options: [],
+      initialCode: language === 'Python'
+        ? `def mergeSorted(nums1, nums2):\n    return sorted(nums1 + nums2)`
+        : language === 'Java'
+        ? `import java.util.*;\nclass Solution {\n    public int[] merge(int[] a, int[] b) {\n        int[] res = new int[a.length + b.length];\n        System.arraycopy(a, 0, res, 0, a.length);\n        System.arraycopy(b, 0, res, a.length, b.length);\n        Arrays.sort(res);\n        return res;\n    }\n}`
+        : language === 'SQL'
+        ? `-- Write SQL query to join candidates and jobs, filtering out unverified recruiters\nSELECT c.name as candidate_name, j.title as job_title, a.status\nFROM applications a\nJOIN candidates c ON a.candidate_id = c._id\nJOIN jobs j ON a.job_id = j._id;\n`
+        : `function mergeSorted(nums1, nums2) {\n  return [...nums1, ...nums2].sort((a, b) => a - b);\n}`,
+    },
+  ];
+
+  return pool[index % pool.length];
+};
+
 /**
  * 1. Start AI Coding Assessment
  */
@@ -81,15 +154,7 @@ export const startCodingAssessmentService = async ({
   }
 
   if (!initialQuestion) {
-    initialQuestion = {
-      questionText: `Write a function in ${language} to find the contiguous subarray with the largest sum and return its sum.`,
-      questionType,
-      language,
-      difficulty,
-      options: [],
-      initialCode: `// ${language} Solution Template\nfunction maxSubArray(nums) {\n  // Implement Kadane's Algorithm here\n}`,
-      expectedKeyPoints: ["O(N) time complexity using Kadane's Algorithm", 'Handle arrays with all negative numbers'],
-    };
+    initialQuestion = getFallbackQuestionPool(language, difficulty, 0);
   }
 
   const firstQ = {
@@ -195,14 +260,7 @@ export const submitCodingAnswerService = async ({ assessmentId, candidateIdStr, 
     }
 
     if (!nextQ) {
-      nextQ = {
-        questionText: `Optimizing ${assessment.language} Solution: Describe how to reduce auxiliary space complexity to O(1) in the previous algorithmic problem.`,
-        questionType: nextType,
-        language: assessment.language,
-        difficulty: assessment.difficulty,
-        options: nextType === 'MCQ' ? ['A) O(1)', 'B) O(N)', 'C) O(N^2)', 'D) O(log N)'] : [],
-        initialCode: '',
-      };
+      nextQ = getFallbackQuestionPool(assessment.language, assessment.difficulty, nextQIndex);
     }
 
     const newQuestionObj = {
@@ -245,7 +303,45 @@ export const finishCodingAssessmentService = async ({ assessmentId, candidateIdS
     throw new AppError('Coding assessment not found.', 404);
   }
 
-  const qsData = assessment.questions.map((q) => ({
+  const totalQ = assessment.totalQuestions || 5;
+  const questionsList = assessment.questions || [];
+
+  // Calculate authoritative score across ALL configured total questions
+  let sumScore = 0;
+  let sumQuality = 0;
+  let sumCorrectness = 0;
+  let attemptedCount = 0;
+
+  for (let i = 0; i < totalQ; i++) {
+    const q = questionsList[i];
+    if (
+      q &&
+      q.submittedAnswer &&
+      String(q.submittedAnswer).trim() !== '' &&
+      String(q.submittedAnswer).trim() !== 'No answer submitted.'
+    ) {
+      attemptedCount++;
+      if (q.evaluation) {
+        sumScore += Number(q.evaluation.score || 0);
+        sumQuality += Number(q.evaluation.codeQuality || 0);
+        sumCorrectness += Number(q.evaluation.correctness || 0);
+      }
+    }
+    // Unattempted or skipped questions implicitly contribute 0 to sumScore, sumQuality, sumCorrectness
+  }
+
+  const authoritativeOverallScore = Math.round(sumScore / totalQ);
+  const authoritativeQualityScore = Math.round(sumQuality / totalQ);
+  const authoritativeCorrectnessScore = Math.round(sumCorrectness / totalQ);
+
+  const attemptStatus =
+    attemptedCount === 0
+      ? 'Unanswered'
+      : attemptedCount === totalQ
+      ? 'Completed'
+      : 'Partially Attempted';
+
+  const qsData = questionsList.map((q) => ({
     questionText: q.questionText,
     questionType: q.questionType,
     submittedAnswer: q.submittedAnswer || 'No answer submitted.',
@@ -258,50 +354,39 @@ export const finishCodingAssessmentService = async ({ assessmentId, candidateIdS
       language: assessment.language,
       difficulty: assessment.difficulty,
       questionsAndSubmissions: qsData,
+      totalQuestions: totalQ,
+      attemptedCount,
     });
   } catch (err) {
     logger.info(`FastAPI AI coding finish service offline (${err.message}). Using local report generator.`);
   }
 
-  if (!finalReport) {
-    const evals = assessment.questions.filter((q) => q.evaluation).map((q) => q.evaluation);
-    const avgScore = evals.length ? Math.round(evals.reduce((a, b) => a + (b.score || 75), 0) / evals.length) : 75;
-    const avgQuality = evals.length ? Math.round(evals.reduce((a, b) => a + (b.codeQuality || 80), 0) / evals.length) : 80;
-    const avgCorrectness = evals.length ? Math.round(evals.reduce((a, b) => a + (b.correctness || 85), 0) / evals.length) : 85;
-
-    finalReport = {
-      overallScore: avgScore,
-      codeQualityScore: avgQuality,
-      correctnessScore: avgCorrectness,
-      strengths: [
-        `Strong syntax and algorithmic reasoning in ${assessment.language}.`,
-        'Demonstrates clean variable naming conventions and structure.',
-      ],
-      weaknesses: [
-        'Could add defensive boundary checks for edge inputs.',
-      ],
-      topImprovements: [
-        'Practice writing unit tests for boundary input conditions',
-        'Optimize memory usage by avoiding unnecessary array allocations',
-        'Use standard docstrings or type definitions',
-        'Master core language library utility methods',
-        'Handle null pointer or empty array scenarios gracefully',
-      ],
-      summary: `The candidate completed the ${assessment.language} assessment (${assessment.difficulty} level) with an overall score of ${avgScore}%.`,
-    };
-  }
+  const defaultSummary = `The candidate completed ${attemptedCount} of ${totalQ} questions (${attemptStatus}) in ${assessment.language} (${assessment.difficulty} level) with an authoritative score of ${authoritativeOverallScore}%.`;
 
   assessment.status = 'Completed';
   assessment.completedAt = new Date();
-  assessment.score = finalReport.overallScore || 75;
+  assessment.score = authoritativeOverallScore;
   assessment.feedback = {
-    overallScore: finalReport.overallScore || 75,
-    codeQualityScore: finalReport.codeQualityScore || 80,
-    correctnessScore: finalReport.correctnessScore || 85,
-    strengths: finalReport.strengths || [],
-    weaknesses: finalReport.weaknesses || [],
-    topImprovements: finalReport.topImprovements || [],
-    summary: finalReport.summary || '',
+    overallScore: authoritativeOverallScore,
+    codeQualityScore: authoritativeQualityScore,
+    correctnessScore: authoritativeCorrectnessScore,
+    strengths: finalReport?.strengths || [
+      `Demonstrates syntax fluency in ${assessment.language}.`,
+      `Attempted ${attemptedCount} of ${totalQ} configured assessment questions.`,
+    ],
+    weaknesses: finalReport?.weaknesses || [
+      attemptedCount < totalQ
+        ? `Left ${totalQ - attemptedCount} questions unanswered, reducing final score.`
+        : 'Could add defensive boundary check handling.',
+    ],
+    topImprovements: finalReport?.topImprovements || [
+      'Attempt all assessment questions to maximize total score potential',
+      'Practice writing unit tests for boundary input conditions',
+      'Optimize memory usage by avoiding unnecessary array allocations',
+      'Use standard docstrings or type definitions',
+      'Handle null pointer or empty array scenarios gracefully',
+    ],
+    summary: defaultSummary,
   };
 
   await assessment.save();

@@ -90,6 +90,15 @@ class AICodingService:
                 "initialCode": f"function findMax(arr) {{\n  let max = 0;\n  for(let i=0; i<=arr.length; i++) {{\n    if(arr[i] > max) max = arr[i];\n  }}\n  return max;\n}}",
                 "expectedKeyPoints": ["Fix out-of-bounds index <= to <", "Handle arrays with negative numbers (initialize max to arr[0] or -Infinity)"],
             },
+            {
+                "questionText": f"Write a function in {language} to merge two sorted arrays into a single combined sorted array.",
+                "questionType": "Coding Challenge",
+                "language": language,
+                "difficulty": difficulty,
+                "options": [],
+                "initialCode": f"// {language} starter code\nfunction mergeSorted(arr1, arr2) {{\n  // Write solution here\n}}",
+                "expectedKeyPoints": ["O(N+M) time complexity using two pointers", "Handle empty input arrays"],
+            },
         ]
 
         return sample_questions[q_count % len(sample_questions)]
@@ -136,7 +145,8 @@ class AICodingService:
         self,
         language: str,
         difficulty: str,
-        questions_and_submissions: List[Dict[str, Any]]
+        questions_and_submissions: List[Dict[str, Any]],
+        total_questions: int = 5
     ) -> Dict[str, Any]:
         prompt = get_final_coding_report_prompt(language, difficulty, questions_and_submissions)
 
@@ -145,15 +155,19 @@ class AICodingService:
                 response = self.model.generate_content(prompt)
                 if response and response.text:
                     json_str = clean_json_response(response.text)
-                    return json.loads(json_str)
+                    report = json.loads(json_str)
+                    sum_score = sum(qs.get("evaluation", {}).get("score", 0) for qs in questions_and_submissions if qs.get("evaluation") and qs.get("submittedAnswer") and qs.get("submittedAnswer") != 'No answer submitted.')
+                    report["overallScore"] = round(sum_score / max(1, total_questions))
+                    return report
             except Exception as e:
                 print(f"Gemini Final Coding Report error: {e}, falling back")
 
         # Fallback Final Coding Report
-        evals = [qs.get("evaluation", {}) for qs in questions_and_submissions if qs.get("evaluation")]
-        avg_score = int(sum(e.get("score", 75) for e in evals) / max(1, len(evals)))
-        avg_quality = int(sum(e.get("codeQuality", 80) for e in evals) / max(1, len(evals)))
-        avg_correctness = int(sum(e.get("correctness", 85) for e in evals) / max(1, len(evals)))
+        valid_subs = [qs for qs in questions_and_submissions if qs.get("evaluation") and qs.get("submittedAnswer") and qs.get("submittedAnswer") != 'No answer submitted.']
+        denom = max(1, total_questions)
+        avg_score = round(sum(qs.get("evaluation", {}).get("score", 0) for qs in valid_subs) / denom)
+        avg_quality = round(sum(qs.get("evaluation", {}).get("codeQuality", 0) for qs in valid_subs) / denom)
+        avg_correctness = round(sum(qs.get("evaluation", {}).get("correctness", 0) for qs in valid_subs) / denom)
 
         return {
             "overallScore": avg_score,
