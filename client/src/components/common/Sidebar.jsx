@@ -44,6 +44,7 @@ export const Sidebar = ({ role = 'candidate', isCollapsed, onToggle }) => {
     company: [
       { label: 'Overview', icon: LayoutDashboard, path: '/company/dashboard' },
       { label: 'Post New Job', icon: Briefcase, path: '/company/jobs/new' },
+      { label: 'AI Recruiter Copilot', icon: Sparkles, path: '/company/ai-recruiter-copilot' },
       { label: 'Manage Jobs', icon: FileText, path: '/company/jobs' },
       { label: 'Candidate Applications', icon: Users, path: '/company/applications' },
       { label: 'HRMS Employees', icon: UserCheck, path: '/company/employees' },
@@ -52,7 +53,6 @@ export const Sidebar = ({ role = 'candidate', isCollapsed, onToggle }) => {
       { label: 'Notifications', icon: Bell, path: '/company/notifications' },
       { label: 'Company Profile', icon: User, path: '/company/profile' },
       { label: 'Settings', icon: Settings, path: '/company/settings' },
-      { label: 'AI Recruiter Copilot', icon: Sparkles, path: '/company/ai-recruiter-copilot' },
     ],
     admin: [
       { label: 'System Overview', icon: LayoutDashboard, path: '/admin/dashboard' },
