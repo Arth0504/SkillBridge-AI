@@ -143,7 +143,7 @@ export const CompanyProfilePage = () => {
 
                 <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 transition-all mt-1">
                   <Camera className="w-3.5 h-3.5 text-brand-400" /> Upload Company Logo
-                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+                  <input type="file" accept="image/png, image/jpeg, image/jpg, image/webp" className="hidden" onChange={handleLogoChange} />
                 </label>
               </div>
             </div>

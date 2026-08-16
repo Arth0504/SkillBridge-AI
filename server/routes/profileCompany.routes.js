@@ -7,7 +7,7 @@ import {
 } from '../controllers/profileCompany.controller.js';
 import { validateCompanyProfileUpdate } from '../validations/profileCompany.validation.js';
 import { protect, restrictTo } from '../middleware/auth.middleware.js';
-import { upload } from '../middleware/upload.middleware.js';
+import { uploadLogo as uploadLogoMiddleware } from '../middleware/upload.middleware.js';
 import { ROLES } from '../config/constants.js';
 
 const router = express.Router();
@@ -21,6 +21,6 @@ router.use(restrictTo(ROLES.COMPANY));
 
 router.get('/', getCompanyProfile);
 router.put('/', validateCompanyProfileUpdate, updateCompanyProfile);
-router.post('/logo', upload.single('logo'), uploadLogo);
+router.post('/logo', uploadLogoMiddleware.single('logo'), uploadLogo);
 
 export default router;

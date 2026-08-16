@@ -22,18 +22,19 @@ export const uploadToCloudinary = (buffer, folder = 'skillbridge', resourceType 
     }
 
     const isResume = folder.includes('resumes');
+    const isLogo = folder.includes('logos');
     const isAvatar = folder.includes('avatars') || resourceType === 'image';
-    const maxSize = isResume ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
+    const maxSize = isResume ? 5 * 1024 * 1024 : (isLogo ? 3 * 1024 * 1024 : 2 * 1024 * 1024);
 
     // File Size Validation
     if (buffer.length > maxSize) {
-      const msg = isResume ? 'Maximum resume size is 5 MB.' : 'Maximum avatar image size is 2 MB.';
+      const msg = isResume ? 'Maximum resume size is 5 MB.' : (isLogo ? 'Maximum logo image size is 3 MB.' : 'Maximum avatar image size is 2 MB.');
       return reject(new Error(msg));
     }
 
     // Generate Unique Filename using UUID
     const uuid = randomUUID();
-    const prefix = isResume ? 'resume' : 'avatar';
+    const prefix = isResume ? 'resume' : (isLogo ? 'logo' : 'avatar');
     const ext = isResume ? '.pdf' : '.png';
     const uuidFilename = `${prefix}_${uuid}${ext}`;
     const publicIdName = `${prefix}_${uuid}`;
@@ -75,7 +76,7 @@ export const uploadToCloudinary = (buffer, folder = 'skillbridge', resourceType 
 
     // 2. Development Mode: Store file in local /uploads directory using UUID filename
     try {
-      const subDir = isResume ? 'resumes' : 'avatars';
+      const subDir = isResume ? 'resumes' : (isLogo ? 'logos' : 'avatars');
       const uploadsDir = path.join(__dirname, '..', 'uploads', subDir);
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
