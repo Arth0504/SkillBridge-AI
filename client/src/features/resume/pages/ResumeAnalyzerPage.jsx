@@ -52,6 +52,8 @@ export const ResumeAnalyzerPage = () => {
       return;
     }
 
+    analyzeMutation.reset();
+
     if (selectedFile) {
       const formData = new FormData();
       formData.append('resume', selectedFile);
@@ -62,7 +64,12 @@ export const ResumeAnalyzerPage = () => {
     }
   };
 
-  const currentAnalysis = analyzeMutation.data?.data?.analysis || history[0]?.analysisResult || history[0];
+  const currentAnalysis =
+    analyzeMutation.data?.data?.analysis ||
+    analyzeMutation.data?.data ||
+    analyzeMutation.data?.analysis ||
+    history[0]?.analysisResult ||
+    history[0];
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">

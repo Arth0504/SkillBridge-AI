@@ -39,26 +39,62 @@ class GeminiService:
 
         # Fallback Dynamic Rule-Based Engine
         word_count = len(resume_text.split())
-        skill_catalog = [
-            "Java", "Spring Boot", "Hibernate", "Maven", "JUnit", "SQL", "MySQL", "PostgreSQL",
-            "React", "Node.js", "Express", "MongoDB", "JavaScript", "TypeScript", "Redux",
-            "Python", "Pandas", "NumPy", "PyTorch", "TensorFlow", "Scikit-Learn", "Machine Learning", "Data Science",
-            "C++", "C#", ".NET", "AWS", "Docker", "Kubernetes", "CI/CD", "Git", "DevOps"
-        ]
-        matched_skills = [s for s in skill_catalog if re.search(r'\b' + re.escape(s) + r'\b', resume_text, re.IGNORECASE)]
+        clean_jd = job_description or ""
 
-        domain = "Software Development"
-        if any(s in ["Java", "Spring Boot", "Hibernate", "Maven"] for s in matched_skills):
-            domain = "Java Enterprise Development"
-        elif any(s in ["Pandas", "NumPy", "PyTorch", "TensorFlow", "Data Science", "Machine Learning"] for s in matched_skills):
-            domain = "Data Science & Machine Learning"
-        elif any(s in ["React", "Node.js", "Express", "MongoDB"] for s in matched_skills):
-            domain = "MERN Full Stack Development"
+        skill_domains = {
+            "web_frontend": ["React", "Next.js", "TypeScript", "JavaScript", "Redux", "Vue", "Angular", "HTML", "CSS", "Tailwind", "Vite", "Webpack"],
+            "web_backend": ["Node.js", "Express", "NestJS", "Python", "Django", "Flask", "FastAPI", "Java", "Spring Boot", "Hibernate", "C#", ".NET", "Go", "Rust", "PHP", "Laravel", "Ruby", "Rails", "GraphQL", "REST API"],
+            "database": ["MongoDB", "PostgreSQL", "MySQL", "Redis", "SQL", "Cassandra", "Elasticsearch", "DynamoDB"],
+            "devops_cloud": ["AWS", "GCP", "Azure", "Docker", "Kubernetes", "CI/CD", "Terraform", "Linux", "Git", "Nginx", "Microservices"],
+            "data_ai": ["Python", "Pandas", "NumPy", "Scikit-Learn", "PyTorch", "TensorFlow", "Keras", "Data Science", "Machine Learning", "Deep Learning", "NLP", "Computer Vision", "LangChain", "LLM"],
+            "design_uiux": ["Figma", "Adobe XD", "Photoshop", "Illustrator", "UI/UX", "Wireframing", "Prototyping", "User Research", "Design Systems", "User Centered Design"],
+            "qa_testing": ["Jest", "Cypress", "Selenium", "JUnit", "PyTest", "Mocha", "Postman", "Integration Testing"],
+            "mobile": ["React Native", "Flutter", "Swift", "Kotlin", "iOS", "Android"],
+        }
+
+        all_skills = list(set([skill for sublist in skill_domains.values() for skill in sublist]))
+
+        matched_skills = [s for s in all_skills if re.search(r'\b' + re.escape(s) + r'\b', resume_text, re.IGNORECASE)]
+        jd_skills = [s for s in all_skills if re.search(r'\b' + re.escape(s) + r'\b', clean_jd, re.IGNORECASE)] if clean_jd else []
+
+        domain = "Software Engineering"
+        domain_key = "web_backend"
+
+        if any(s in skill_domains["design_uiux"] for s in matched_skills):
+            domain = "UI/UX & Product Design"
+            domain_key = "design_uiux"
+        elif any(s in ["Pandas", "NumPy", "PyTorch", "TensorFlow", "Data Science", "Machine Learning", "NLP"] for s in matched_skills):
+            domain = "Data Science & AI/ML"
+            domain_key = "data_ai"
+        elif any(s in ["React", "Node.js", "Express", "MongoDB", "Next.js"] for s in matched_skills):
+            domain = "MERN / Full-Stack Web Development"
+            domain_key = "web_frontend"
+        elif any(s in ["Java", "Spring Boot", "Hibernate", "JPA"] for s in matched_skills):
+            domain = "Enterprise Java Engineering"
+            domain_key = "web_backend"
+        elif any(s in ["Python", "Django", "Flask", "FastAPI"] for s in matched_skills):
+            domain = "Python Software Engineering"
+            domain_key = "web_backend"
         elif any(s in ["AWS", "Docker", "Kubernetes", "DevOps"] for s in matched_skills):
             domain = "Cloud & DevOps Engineering"
+            domain_key = "devops_cloud"
+        elif any(s in ["React Native", "Flutter", "Swift", "Kotlin"] for s in matched_skills):
+            domain = "Mobile Application Development"
+            domain_key = "mobile"
+
+        missing_skills = []
+        if jd_skills:
+            missing_skills = [s for s in jd_skills if s not in matched_skills]
+            if not missing_skills:
+                missing_skills = [s for s in skill_domains.get(domain_key, all_skills) if s not in matched_skills][:4]
+        else:
+            domain_pool = skill_domains.get(domain_key, []) + skill_domains["devops_cloud"]
+            missing_skills = [s for s in domain_pool if s not in matched_skills][:4]
+
+        if not missing_skills:
+            missing_skills = ["System Design", "CI/CD Pipelines", "Performance Optimization"]
 
         score = min(96, max(55, 55 + len(matched_skills) * 4 + min(20, word_count // 25)))
-        missing_skills = [s for s in skill_catalog if s not in matched_skills][:5]
 
         sentences = [s.strip() for s in re.split(r'[.!\n]', resume_text) if len(s.strip()) > 15]
         snippet = ". ".join(sentences[:2])
@@ -67,8 +103,8 @@ class GeminiService:
         return {
             "overallAtsScore": score,
             "skillMatch": {
-                "technicalSkills": matched_skills if matched_skills else ["Software Engineering"],
-                "softSkills": ["Problem Solving", "Team Collaboration", "Communication"],
+                "technicalSkills": matched_skills if matched_skills else [domain],
+                "softSkills": ["Problem Solving", "Team Collaboration", "Technical Communication"],
                 "missingSkills": missing_skills,
             },
             "keywordAnalysis": {

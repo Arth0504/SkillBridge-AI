@@ -3,7 +3,7 @@ import { logger } from '../utils/logger.js';
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 const SHARED_SECRET = process.env.AI_SHARED_SECRET || 'skillbridge_secret_ai_key_2026';
-const TIMEOUT_MS = 2000;
+const TIMEOUT_MS = 15000;
 
 /**
  * Execute HTTP POST to FastAPI AI microservice with timeout & retry logic
@@ -45,54 +45,106 @@ const postToAIService = async (endpoint, data, isForm = false, retries = 1) => {
 };
 
 /**
- * Local Fallback ATS Engine (runs if FastAPI microservice is offline)
+ * Dynamic Domain-Aware & Target-Role-Aware Fallback ATS Engine
  */
 export const fallbackAnalyzeATS = (resumeText, jobDescription = '') => {
   const cleanText = resumeText || '';
+  const cleanJd = jobDescription || '';
   const wordList = cleanText.split(/\s+/).filter(Boolean);
   const wordCount = wordList.length;
 
-  const SKILL_LIBRARY = [
-    'Java', 'Spring Boot', 'Spring', 'Hibernate', 'JPA', 'Maven', 'JUnit', 'Mockito', 'SQL', 'MySQL', 'PostgreSQL',
-    'React', 'Node.js', 'Express', 'MongoDB', 'JavaScript', 'TypeScript', 'Redux', 'HTML', 'CSS', 'Tailwind',
-    'Python', 'Pandas', 'NumPy', 'Scikit-learn', 'PyTorch', 'TensorFlow', 'Keras', 'Data Science', 'Machine Learning', 'AI', 'NLP',
-    'C++', 'C#', '.NET', 'PHP', 'Laravel', 'Ruby', 'Rails', 'Go', 'Golang', 'Rust',
-    'AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Git', 'Linux', 'GCP', 'Azure', 'DevOps', 'Microservices'
-  ];
+  const SKILL_DOMAINS = {
+    web_frontend: ['React', 'Next.js', 'TypeScript', 'JavaScript', 'Redux', 'Vue', 'Angular', 'HTML', 'CSS', 'Tailwind', 'Vite', 'Webpack'],
+    web_backend: ['Node.js', 'Express', 'NestJS', 'Python', 'Django', 'Flask', 'FastAPI', 'Java', 'Spring Boot', 'Hibernate', 'C#', '.NET', 'Go', 'Rust', 'PHP', 'Laravel', 'Ruby', 'Rails', 'GraphQL', 'REST API'],
+    database: ['MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'SQL', 'Cassandra', 'Elasticsearch', 'DynamoDB'],
+    devops_cloud: ['AWS', 'GCP', 'Azure', 'Docker', 'Kubernetes', 'CI/CD', 'Terraform', 'Linux', 'Git', 'Nginx', 'Microservices'],
+    data_ai: ['Python', 'Pandas', 'NumPy', 'Scikit-learn', 'PyTorch', 'TensorFlow', 'Keras', 'Data Science', 'Machine Learning', 'Deep Learning', 'NLP', 'Computer Vision', 'LangChain', 'LLM'],
+    design_uiux: ['Figma', 'Adobe XD', 'Photoshop', 'Illustrator', 'UI/UX', 'Wireframing', 'Prototyping', 'User Research', 'Design Systems', 'User Centered Design'],
+    qa_testing: ['Jest', 'Cypress', 'Selenium', 'JUnit', 'PyTest', 'Mocha', 'Postman', 'Integration Testing'],
+    mobile: ['React Native', 'Flutter', 'Swift', 'Kotlin', 'iOS', 'Android']
+  };
 
-  const matchedSkills = SKILL_LIBRARY.filter((s) => new RegExp(`\\b${s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(cleanText));
+  const ALL_SKILLS = Array.from(new Set(Object.values(SKILL_DOMAINS).flat()));
 
-  let domain = 'Software Development';
-  if (matchedSkills.some(s => ['Java', 'Spring Boot', 'Hibernate', 'Maven'].includes(s))) domain = 'Java Enterprise Development';
-  else if (matchedSkills.some(s => ['Pandas', 'NumPy', 'PyTorch', 'TensorFlow', 'Machine Learning', 'Data Science'].includes(s))) domain = 'Data Science & Machine Learning';
-  else if (matchedSkills.some(s => ['React', 'Node.js', 'Express', 'MongoDB'].includes(s))) domain = 'MERN Full Stack Development';
-  else if (matchedSkills.some(s => ['AWS', 'Docker', 'Kubernetes', 'DevOps'].includes(s))) domain = 'Cloud & DevOps Engineering';
+  // Extract skills present in resume
+  const matchedSkills = ALL_SKILLS.filter((s) =>
+    new RegExp(`\\b${s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(cleanText)
+  );
 
-  const score = Math.min(96, Math.max(55, Math.round(55 + (matchedSkills.length * 4) + Math.min(20, wordCount / 25))));
-  const missingSkills = SKILL_LIBRARY.filter(s => !matchedSkills.includes(s)).slice(0, 5);
+  // Extract skills required by job description (if provided)
+  const jdSkills = cleanJd
+    ? ALL_SKILLS.filter((s) => new RegExp(`\\b${s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(cleanJd))
+    : [];
 
-  const sentences = cleanText.split(/[.!\n]/).map(s => s.trim()).filter(s => s.length > 15);
+  // Determine Domain
+  let domain = 'Software Engineering';
+  let domainKey = 'web_backend';
+
+  if (matchedSkills.some((s) => SKILL_DOMAINS.design_uiux.includes(s))) {
+    domain = 'UI/UX & Product Design';
+    domainKey = 'design_uiux';
+  } else if (matchedSkills.some((s) => ['Pandas', 'NumPy', 'PyTorch', 'TensorFlow', 'Data Science', 'Machine Learning', 'NLP'].includes(s))) {
+    domain = 'Data Science & AI/ML';
+    domainKey = 'data_ai';
+  } else if (matchedSkills.some((s) => ['React', 'Node.js', 'Express', 'MongoDB', 'Next.js'].includes(s))) {
+    domain = 'MERN / Full-Stack Web Development';
+    domainKey = 'web_frontend';
+  } else if (matchedSkills.some((s) => ['Java', 'Spring Boot', 'Hibernate', 'JPA'].includes(s))) {
+    domain = 'Enterprise Java Engineering';
+    domainKey = 'web_backend';
+  } else if (matchedSkills.some((s) => ['Python', 'Django', 'Flask', 'FastAPI'].includes(s))) {
+    domain = 'Python Software Engineering';
+    domainKey = 'web_backend';
+  } else if (matchedSkills.some((s) => ['AWS', 'Docker', 'Kubernetes', 'Terraform', 'DevOps'].includes(s))) {
+    domain = 'Cloud & DevOps Engineering';
+    domainKey = 'devops_cloud';
+  } else if (matchedSkills.some((s) => ['React Native', 'Flutter', 'Swift', 'Kotlin'].includes(s))) {
+    domain = 'Mobile Application Development';
+    domainKey = 'mobile';
+  }
+
+  // Calculate missing skills dynamically
+  let missingSkills = [];
+  if (jdSkills.length > 0) {
+    missingSkills = jdSkills.filter((s) => !matchedSkills.includes(s));
+    if (missingSkills.length === 0) {
+      // If candidate already matches all JD skills, suggest complementary skills in same domain
+      missingSkills = (SKILL_DOMAINS[domainKey] || ALL_SKILLS).filter((s) => !matchedSkills.includes(s)).slice(0, 4);
+    }
+  } else {
+    // General audit: suggest missing skills from candidate's specific domain & cloud/devops
+    const domainPool = [...(SKILL_DOMAINS[domainKey] || []), ...SKILL_DOMAINS.devops_cloud];
+    missingSkills = domainPool.filter((s) => !matchedSkills.includes(s)).slice(0, 4);
+  }
+
+  if (missingSkills.length === 0) {
+    missingSkills = ['System Design', 'CI/CD Pipelines', 'Performance Optimization'];
+  }
+
+  const score = Math.min(96, Math.max(55, Math.round(55 + matchedSkills.length * 4 + Math.min(20, wordCount / 25))));
+
+  const sentences = cleanText.split(/[.!\n]/).map((s) => s.trim()).filter((s) => s.length > 15);
   const snippet = sentences.slice(0, 2).join('. ');
   const resumeSummary = snippet
-    ? `Analyzed ${domain} profile: "${snippet}."`
-    : `Candidate profile demonstrating technical background in ${domain} with skills in ${matchedSkills.slice(0, 4).join(', ') || 'software engineering'}.`;
+    ? `Analyzed ${domain} candidate profile: "${snippet}."`
+    : `Candidate profile demonstrating expertise in ${domain} with core proficiencies in ${matchedSkills.slice(0, 4).join(', ') || 'technical design and software development'}.`;
 
   const strengths = [
     `Demonstrates technical proficiency in ${matchedSkills.slice(0, 3).join(', ') || 'core domain skills'}`,
-    `Structured experience alignment for ${domain} engineering roles`,
-    `Total extracted vocabulary density of ${wordCount} words`,
+    `Structured experience alignment tailored for ${domain} roles`,
+    `Extracted resume text volume of ${wordCount} words`,
   ];
 
   const weaknesses = [
-    `Recommended to expand knowledge in ${missingSkills.slice(0, 2).join(' & ') || 'cloud infrastructure'}`,
-    `Add quantifiable performance numbers to project achievements`,
+    `Recommended to expand proficiency in ${missingSkills.slice(0, 2).join(' & ')}`,
+    'Add quantifiable metrics and measurable achievements to past career accomplishments',
   ];
 
   return {
     overallAtsScore: score,
     skillMatch: {
-      technicalSkills: matchedSkills.length ? matchedSkills : ['Software Engineering'],
-      softSkills: ['Analytical Thinking', 'Problem Solving', 'Teamwork'],
+      technicalSkills: matchedSkills.length ? matchedSkills : [domain],
+      softSkills: ['Analytical Problem Solving', 'Cross-Functional Collaboration', 'Technical Communication'],
       missingSkills,
     },
     keywordAnalysis: {
@@ -101,23 +153,23 @@ export const fallbackAnalyzeATS = (resumeText, jobDescription = '') => {
     },
     strengths,
     weaknesses,
-    grammarReview: 'Clean professional tone throughout parsed resume text.',
+    grammarReview: 'Clean professional tone and phrasing across extracted resume sections.',
     formattingSuggestions: [
-      'Use bullet points for work experience details',
-      'Keep technical skills organized by subcategories',
+      'Use standard bullet points for work experience details',
+      'Keep technical skills categorized clearly by domain',
     ],
-    projectReview: `Projects highlight practical applications in ${domain}.`,
-    experienceReview: `Solid experience profile tailoring to ${domain}.`,
-    educationReview: 'Educational background is specified.',
-    certificationReview: 'Relevant technical credentials enhance profile strength.',
+    projectReview: `Projects highlight practical hands-on experience in ${domain}.`,
+    experienceReview: `Solid experience profile tailored to ${domain}.`,
+    educationReview: 'Academic credentials and background are clearly stated.',
+    certificationReview: 'Relevant credentials enhance profile strength.',
     resumeSummary,
     improvementSuggestions: [
-      `Incorporate key target keywords such as ${missingSkills.slice(0, 2).join(', ')}`,
-      'Include quantitative metrics (e.g. improved performance by X%)',
+      `Incorporate missing target keywords such as ${missingSkills.slice(0, 2).join(', ')}`,
+      'Include quantitative metrics (e.g., improved system throughput by X%)',
     ],
     recruiterImpression: `Strong candidate profile for ${domain} opportunities.`,
     top5Improvements: [
-      `Add technical skills in ${missingSkills.slice(0, 2).join(' and ')}`,
+      `Incorporate skills in ${missingSkills.slice(0, 2).join(' and ')}`,
       'Include quantifiable business impact metrics',
       'Highlight top career achievements in professional summary',
       'Ensure section titles use standard ATS headings',
