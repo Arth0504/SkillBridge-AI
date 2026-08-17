@@ -48,14 +48,14 @@ const getFallbackQuestionPool = (language, difficulty, index = 0) => {
       difficulty,
       options: [],
       initialCode: language === 'Python'
-        ? `def solution(nums, target):\n    # Write your O(N) solution here\n    hashmap = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in hashmap:\n            return [hashmap[complement], i]\n        hashmap[num] = i\n    return []`
+        ? `def solution(nums, target):\n    # Write your solution here\n    pass`
         : language === 'Java'
-        ? `import java.util.*;\n\nclass Solution {\n    public int[] solution(int[] nums, int target) {\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int comp = target - nums[i];\n            if (map.containsKey(comp)) return new int[] { map.get(comp), i };\n            map.put(nums[i], i);\n        }\n        return new int[0];\n    }\n}`
+        ? `import java.util.*;\n\nclass Solution {\n    public int[] solution(int[] nums, int target) {\n        // Write your solution here\n        return new int[0];\n    }\n}`
         : language === 'C++'
-        ? `#include <vector>\n#include <unordered_map>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> solution(vector<int>& nums, int target) {\n        unordered_map<int, int> mp;\n        for (int i = 0; i < nums.size(); i++) {\n            int comp = target - nums[i];\n            if (mp.count(comp)) return {mp[comp], i};\n            mp[nums[i]] = i;\n        }\n        return {};\n    }\n};`
+        ? `#include <vector>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> solution(vector<int>& nums, int target) {\n        // Write your solution here\n        return {};\n    }\n};`
         : language === 'SQL'
-        ? `-- Write SQL query to return candidates with total applications >= 1\nSELECT candidate_id, COUNT(id) as total_applications\nFROM applications\nGROUP BY candidate_id;\n`
-        : `function solution(nums, target) {\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const comp = target - nums[i];\n    if (map.has(comp)) return [map.get(comp), i];\n    map.set(nums[i], i);\n  }\n  return [];\n}`,
+        ? `-- Write your SQL query here`
+        : `function solution(nums, target) {\n  // Write your solution here\n}`,
     },
     {
       questionText: `Write a function in ${language} that determines if a given string of brackets '()[]{}' is valid and properly balanced.`,
@@ -64,12 +64,14 @@ const getFallbackQuestionPool = (language, difficulty, index = 0) => {
       difficulty,
       options: [],
       initialCode: language === 'Python'
-        ? `def isValid(s: str) -> bool:\n    # Stack-based valid parentheses solver\n    stack = []\n    mapping = {")": "(", "}": "{", "]": "["}\n    for char in s:\n        if char in mapping:\n            top = stack.pop() if stack else '#'\n            if mapping[char] != top: return False\n        else: stack.append(char)\n    return not stack`
+        ? `def isValid(s: str) -> bool:\n    # Write your solution here\n    pass`
         : language === 'Java'
-        ? `import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Stack<Character> stack = new Stack<>();\n        for (char c : s.toCharArray()) {\n            if (c == '(') stack.push(')');\n            else if (c == '{') stack.push('}');\n            else if (c == '[') stack.push(']');\n            else if (stack.isEmpty() || stack.pop() != c) return false;\n        }\n        return stack.isEmpty();\n    }\n}`
+        ? `import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        // Write your solution here\n        return false;\n    }\n}`
+        : language === 'C++'
+        ? `#include <string>\nusing namespace std;\n\nclass Solution {\npublic:\n    bool isValid(string s) {\n        // Write your solution here\n        return false;\n    }\n};`
         : language === 'SQL'
-        ? `-- Write SQL query to find average test score per department\nSELECT department, AVG(score) as avg_score\nFROM employee_assessments\nGROUP BY department;\n`
-        : `function isValid(s) {\n  const stack = [];\n  const map = { ')': '(', '}': '{', ']': '[' };\n  for (const char of s) {\n    if (char in map) {\n      if (stack.pop() !== map[char]) return false;\n    } else {\n      stack.push(char);\n    }\n  }\n  return stack.length === 0;\n}`,
+        ? `-- Write your SQL query here`
+        : `function isValid(s) {\n  // Write your solution here\n}`,
     },
     {
       questionText: `What is the worst-case time complexity of QuickSort when the pivot chosen is always the smallest or largest element?`,
@@ -86,12 +88,14 @@ const getFallbackQuestionPool = (language, difficulty, index = 0) => {
       difficulty,
       options: [],
       initialCode: language === 'Python'
-        ? `def maxSubArray(nums):\n    max_so_far = current_max = nums[0]\n    for x in nums[1:]:\n        current_max = max(x, current_max + x)\n        max_so_far = max(max_so_far, current_max)\n    return max_so_far`
+        ? `def maxSubArray(nums):\n    # Write your solution here\n    pass`
         : language === 'Java'
-        ? `class Solution {\n    public int maxSubArray(int[] nums) {\n        int maxSoFar = nums[0], currMax = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            currMax = Math.max(nums[i], currMax + nums[i]);\n            maxSoFar = Math.max(maxSoFar, currMax);\n        }\n        return maxSoFar;\n    }\n}`
+        ? `class Solution {\n    public int maxSubArray(int[] nums) {\n        // Write your solution here\n        return 0;\n    }\n}`
+        : language === 'C++'
+        ? `#include <vector>\nusing namespace std;\n\nclass Solution {\npublic:\n    int maxSubArray(vector<int>& nums) {\n        // Write your solution here\n        return 0;\n    }\n};`
         : language === 'SQL'
-        ? `-- Write SQL query using RANK() to select top 3 highest scoring candidates per job\nSELECT candidate_id, job_id, score,\n       DENSE_RANK() OVER (PARTITION BY job_id ORDER BY score DESC) as rank_num\nFROM job_applications;\n`
-        : `function maxSubArray(nums) {\n  let maxSoFar = nums[0], currMax = nums[0];\n  for (let i = 1; i < nums.length; i++) {\n    currMax = Math.max(nums[i], currMax + nums[i]);\n    maxSoFar = Math.max(maxSoFar, currMax);\n  }\n  return maxSoFar;\n}`,
+        ? `-- Write your SQL query here`
+        : `function maxSubArray(nums) {\n  // Write your solution here\n}`,
     },
     {
       questionText: `Write a function in ${language} to merge two sorted arrays nums1 and nums2 into a single sorted array.`,
@@ -100,12 +104,14 @@ const getFallbackQuestionPool = (language, difficulty, index = 0) => {
       difficulty,
       options: [],
       initialCode: language === 'Python'
-        ? `def mergeSorted(nums1, nums2):\n    return sorted(nums1 + nums2)`
+        ? `def mergeSorted(nums1, nums2):\n    # Write your solution here\n    pass`
         : language === 'Java'
-        ? `import java.util.*;\nclass Solution {\n    public int[] merge(int[] a, int[] b) {\n        int[] res = new int[a.length + b.length];\n        System.arraycopy(a, 0, res, 0, a.length);\n        System.arraycopy(b, 0, res, a.length, b.length);\n        Arrays.sort(res);\n        return res;\n    }\n}`
+        ? `import java.util.*;\nclass Solution {\n    public int[] merge(int[] a, int[] b) {\n        // Write your solution here\n        return new int[0];\n    }\n}`
+        : language === 'C++'
+        ? `#include <vector>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> merge(vector<int>& a, vector<int>& b) {\n        // Write your solution here\n        return {};\n    }\n};`
         : language === 'SQL'
-        ? `-- Write SQL query to join candidates and jobs, filtering out unverified recruiters\nSELECT c.name as candidate_name, j.title as job_title, a.status\nFROM applications a\nJOIN candidates c ON a.candidate_id = c._id\nJOIN jobs j ON a.job_id = j._id;\n`
-        : `function mergeSorted(nums1, nums2) {\n  return [...nums1, ...nums2].sort((a, b) => a - b);\n}`,
+        ? `-- Write your SQL query here`
+        : `function mergeSorted(nums1, nums2) {\n  // Write your solution here\n}`,
     },
   ];
 
@@ -183,6 +189,47 @@ export const startCodingAssessmentService = async ({
 };
 
 /**
+ * Helper: Determine if a submission contains a real, valid candidate answer
+ */
+const isValidSubmission = (submittedAnswer, initialCode = '') => {
+  if (!submittedAnswer || typeof submittedAnswer !== 'string') return false;
+  const trimmed = submittedAnswer.trim();
+  if (trimmed === '' || trimmed === 'No answer submitted.') return false;
+
+  // Normalize code by stripping single/multi-line comments and all whitespace
+  const cleanSub = trimmed
+    .replace(/\/\*[\s\S]*?\*\/|\/\/.*|#.*|--.*/g, '')
+    .replace(/\s+/g, '');
+
+  const cleanInit = (initialCode || '')
+    .trim()
+    .replace(/\/\*[\s\S]*?\*\/|\/\/.*|#.*|--.*/g, '')
+    .replace(/\s+/g, '');
+
+  // 1. Check if submission matches initial code stub exactly
+  if (cleanSub === cleanInit) return false;
+
+  // 2. Check if submission contains only empty return/pass stubs
+  const emptyStubs = [
+    'functionsolution(nums,target){}',
+    'functionsolution(nums,target){return[];}',
+    'defsolution(nums,target):pass',
+    'classSolution{public:vector<int>solution(vector<int>&nums,inttarget){return{};}};',
+    'classSolution{public:int[]solution(int[]nums,inttarget){returnnewint[0];}};',
+    'defisvalid(s:str)->bool:pass',
+    'functionsolution(arr){}',
+    'functionsolution(a,b){}',
+  ];
+
+  if (emptyStubs.includes(cleanSub)) return false;
+
+  // 3. Trivial input check
+  if (cleanSub.length < 5) return false;
+
+  return true;
+};
+
+/**
  * 2. Submit Answer / Code & Get Next Question
  */
 export const submitCodingAnswerService = async ({ assessmentId, candidateIdStr, submittedAnswer }) => {
@@ -204,37 +251,55 @@ export const submitCodingAnswerService = async ({ assessmentId, candidateIdStr, 
     throw new AppError('Question state error.', 400);
   }
 
-  // 1. Evaluate Code via FastAPI AI
-  let evaluation = null;
-  try {
-    evaluation = await postToAIService('/api/v1/ai/coding/submit', {
-      questionText: currentQ.questionText,
-      language: assessment.language,
-      submittedAnswer,
-      expectedKeyPoints: [],
-    });
-  } catch (err) {
-    logger.info(`FastAPI AI coding evaluator offline (${err.message}). Using local fallback evaluator.`);
-  }
+  const isValid = isValidSubmission(submittedAnswer, currentQ.initialCode);
 
-  if (!evaluation) {
-    const codeLen = submittedAnswer.trim().length;
-    const score = Math.min(95, Math.max(50, Math.round((codeLen / 35) * 80)));
+  let evaluation = null;
+  if (isValid) {
+    // Evaluate valid code submission via FastAPI AI
+    try {
+      evaluation = await postToAIService('/api/v1/ai/coding/submit', {
+        questionText: currentQ.questionText,
+        language: assessment.language,
+        submittedAnswer,
+        expectedKeyPoints: [],
+      });
+    } catch (err) {
+      logger.info(`FastAPI AI coding evaluator offline (${err.message}). Using local fallback evaluator.`);
+    }
+
+    if (!evaluation) {
+      const codeLen = submittedAnswer.trim().length;
+      const score = Math.min(95, Math.max(50, Math.round((codeLen / 35) * 80)));
+      evaluation = {
+        correctness: score,
+        timeComplexity: 'O(N)',
+        spaceComplexity: 'O(1)',
+        codeQuality: 85,
+        bestPractices: 90,
+        readability: 88,
+        score,
+        feedbackText: `Valid ${assessment.language} solution addressing requirement details.`,
+        improvementSuggestions: ['Include boundary edge-case handling', 'Add type declarations or Docstrings'],
+      };
+    }
+  } else {
+    // Unanswered or skipped question: ZERO marks assigned, do NOT call AI evaluator
     evaluation = {
-      correctness: score,
-      timeComplexity: 'O(N)',
-      spaceComplexity: 'O(1)',
-      codeQuality: 85,
-      bestPractices: 90,
-      readability: 88,
-      score,
-      feedbackText: `Valid ${assessment.language} solution addressing requirement details.`,
-      improvementSuggestions: ['Include boundary edge-case handling', 'Add type declarations or Docstrings'],
+      correctness: 0,
+      timeComplexity: 'N/A',
+      spaceComplexity: 'N/A',
+      codeQuality: 0,
+      bestPractices: 0,
+      readability: 0,
+      score: 0,
+      feedbackText: 'Question was skipped or left unanswered (0 points).',
+      improvementSuggestions: ['Submit a working solution or select an option to earn marks.'],
+      status: 'unanswered',
     };
   }
 
   // Save current question answer & evaluation
-  currentQ.submittedAnswer = submittedAnswer;
+  currentQ.submittedAnswer = isValid ? submittedAnswer : 'No answer submitted.';
   currentQ.submittedAt = new Date();
   currentQ.evaluation = evaluation;
 
@@ -306,28 +371,65 @@ export const finishCodingAssessmentService = async ({ assessmentId, candidateIdS
   const totalQ = assessment.totalQuestions || 5;
   const questionsList = assessment.questions || [];
 
-  // Calculate authoritative score across ALL configured total questions
   let sumScore = 0;
   let sumQuality = 0;
   let sumCorrectness = 0;
   let attemptedCount = 0;
 
   for (let i = 0; i < totalQ; i++) {
-    const q = questionsList[i];
-    if (
-      q &&
-      q.submittedAnswer &&
-      String(q.submittedAnswer).trim() !== '' &&
-      String(q.submittedAnswer).trim() !== 'No answer submitted.'
-    ) {
-      attemptedCount++;
-      if (q.evaluation) {
-        sumScore += Number(q.evaluation.score || 0);
-        sumQuality += Number(q.evaluation.codeQuality || 0);
-        sumCorrectness += Number(q.evaluation.correctness || 0);
+    let q = questionsList[i];
+
+    if (!q) {
+      // Create missing placeholder for unreached questions
+      q = {
+        questionId: new mongoose.Types.ObjectId().toString(),
+        questionText: `Assessment Question ${i + 1}`,
+        questionType: 'Coding Challenge',
+        difficulty: assessment.difficulty,
+        language: assessment.language,
+        submittedAnswer: 'No answer submitted.',
+        evaluation: {
+          correctness: 0,
+          timeComplexity: 'N/A',
+          spaceComplexity: 'N/A',
+          codeQuality: 0,
+          bestPractices: 0,
+          readability: 0,
+          score: 0,
+          feedbackText: 'Question was skipped or unattempted (0 points).',
+          improvementSuggestions: ['Attempt all assessment questions to maximize total score.'],
+          status: 'unanswered',
+        },
+      };
+      assessment.questions.push(q);
+    } else {
+      const isValid = isValidSubmission(q.submittedAnswer, q.initialCode);
+      if (!isValid || !q.evaluation) {
+        q.submittedAnswer = 'No answer submitted.';
+        q.evaluation = {
+          correctness: 0,
+          timeComplexity: 'N/A',
+          spaceComplexity: 'N/A',
+          codeQuality: 0,
+          bestPractices: 0,
+          readability: 0,
+          score: 0,
+          feedbackText: 'Question was skipped or left unanswered (0 points).',
+          improvementSuggestions: ['Attempt all assessment questions to maximize total score.'],
+          status: 'unanswered',
+        };
       }
     }
-    // Unattempted or skipped questions implicitly contribute 0 to sumScore, sumQuality, sumCorrectness
+
+    const isValid = isValidSubmission(q.submittedAnswer, q.initialCode);
+    if (isValid && q.evaluation && q.evaluation.status !== 'unanswered') {
+      attemptedCount++;
+    }
+    if (q.evaluation) {
+      sumScore += Number(q.evaluation.score || 0);
+      sumQuality += Number(q.evaluation.codeQuality || 0);
+      sumCorrectness += Number(q.evaluation.correctness || 0);
+    }
   }
 
   const authoritativeOverallScore = Math.round(sumScore / totalQ);
@@ -341,7 +443,7 @@ export const finishCodingAssessmentService = async ({ assessmentId, candidateIdS
       ? 'Completed'
       : 'Partially Attempted';
 
-  const qsData = questionsList.map((q) => ({
+  const qsData = assessment.questions.map((q) => ({
     questionText: q.questionText,
     questionType: q.questionType,
     submittedAnswer: q.submittedAnswer || 'No answer submitted.',
@@ -349,19 +451,26 @@ export const finishCodingAssessmentService = async ({ assessmentId, candidateIdS
   }));
 
   let finalReport = null;
-  try {
-    finalReport = await postToAIService('/api/v1/ai/coding/finish', {
-      language: assessment.language,
-      difficulty: assessment.difficulty,
-      questionsAndSubmissions: qsData,
-      totalQuestions: totalQ,
-      attemptedCount,
-    });
-  } catch (err) {
-    logger.info(`FastAPI AI coding finish service offline (${err.message}). Using local report generator.`);
+  if (attemptedCount > 0) {
+    try {
+      finalReport = await postToAIService('/api/v1/ai/coding/finish', {
+        language: assessment.language,
+        difficulty: assessment.difficulty,
+        questionsAndSubmissions: qsData,
+        totalQuestions: totalQ,
+        attemptedCount,
+      });
+    } catch (err) {
+      logger.info(`FastAPI AI coding finish service offline (${err.message}). Using local report generator.`);
+    }
   }
 
-  const defaultSummary = `The candidate completed ${attemptedCount} of ${totalQ} questions (${attemptStatus}) in ${assessment.language} (${assessment.difficulty} level) with an authoritative score of ${authoritativeOverallScore}%.`;
+  let summaryText = '';
+  if (attemptedCount === 0) {
+    summaryText = `The candidate skipped all ${totalQ} questions in the ${assessment.language} (${assessment.difficulty} level) assessment and received an overall score of 0%.`;
+  } else {
+    summaryText = `The candidate completed ${attemptedCount} of ${totalQ} questions (${attemptStatus}) in ${assessment.language} (${assessment.difficulty} level) with an authoritative score of ${authoritativeOverallScore}%.`;
+  }
 
   assessment.status = 'Completed';
   assessment.completedAt = new Date();
@@ -370,15 +479,15 @@ export const finishCodingAssessmentService = async ({ assessmentId, candidateIdS
     overallScore: authoritativeOverallScore,
     codeQualityScore: authoritativeQualityScore,
     correctnessScore: authoritativeCorrectnessScore,
-    strengths: finalReport?.strengths || [
+    strengths: attemptedCount === 0 ? ['Assessment session completed.'] : (finalReport?.strengths || [
       `Demonstrates syntax fluency in ${assessment.language}.`,
       `Attempted ${attemptedCount} of ${totalQ} configured assessment questions.`,
-    ],
-    weaknesses: finalReport?.weaknesses || [
+    ]),
+    weaknesses: attemptedCount === 0 ? ['No questions were attempted or submitted during the assessment.'] : (finalReport?.weaknesses || [
       attemptedCount < totalQ
         ? `Left ${totalQ - attemptedCount} questions unanswered, reducing final score.`
         : 'Could add defensive boundary check handling.',
-    ],
+    ]),
     topImprovements: finalReport?.topImprovements || [
       'Attempt all assessment questions to maximize total score potential',
       'Practice writing unit tests for boundary input conditions',
@@ -386,7 +495,7 @@ export const finishCodingAssessmentService = async ({ assessmentId, candidateIdS
       'Use standard docstrings or type definitions',
       'Handle null pointer or empty array scenarios gracefully',
     ],
-    summary: defaultSummary,
+    summary: summaryText,
   };
 
   await assessment.save();

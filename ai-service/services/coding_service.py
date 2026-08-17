@@ -110,6 +110,37 @@ class AICodingService:
         submitted_answer: str,
         expected_points: List[str] = None
     ) -> Dict[str, Any]:
+        sub_clean = (submitted_answer or "").strip()
+        import re
+        code_no_comments = re.sub(r'/\*[\s\S]*?\*/|//.*|#.*|--.*', '', sub_clean).strip()
+        code_no_ws = re.sub(r'\s+', '', code_no_comments)
+
+        is_unanswered = (
+            not sub_clean or
+            sub_clean == "No answer submitted." or
+            len(code_no_ws) < 5 or
+            code_no_ws in [
+                'functionsolution(nums,target){}',
+                'defsolution(nums,target):pass',
+                'classSolution{public:vector<int>solution(vector<int>&nums,inttarget){return{};}};',
+                'classSolution{public:int[]solution(int[]nums,inttarget){returnnewint[0];}};'
+            ]
+        )
+
+        if is_unanswered:
+            return {
+                "correctness": 0,
+                "timeComplexity": "N/A",
+                "spaceComplexity": "N/A",
+                "codeQuality": 0,
+                "bestPractices": 0,
+                "readability": 0,
+                "score": 0,
+                "feedbackText": "Question was skipped or left unanswered (0 points).",
+                "improvementSuggestions": ["Submit a working solution or select an option to earn marks."],
+                "status": "unanswered"
+            }
+
         prompt = get_code_evaluation_prompt(question_text, language, submitted_answer, expected_points)
 
         if self.model:
@@ -121,9 +152,9 @@ class AICodingService:
             except Exception as e:
                 print(f"Gemini Code Evaluation error: {e}, falling back")
 
-        # Fallback Code Evaluator
-        code_length = len(submitted_answer.strip())
-        score = min(95, max(50, Math.round((code_length / 40) * 85))) if 'Math' not in locals() else min(95, max(50, int((code_length / 40) * 85)))
+        # Fallback Code Evaluator for valid non-empty submissions
+        code_length = len(sub_clean)
+        score = min(95, max(50, int((code_length / 40) * 85)))
 
         return {
             "correctness": score,
@@ -148,6 +179,33 @@ class AICodingService:
         questions_and_submissions: List[Dict[str, Any]],
         total_questions: int = 5
     ) -> Dict[str, Any]:
+        valid_subs = [qs for qs in questions_and_submissions if qs.get("evaluation") and qs.get("submittedAnswer") and qs.get("submittedAnswer") != 'No answer submitted.' and qs.get("evaluation", {}).get("score", 0) > 0]
+        denom = max(1, total_questions)
+        avg_score = round(sum(qs.get("evaluation", {}).get("score", 0) for qs in valid_subs) / denom)
+        avg_quality = round(sum(qs.get("evaluation", {}).get("codeQuality", 0) for qs in valid_subs) / denom)
+        avg_correctness = round(sum(qs.get("evaluation", {}).get("correctness", 0) for qs in valid_subs) / denom)
+
+        if len(valid_subs) == 0 or avg_score == 0:
+            return {
+                "overallScore": 0,
+                "codeQualityScore": 0,
+                "correctnessScore": 0,
+                "strengths": [
+                    "Assessment session completed.",
+                ],
+                "weaknesses": [
+                    "No questions were attempted or submitted during the assessment.",
+                ],
+                "topImprovements": [
+                    "Attempt all assessment questions to earn points",
+                    "Review core language syntax and problem-solving techniques",
+                    "Practice basic data structures and algorithms",
+                    "Allocate sufficient time to complete coding challenges",
+                    "Submit initial code drafts even if partially completed",
+                ],
+                "summary": f"The candidate skipped all {denom} questions in the {language} ({difficulty} level) assessment and received an overall score of 0%.",
+            }
+
         prompt = get_final_coding_report_prompt(language, difficulty, questions_and_submissions)
 
         if self.model:
@@ -156,18 +214,10 @@ class AICodingService:
                 if response and response.text:
                     json_str = clean_json_response(response.text)
                     report = json.loads(json_str)
-                    sum_score = sum(qs.get("evaluation", {}).get("score", 0) for qs in questions_and_submissions if qs.get("evaluation") and qs.get("submittedAnswer") and qs.get("submittedAnswer") != 'No answer submitted.')
-                    report["overallScore"] = round(sum_score / max(1, total_questions))
+                    report["overallScore"] = avg_score
                     return report
             except Exception as e:
                 print(f"Gemini Final Coding Report error: {e}, falling back")
-
-        # Fallback Final Coding Report
-        valid_subs = [qs for qs in questions_and_submissions if qs.get("evaluation") and qs.get("submittedAnswer") and qs.get("submittedAnswer") != 'No answer submitted.']
-        denom = max(1, total_questions)
-        avg_score = round(sum(qs.get("evaluation", {}).get("score", 0) for qs in valid_subs) / denom)
-        avg_quality = round(sum(qs.get("evaluation", {}).get("codeQuality", 0) for qs in valid_subs) / denom)
-        avg_correctness = round(sum(qs.get("evaluation", {}).get("correctness", 0) for qs in valid_subs) / denom)
 
         return {
             "overallScore": avg_score,
@@ -188,7 +238,7 @@ class AICodingService:
                 "Master language-specific standard library helper functions",
                 "Focus on clean error handling and exception catching",
             ],
-            "summary": f"The candidate achieved an overall coding proficiency score of {avg_score}% in {language} ({difficulty} level), demonstrating readiness for software engineering roles.",
+            "summary": f"The candidate completed {len(valid_subs)} of {denom} questions in {language} ({difficulty} level) with an overall score of {avg_score}%.",
         }
 
 ai_coding_service = AICodingService()

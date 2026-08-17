@@ -43,16 +43,16 @@ export const CodingAssessmentPage = () => {
   const getStarterCode = (lang) => {
     switch (lang) {
       case 'Python':
-        return 'def solution(nums, target):\n    # Write your O(N) solution here\n    hashmap = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in hashmap:\n            return [hashmap[complement], i]\n        hashmap[num] = i\n    return []';
+        return 'def solution(nums, target):\n    # Write your solution here\n    pass';
       case 'Java':
-        return 'import java.util.*;\n\nclass Solution {\n    public int[] solution(int[] nums, int target) {\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int complement = target - nums[i];\n            if (map.containsKey(complement)) {\n                return new int[] { map.get(complement), i };\n            }\n            map.put(nums[i], i);\n        }\n        return new int[0];\n    }\n}';
+        return 'import java.util.*;\n\nclass Solution {\n    public int[] solution(int[] nums, int target) {\n        // Write your solution here\n        return new int[0];\n    }\n}';
       case 'C++':
-        return '#include <vector>\n#include <unordered_map>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> solution(vector<int>& nums, int target) {\n        unordered_map<int, int> mp;\n        for (int i = 0; i < nums.size(); i++) {\n            int comp = target - nums[i];\n            if (mp.count(comp)) return {mp[comp], i};\n            mp[nums[i]] = i;\n        }\n        return {};\n    }\n};';
+        return '#include <vector>\nusing namespace std;\n\nclass Solution {\npublic:\n    vector<int> solution(vector<int>& nums, int target) {\n        // Write your solution here\n        return {};\n    }\n};';
       case 'SQL':
-        return '-- Write your SQL query solution\nSELECT u.user_id, u.user_name, COUNT(a.application_id) AS total_applications\nFROM users u\nJOIN applications a ON u.user_id = a.candidate_id\nGROUP BY u.user_id, u.user_name\nHAVING COUNT(a.application_id) >= 1\nORDER BY total_applications DESC;';
+        return '-- Write your SQL query here';
       case 'JavaScript':
       default:
-        return 'function solution(nums, target) {\n  // Write your solution here\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) {\n      return [map.get(complement), i];\n    }\n    map.set(nums[i], i);\n  }\n  return [];\n}';
+        return 'function solution(nums, target) {\n  // Write your solution here\n}';
     }
   };
 
@@ -247,7 +247,7 @@ export const CodingAssessmentPage = () => {
                       Assessment Completed
                     </Badge>
                     <h2 className="text-3xl font-black text-slate-850 dark:text-white mt-1">
-                      Overall Score: <span className="text-emerald-500">{activeAssessment.score || activeAssessment.feedback?.overallScore || 85}%</span>
+                      Overall Score: <span className="text-emerald-500">{(activeAssessment.score ?? activeAssessment.feedback?.overallScore ?? 0)}%</span>
                     </h2>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => setActiveAssessment(null)}>
@@ -294,8 +294,13 @@ export const CodingAssessmentPage = () => {
                   <div className="space-y-2">
                     {Array.from({ length: totalQuestions }).map((_, idx) => {
                       const q = activeAssessment.questions?.[idx];
-                      const isSubmitted = Boolean(q?.submittedAnswer && String(q.submittedAnswer).trim() !== 'No answer submitted.');
-                      const scoreVal = isSubmitted ? (q?.evaluation?.score || 0) : 0;
+                      const scoreVal = q?.evaluation ? Number(q.evaluation.score || 0) : 0;
+                      const hasValidAnswer = Boolean(
+                        q?.submittedAnswer &&
+                        String(q.submittedAnswer).trim() !== '' &&
+                        String(q.submittedAnswer).trim() !== 'No answer submitted.' &&
+                        scoreVal > 0
+                      );
 
                       return (
                         <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/40 flex justify-between items-center">
@@ -307,8 +312,8 @@ export const CodingAssessmentPage = () => {
                               {q?.questionText || 'Unanswered / Skipped Question'}
                             </p>
                           </div>
-                          <Badge variant={isSubmitted ? (scoreVal >= 80 ? 'success' : 'warning') : 'danger'}>
-                            {isSubmitted ? `Score: ${scoreVal}%` : 'Unanswered (0%)'}
+                          <Badge variant={hasValidAnswer ? (scoreVal >= 80 ? 'success' : 'warning') : 'danger'}>
+                            {hasValidAnswer ? `Score: ${scoreVal}%` : 'Unanswered (0%)'}
                           </Badge>
                         </div>
                       );
@@ -472,7 +477,7 @@ export const CodingAssessmentPage = () => {
                     </h4>
                     <div className="flex items-center gap-2">
                       <Badge variant="purple">Time: {currentQuestion.evaluation.timeComplexity || 'O(N)'}</Badge>
-                      <Badge variant="success">Score: {currentQuestion.evaluation.score || 90}%</Badge>
+                      <Badge variant="success">Score: {currentQuestion.evaluation.score ?? 0}%</Badge>
                     </div>
                   </div>
                   <p className="text-xs text-slate-700 dark:text-slate-300 font-mono bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200/50 dark:border-slate-800/45">
@@ -502,7 +507,7 @@ export const CodingAssessmentPage = () => {
                   </p>
                 </div>
                 <Badge variant={item.status === 'Completed' ? 'success' : 'warning'}>
-                  {item.status === 'Completed' ? `Score: ${item.score || 95}%` : 'In Progress'}
+                  {item.status === 'Completed' ? `Score: ${item.score ?? 0}%` : 'In Progress'}
                 </Badge>
               </div>
             ))
